@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Details App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-800 text-white font-sans p-6">
+
+    <h1 class="text-3xl font-bold text-center mb-8">Flight Details App</h1>
+
+    <div class="max-w-2xl mx-auto bg-gray-900 p-6 rounded-lg shadow-lg">
+        <!-- Flight number -->
+        <div class="mb-4">
+            <label for="flightNumber" class="block text-lg font-medium mb-2">Flight Number</label>
+            <select id="flightNumber" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="updateFlightDetails()">
+                <option value="">Select Flight</option>
+            </select>
+        </div>
+
+        <!-- STA -->
+        <div class="mb-4">
+            <label for="sta" class="block text-lg font-medium mb-2">STA</label>
+            <input type="text" id="sta" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" readonly>
+        </div>
+
+        <!-- STD -->
+        <div class="mb-4">
+            <label for="std" class="block text-lg font-medium mb-2">STD</label>
+            <input type="text" id="std" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" readonly>
+        </div>
+
+        <!-- ATA -->
+        <div class="mb-4">
+            <label for="ata" class="block text-lg font-medium mb-2">ATA</label>
+            <input type="time" id="ata" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
+        </div>
+
+        <!-- FPB -->
+        <div class="mb-4">
+            <label for="fpb" class="block text-lg font-medium mb-2">FPB</label>
+            <input type="time" id="fpb" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
+        </div>
+
+        <!-- LPB -->
+        <div class="mb-4">
+            <label for="lpb" class="block text-lg font-medium mb-2">LPB</label>
+            <input type="time" id="lpb" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
+        </div>
+
+        <!-- DC -->
+        <div class="mb-4">
+            <label for="dc" class="block text-lg font-medium mb-2">DC</label>
+            <input type="time" id="dc" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
+        </div>
+
+        <!-- ATD -->
+        <div class="mb-4">
+            <label for="atd" class="block text-lg font-medium mb-2">ATD</label>
+            <input type="time" id="atd" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
+        </div>
+
+        <!-- DC Reason -->
+        <div class="mb-4">
+            <label for="dcReason" class="block text-lg font-medium mb-2">DC Reason</label>
+            <select id="dcReason" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
+                <option value="achieved">Achieved</option>
+                <option value="delay due to holds not closed">Delay due to holds not closed</option>
+                <option value="delay due to cabin congestion">Cabin congestion</option>
+                <option value="delay due to onboard check ">Delay due to onboard check</option>
+                <option value="delay due to lmc">delay due to lmc</option>
+                <option value="delay due to cockpit briefing">Cockpit briefing</option>
+            </select>
+        </div>
+
+        <!-- Arrival Wheelchairs -->
+        <div class="mb-4">
+            <label for="arrivalWheelchairs" class="block text-lg font-medium mb-2">Arrival Wheelchairs</label>
+            <select id="arrivalWheelchairs" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
+                <option value="N/A">N/A</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>
+        </div>
+
+        <!-- Departure Wheelchairs -->
+        <div class="mb-6">
+            <label for="departureWheelchairs" class="block text-lg font-medium mb-2">Departure Wheelchairs</label>
+            <select id="departureWheelchairs" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
+                <option value="N/A">N/A</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>
+        </div>
+
+        <!-- Submit Button -->
+        <button onclick="submitDetails()" class="w-full py-3 bg-green-500 text-white font-semibold rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 mb-4">Submit</button>
+
+        <!-- Result Display -->
+        <div id="result" class="mb-6"></div>
+
+        <!-- Copy Button -->
+        <button id="copyBtn" class="w-full py-3 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 hidden" onclick="copyResult()">Copy Result</button>
+
+        <!-- Share Button -->
+        <button id="shareBtn" class="w-full py-3 bg-purple-500 text-white font-semibold rounded-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 hidden" onclick="shareResult()">Share Result</button>
+    </div>
+
+    <script>
+        // Existing script...
+
+        function submitDetails() {
+            // Existing code...
+            copyBtn.classList.remove('hidden');
+            if (navigator.share) {
+                document.getElementById('shareBtn').classList.remove('hidden');
+            }
+        }
+
+        function shareResult() {
+            const resultText = document.getElementById('result').innerText;
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Flight Details',
+                    text: resultText,
+                })
+                .then(() => alert('Result shared successfully!'))
+                .catch((error) => alert('Error sharing: ' + error));
+            } else {
+                alert('Web Share API is not supported in your browser.');
+            }
+        }
+    </script>
+</body>
+</html>
