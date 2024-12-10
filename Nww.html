@@ -151,58 +151,6 @@
         const stdInput = document.getElementById('std');
         const resultDiv = document.getElementById('result');
         const copyBtn = document.getElementById('copyBtn');
-
-        // Populate flight number dropdown
-        Object.keys(flightData).forEach(flight => {
-            const option = document.createElement('option');
-            option.value = flight;
-            option.textContent = flight;
-            flightNumberSelect.appendChild(option);
-        });
-
-        // Update STA and STD based on selected flight number
-        function updateFlightDetails() {
-            const selectedFlight = flightNumberSelect.value;
-            if (selectedFlight) {
-                staInput.value = flightData[selectedFlight].sta;
-                stdInput.value = flightData[selectedFlight].std;
-            } else {
-                staInput.value = '';
-                stdInput.value = '';
-            }
-        }
-
-        // Calculate time difference in minutes
-        function calculateTimeDifference(time1, time2) {
-            const [h1, m1] = time1.split(':').map(Number);
-            const [h2, m2] = time2.split(':').map(Number);
-            return (h2 * 60 + m2) - (h1 * 60 + m1);
-        }
-
-        // Submit details and show results
-        function submitDetails() {
-            const ata = document.getElementById('ata').value;
-            const atd = document.getElementById('atd').value;
-            const dc = document.getElementById('dc').value;
-            const dcReason = document.getElementById('dcReason').value;
-            const arrivalWheelchairs = document.getElementById('arrivalWheelchairs').value;
-            const departureWheelchairs = document.getElementById('departureWheelchairs').value;
-
-            if (!ata || !atd || !dc) {
-                alert("Please fill in all time fields (ATA, DC, and ATD).");
-                return;
-            }
-
-            const diffAtaDc = calculateTimeDifference(ata, dc);
-            const diffAtaAtd = calculateTimeDifference(ata, atd);
-
-            const resultHTML = `
-              <div class="text-xl font-semibold">*${flightNumberSelect.value}*</div>
-<br>
-                <div><strong>STA:</strong> ${staInput.value} hrs</div>
-                <div><strong>STD:</strong> ${stdInput.value} hrs</div>
-                <div><strong>ATA:</strong> ${ata} hrs</div>
-                <div><strong>FPB:</strong> ${document.getElementById('fpb').value} hrs</div>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -326,7 +274,7 @@
 
         <!-- Copy Button -->
         <button id="copyBtn" class="w-full py-3 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 hidden" onclick="copyResult()">Copy Result</button>
-            <!-- Share Button -->
+                <!-- Share Button -->
         <button id="shareBtn" class="w-full py-3 bg-purple-500 text-white font-semibold rounded-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 hidden" onclick="shareResult()">Share Result</button>
 
     </div>
@@ -437,7 +385,6 @@
             document.execCommand('copy');
             alert("Result copied to clipboard!");
         }
-
                 // Share result using Web Share API
         function shareResult() {
             const flightDetails = resultDiv.innerText;
@@ -457,4 +404,55 @@
 
     </script>
 </body>
-</html>
+</html>￼Enter
+        // Populate flight number dropdown
+        Object.keys(flightData).forEach(flight => {
+            const option = document.createElement('option');
+            option.value = flight;
+            option.textContent = flight;
+            flightNumberSelect.appendChild(option);
+        });
+
+        // Update STA and STD based on selected flight number
+        function updateFlightDetails() {
+            const selectedFlight = flightNumberSelect.value;
+            if (selectedFlight) {
+                staInput.value = flightData[selectedFlight].sta;
+                stdInput.value = flightData[selectedFlight].std;
+            } else {
+                staInput.value = '';
+                stdInput.value = '';
+            }
+        }
+
+        // Calculate time difference in minutes
+        function calculateTimeDifference(time1, time2) {
+            const [h1, m1] = time1.split(':').map(Number);
+            const [h2, m2] = time2.split(':').map(Number);
+            return (h2 * 60 + m2) - (h1 * 60 + m1);
+  }
+
+        // Submit details and show results
+        function submitDetails() {
+            const ata = document.getElementById('ata').value;
+            const atd = document.getElementById('atd').value;
+            const dc = document.getElementById('dc').value;
+            const dcReason = document.getElementById('dcReason').value;
+            const arrivalWheelchairs = document.getElementById('arrivalWheelchairs').value;
+            const departureWheelchairs = document.getElementById('departureWheelchairs').value;
+
+            if (!ata || !atd || !dc) {
+                alert("Please fill in all time fields (ATA, DC, and ATD).");
+                return;
+            }
+
+            const diffAtaDc = calculateTimeDifference(ata, dc);
+            const diffAtaAtd = calculateTimeDifference(ata, atd);
+
+            const resultHTML = `
+              <div class="text-xl font-semibold">*${flightNumberSelect.value}*</div>
+<br>
+                <div><strong>STA:</strong> ${staInput.value} hrs</div>
+                <div><strong>STD:</strong> ${stdInput.value} hrs</div>
+                <div><strong>ATA:</strong> ${ata} hrs</div>
+                <div><strong>FPB:</strong> ${document.getElementById('fpb').value} hrs</div>
