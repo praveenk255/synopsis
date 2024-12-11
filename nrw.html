@@ -211,13 +211,13 @@
                 <div><strong>LPB:</strong> ${document.getElementById('lpb').value} hrs</div>
                 <div><strong>DC:</strong> ${dc} hrs</div>
                 <div><strong>ATD:</strong> ${atd} hrs</div>
-
-                <div>${diffAtaDc} minutes door close</div>
-                <div>${diffAtaAtd} minutes chocks off</div>
-
-                <div>${arrivalWheelchairs} Arrival and ${departureWheelchairs} Departure &#9855;</div>
-
-                <div><strong>DC </strong> ${dcReason}</div>
+<br>
+                <p>${diffAtaDc} minutes door close</p>
+                <p>${diffAtaAtd} minutes chocks off</p>
+<br>
+                <p>${arrivalWheelchairs} Arrival and ${departureWheelchairs} Departure &#9855;</p>
+<br>
+                <p><strong>DC </strong> ${dcReason}</p>
             `;
             resultDiv.innerHTML = resultHTML;
             copyBtn.classList.remove('hidden');
