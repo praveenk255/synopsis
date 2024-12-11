@@ -203,7 +203,7 @@
 
             const resultHTML = `
               <div class="text-xl font-semibold">*${flightNumberSelect.value}*</div>
-
+<br>
                 <div><strong>STA:</strong> ${staInput.value} hrs</div>
                 <div><strong>STD:</strong> ${stdInput.value} hrs</div>
                 <div><strong>ATA:</strong> ${ata} hrs</div>
@@ -211,12 +211,12 @@
                 <div><strong>LPB:</strong> ${document.getElementById('lpb').value} hrs</div>
                 <div><strong>DC:</strong> ${dc} hrs</div>
                 <div><strong>ATD:</strong> ${atd} hrs</div>
-
+<br>
                 <div>${diffAtaDc} minutes door close</div>
                 <div>${diffAtaAtd} minutes chocks off</div>
-
+<br>
                 <div>${arrivalWheelchairs} Arrival and ${departureWheelchairs} Departure &#9855;</div>
-
+<br>
                 <div><strong>DC </strong> ${dcReason}</div>
             `;
             resultDiv.innerHTML = resultHTML;
