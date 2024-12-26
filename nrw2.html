@@ -288,14 +288,20 @@ function shareResult() {
             input.value = value;
         }
 
-        // Validate time format (hh:mm)
-        function validateTimeFormat(input) {
-            const value = input.value;
-            if (!/^\d{2}:\d{2}$/.test(value)) {
-                alert("Please enter time in hh:mm format.");
-                input.focus();
-            }
-        }
+       // Validate time format (hh:mm) without alert
+function validateTimeFormat(input) {
+    const value = input.value;
+    const isValid = /^\d{2}:\d{2}$/.test(value);
+
+    if (!isValid) {
+        // Add a red border to indicate invalid input
+        input.classList.add('border-red-500');
+    } else {
+        // Remove the red border when valid
+        input.classList.remove('border-red-500');
+    }
+}
+
 
     </script>
 </body>
