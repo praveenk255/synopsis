@@ -10,9 +10,13 @@
 <body class="bg-gray-800 text-white font-sans p-6">
 
     <h1 class="text-3xl font-bold text-center mb-8">Flight Details App</h1>
-    
 
-    <div class="max-w-2xl mx-auto bg-gray-900 p-6 rounded-lg shadow-lg">
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="flex justify-center items-center">
+        <div class="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-t-transparent border-blue-600"></div>
+    </div>
+
+    <div class="max-w-2xl mx-auto bg-gray-900 p-6 rounded-lg shadow-lg" id="flightDetailsContainer" style="display:none;">
         <!-- Flight number -->
         <div class="mb-4">
             <label for="flightNumber" class="block text-lg font-medium mb-2">Flight Number</label>
@@ -36,31 +40,31 @@
         <!-- ATA -->
         <div class="mb-4">
             <label for="ata" class="block text-lg font-medium mb-2">ATA</label>
-            <input type="time" id="ata" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
+            <input type="text" id="ata" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
         </div>
 
         <!-- FPB -->
         <div class="mb-4">
             <label for="fpb" class="block text-lg font-medium mb-2">FPB</label>
-            <input type="time" id="fpb" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
+            <input type="text" id="fpb" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
         </div>
 
         <!-- LPB -->
         <div class="mb-4">
             <label for="lpb" class="block text-lg font-medium mb-2">LPB</label>
-            <input type="time" id="lpb" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
+            <input type="text" id="lpb" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
         </div>
 
         <!-- DC -->
         <div class="mb-4">
             <label for="dc" class="block text-lg font-medium mb-2">DC</label>
-            <input type="time" id="dc" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
+            <input type="text" id="dc" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
         </div>
 
         <!-- ATD -->
         <div class="mb-4">
             <label for="atd" class="block text-lg font-medium mb-2">ATD</label>
-            <input type="time" id="atd" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
+            <input type="text" id="atd" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
         </div>
 
         <!-- DC Reason -->
@@ -116,8 +120,6 @@
 
         <!-- Submit Button -->
         <button onclick="submitDetails()" class="w-full py-3 bg-green-500 text-white font-semibold rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 mb-4">Submit</button>
-        
-        
 
         <!-- Result Display -->
         <div id="result" class="mb-6"></div>
@@ -127,9 +129,8 @@
         <br>
         <!-- Copy Button -->
         <button id="copyBtn" class="w-full py-3 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 hidden" onclick="copyResult()">Copy Result</button>
-
     </div>
-    
+
     <br/>
     
      <div class="text-center mb-8">
@@ -154,6 +155,8 @@
         const resultDiv = document.getElementById('result');
         const copyBtn = document.getElementById('copyBtn');
         const shareBtn = document.getElementById('shareBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const flightDetailsContainer = document.getElementById('flightDetailsContainer');
 
         // Function to load flight data from Google Sheets
         async function loadFlightData() {
@@ -161,6 +164,9 @@
                 const response = await fetch(googleSheetUrl);
                 const csvText = await response.text();
                 const rows = csvText.split('\n').slice(1); // Skip the header row
+
+                // Clear existing options
+                flightNumberSelect.innerHTML = '<option value="">Select Flight</option>';
 
                 rows.forEach(row => {
                     const [flightNumber, sta, std] = row.split(','); // Assuming the columns are: flightNumber, STA, STD
@@ -172,6 +178,11 @@
                         flightNumberSelect.appendChild(option);
                     }
                 });
+
+                // Hide loading spinner and show flight details container
+                loadingSpinner.style.display = 'none';
+                flightDetailsContainer.style.display = 'block';
+
             } catch (error) {
                 console.error('Error loading flight data:', error);
                 alert('Failed to load flight data. Please check your internet connection or the Google Sheets URL.');
@@ -252,18 +263,31 @@
             alert("Result copied to clipboard!");
         }
 
-        // Share the result
+        // Share the result (opens in a new window)
         function shareResult() {
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Flight Details Result',
-                    text: resultDiv.innerText
-                }).catch(console.error);
-            } else {
-                alert("Sharing not supported on this device.");
+            const resultText = resultDiv.innerText;
+            const encodedText = encodeURIComponent(resultText);
+            window.open(`https://twitter.com/intent/tweet?text=${encodedText}`, '_blank');
+        }
+
+        // Time formatting for fields like ATA, FPB, LPB, DC, ATD
+        function formatTime(input) {
+            let value = input.value.replace(/[^\d]/g, '').slice(0, 4); // Allow only 4 digits
+            if (value.length >= 3) {
+                value = value.slice(0, 2) + ':' + value.slice(2);
+            }
+            input.value = value;
+        }
+
+        // Validate time format (hh:mm)
+        function validateTimeFormat(input) {
+            const value = input.value;
+            if (!/^\d{2}:\d{2}$/.test(value)) {
+                alert("Please enter time in hh:mm format.");
+                input.focus();
             }
         }
-    </script>
 
+    </script>
 </body>
 </html>
