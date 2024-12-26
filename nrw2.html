@@ -263,12 +263,29 @@
             alert("Result copied to clipboard!");
         }
 
-        // Share the result (opens in a new window)
-        function shareResult() {
-            const resultText = resultDiv.innerText;
-            const encodedText = encodeURIComponent(resultText);
-            window.open(`https://twitter.com/intent/tweet?text=${encodedText}`, '_blank');
-        }
+        // Share the result using the native sharing API
+function shareResult() {
+    const resultText = resultDiv.innerText;
+
+    // Check if the Web Share API is supported (it’s supported on most mobile browsers and some desktop browsers)
+    if (navigator.share) {
+        navigator.share({
+            title: 'Flight Details',
+            text: resultText,
+            url: window.location.href  // You can include the current page URL or a custom URL
+        })
+        .then(() => {
+            console.log('Successfully shared');
+        })
+        .catch((error) => {
+            console.error('Error sharing:', error);
+            alert('Failed to share the result. Please try again.');
+        });
+    } else {
+        alert('Sharing is not supported on this device or browser.');
+    }
+}
+
 
         // Time formatting for fields like ATA, FPB, LPB, DC, ATD
         function formatTime(input) {
