@@ -271,20 +271,12 @@ function shareResult() {
     if (navigator.share) {
         navigator.share({
             title: 'Flight Details',
-            text: resultText,
-            url: window.location.href  // You can include the current page URL or a custom URL
-        })
-        .then(() => {
-            console.log('Successfully shared');
-        })
-        .catch((error) => {
-            console.error('Error sharing:', error);
-            alert('Failed to share the result. Please try again.');
+            text: resultText,  // Share the generated result text
         });
-    } else {
-        alert('Sharing is not supported on this device or browser.');
     }
 }
+
+    
 
 
         // Time formatting for fields like ATA, FPB, LPB, DC, ATD
