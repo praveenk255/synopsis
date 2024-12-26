@@ -11,7 +11,12 @@
 
     <h1 class="text-3xl font-bold text-center mb-8">Flight Details App</h1>
 
-    <div class="max-w-2xl mx-auto bg-gray-900 p-6 rounded-lg shadow-lg">
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="flex justify-center items-center">
+        <div class="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-t-transparent border-blue-600"></div>
+    </div>
+
+    <div class="max-w-2xl mx-auto bg-gray-900 p-6 rounded-lg shadow-lg" id="flightDetailsContainer" style="display:none;">
         <!-- Flight number -->
         <div class="mb-4">
             <label for="flightNumber" class="block text-lg font-medium mb-2">Flight Number</label>
@@ -35,31 +40,31 @@
         <!-- ATA -->
         <div class="mb-4">
             <label for="ata" class="block text-lg font-medium mb-2">ATA</label>
-            <input type="time" id="ata" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
+            <input type="text" id="ata" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
         </div>
 
         <!-- FPB -->
         <div class="mb-4">
             <label for="fpb" class="block text-lg font-medium mb-2">FPB</label>
-            <input type="time" id="fpb" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
+            <input type="text" id="fpb" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
         </div>
 
         <!-- LPB -->
         <div class="mb-4">
             <label for="lpb" class="block text-lg font-medium mb-2">LPB</label>
-            <input type="time" id="lpb" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
+            <input type="text" id="lpb" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
         </div>
 
         <!-- DC -->
         <div class="mb-4">
             <label for="dc" class="block text-lg font-medium mb-2">DC</label>
-            <input type="time" id="dc" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
+            <input type="text" id="dc" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
         </div>
 
         <!-- ATD -->
         <div class="mb-4">
             <label for="atd" class="block text-lg font-medium mb-2">ATD</label>
-            <input type="time" id="atd" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
+            <input type="text" id="atd" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
         </div>
 
         <!-- DC Reason -->
@@ -118,59 +123,81 @@
 
         <!-- Result Display -->
         <div id="result" class="mb-6"></div>
-  <!-- Share Button -->
+
+        <!-- Share Button -->
         <div><button id="shareBtn" class="w-full py-3 bg-purple-500 text-white font-semibold rounded-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 hidden" onclick="shareResult()">Share Result</button></div>
-<br>
+        <br>
         <!-- Copy Button -->
         <button id="copyBtn" class="w-full py-3 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 hidden" onclick="copyResult()">Copy Result</button>
+    </div>
 
-      
-
+    <br/>
+    
+     <div class="text-center mb-8">
+        <a 
+            href="https://docs.google.com/spreadsheets/d/1MroHUObbhujTElxj8GeoyFjpz8yHr2-aRDHoxXucgg4/edit?gid=0#gid=0" 
+            target="_blank" 
+            class="inline-block px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        >
+            Manage Flights Data
+        </a>
     </div>
 
     <script>
-        const flightData = {
-            "6E7036": { sta: "12:40", std: "13:05" },
-            "6E626": { sta: "11:15", std: "11:45" },
-            "6E507": { sta: "11:25", std: "11:55" },
-            "6E439": { sta: "11:45", std: "12:15" },
-            "6E2083": { sta: "11:55", std: "12:25" },
-            "6E2321": { sta: "12:30", std: "13:00" },
-            "6E6544": { sta: "13:30", std: "14:00" },
-            "6E6227": { sta: "13:45", std: "14:20" },
-            "6E144": { sta: "14:55", std: "15:30" },
-            "6E7739": { sta: "15:25", std: "16:05" },
-            "6E5040": { sta: "15:30", std: "16:00" },
-            "6E6414": { sta: "16:30", std: "17:00" },
-            "6E6502": { sta: "17:15", std: "17:55" },
-            "6E6044": { sta: "18:00", std: "18:30" },
-            "6E432": { sta: "18:15", std: "18:45" },
-            "6E2146": { sta: "18:25", std: "19:00" },
-            "6E5292": { sta: "19:30", std: "20:00" },
-            "6E499": { sta: "19:40", std: "20:10" },
-            "6E184": { sta: "22:15", std: "23:00" }
-        };
+        // Fetch and parse flight data from Google Sheets CSV
+        const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vShqRG9tdnOev4RjPH0oE7swkrcDwgf7vqwGYnsbDKoY8YJDSdJ1LWUNXjglPtuZIIJTm_bdlHpabNE/pub?output=csv";
+
+        const flightData = {}; // Initialize an empty object for flight data
 
         const flightNumberSelect = document.getElementById('flightNumber');
         const staInput = document.getElementById('sta');
         const stdInput = document.getElementById('std');
         const resultDiv = document.getElementById('result');
         const copyBtn = document.getElementById('copyBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const flightDetailsContainer = document.getElementById('flightDetailsContainer');
 
-        // Populate flight number dropdown
-        Object.keys(flightData).forEach(flight => {
-            const option = document.createElement('option');
-            option.value = flight;
-            option.textContent = flight;
-            flightNumberSelect.appendChild(option);
-        });
+        // Function to load flight data from Google Sheets
+        async function loadFlightData() {
+            try {
+                const response = await fetch(googleSheetUrl);
+                const csvText = await response.text();
+                const rows = csvText.split('\n').slice(1); // Skip the header row
+
+                // Clear existing options
+                flightNumberSelect.innerHTML = '<option value="">Select Flight</option>';
+
+                rows.forEach(row => {
+                    const [flightNumber, sta, std] = row.split(','); // Assuming the columns are: flightNumber, STA, STD
+                    if (flightNumber && sta && std) {
+                        flightData[flightNumber] = { sta: sta.trim(), std: std.trim() };
+                        const option = document.createElement('option');
+                        option.value = flightNumber;
+                        option.textContent = flightNumber;
+                        flightNumberSelect.appendChild(option);
+                    }
+                });
+
+                // Hide loading spinner and show flight details container
+                loadingSpinner.style.display = 'none';
+                flightDetailsContainer.style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading flight data:', error);
+                alert('Failed to load flight data. Please check your internet connection or the Google Sheets URL.');
+            }
+        }
+
+        // Call the function to load flight data on page load
+        document.addEventListener('DOMContentLoaded', loadFlightData);
 
         // Update STA and STD based on selected flight number
         function updateFlightDetails() {
             const selectedFlight = flightNumberSelect.value;
             if (selectedFlight) {
-                staInput.value = flightData[selectedFlight].sta;
-                stdInput.value = flightData[selectedFlight].std;
+                staInput.value = flightData[selectedFlight]?.sta || '';
+                stdInput.value = flightData[selectedFlight]?.std || '';
             } else {
                 staInput.value = '';
                 stdInput.value = '';
@@ -202,7 +229,7 @@
             const diffAtaAtd = calculateTimeDifference(ata, atd);
 
             const resultHTML = `
-              <div class="text-xl font-semibold">*${flightNumberSelect.value}*</div>
+                <div class="text-xl font-semibold">*${flightNumberSelect.value}*</div>
 <br>
                 <div><strong>STA:</strong> ${staInput.value} hrs</div>
                 <div><strong>STD:</strong> ${stdInput.value} hrs</div>
@@ -219,38 +246,62 @@
 <br>
                 <div><strong>DC </strong> ${dcReason}</div>
             `;
+
             resultDiv.innerHTML = resultHTML;
             copyBtn.classList.remove('hidden');
             shareBtn.classList.remove('hidden');
-
         }
 
-        // Copy result to clipboard
+        // Copy the result to clipboard
         function copyResult() {
-            const range = document.createRange();
-            range.selectNode(resultDiv);
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = resultDiv.innerText;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
             document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
             alert("Result copied to clipboard!");
         }
 
-        // Share result using Web Share API
-        function shareResult() {
-            const flightDetails = resultDiv.innerText;
-            if (navigator.share) {
-                navigator.share({
-                    title: "Flight Details",
-                    text: flightDetails
-                }).then(() => {
-                    alert("Result shared successfully!");
-                }).catch(err => {
-                    console.error("Error sharing:", err);
-                });
-            } else {
-                alert("Sharing is not supported on this browser.");
+        // Share the result using the native sharing API
+function shareResult() {
+    const resultText = resultDiv.innerText;
+
+    // Check if the Web Share API is supported (it’s supported on most mobile browsers and some desktop browsers)
+    if (navigator.share) {
+        navigator.share({
+            title: 'Flight Details',
+            text: resultText,  // Share the generated result text
+        });
+    }
+}
+
+    
+
+
+        // Time formatting for fields like ATA, FPB, LPB, DC, ATD
+        function formatTime(input) {
+            let value = input.value.replace(/[^\d]/g, '').slice(0, 4); // Allow only 4 digits
+            if (value.length >= 3) {
+                value = value.slice(0, 2) + ':' + value.slice(2);
             }
+            input.value = value;
         }
+
+       // Validate time format (hh:mm) without alert
+function validateTimeFormat(input) {
+    const value = input.value;
+    const isValid = /^\d{2}:\d{2}$/.test(value);
+
+    if (!isValid) {
+        // Add a red border to indicate invalid input
+        input.classList.add('border-red-500');
+    } else {
+        // Remove the red border when valid
+        input.classList.remove('border-red-500');
+    }
+}
+
 
     </script>
 </body>
