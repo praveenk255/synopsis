@@ -17,27 +17,34 @@
     </div>
 
     <div class="max-w-2xl mx-auto bg-gray-900 p-6 rounded-lg shadow-lg" id="flightDetailsContainer" style="display:none;">
-        <!-- Flight Number -->
-        <div>
-            <label for="flightNumber" class="block text-lg font-medium mb-2">Flight Number</label>
-            <select id="flightNumber" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="updateFlightDetails()">
-                <option value="">Select Flight</option>
-            </select>
-        </div>
+    
+    
+        <div class="flex space-x-4 mt-4">
+    <!-- Flight Number -->
+    <div class="flex-1">
+        <label for="flightNumber" class="block text-lg font-medium mb-2">Flight Number</label>
+        <select id="flightNumber" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="updateFlightDetails()">
+            <option value="">Select Flight</option>
+        </select>
+    </div>
+
+    <!-- STA -->
+    <div class="flex-1">
+        <label for="sta" class="block text-lg font-medium mb-2">STA</label>
+        <input type="text" id="sta" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" readonly>
+    </div>
+
+    <!-- STD -->
+    <div class="flex-1">
+        <label for="std" class="block text-lg font-medium mb-2">STD</label>
+        <input type="text" id="std" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" readonly>
+    </div>
+</div>
+
 
         <!-- Grid Layout for Other Inputs -->
         <div class="grid grid-cols-2 gap-x-4 gap-y-6 mt-6">
-            <!-- STA -->
-            <div>
-                <label for="sta" class="block text-lg font-medium mb-2">STA</label>
-                <input type="text" id="sta" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" readonly>
-            </div>
-
-            <!-- STD -->
-            <div>
-                <label for="std" class="block text-lg font-medium mb-2">STD</label>
-                <input type="text" id="std" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" readonly>
-            </div>
+            
 
             <!-- ATA -->
             <div>
