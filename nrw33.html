@@ -7,307 +7,234 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background: url('https://images.unsplash.com/photo-1493217465235-352dd80dce1f') no-repeat center center fixed;
+            background-size: cover;
+        }
 
+        .glass {
+            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .text-light {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .text-dark {
+            color: rgba(0, 0, 0, 0.85);
+        }
+
+        .button-large {
+            padding: 14px 24px;
+            font-size: 1.2rem;
+        }
+
+        .button-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 </head>
-<body class="bg-gray-800 text-white font-sans p-6">
+<body class="font-sans text-light">
 
     <!-- Loading Spinner -->
     <div id="loadingSpinner" class="flex justify-center items-center h-screen">
-        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 border-opacity-75"></div>
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
     </div>
 
-    <div class="max-w-2xl mx-auto bg-gray-900 p-6 rounded-lg shadow-lg" id="flightDetailsContainer" style="display:none;">
-    
-    
-        <div class="flex space-x-4 mt-4">
-    <!-- Flight Number -->
-    <div class="flex-1">
-        <label for="flightNumber" class="block text-lg font-medium mb-2">Flight</label>
-        <select id="flightNumber" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" onchange="updateFlightDetails()">
-            <option value="">Flight Number</option>
-        </select>
-    </div>
+    <!-- Flight Details Container -->
+    <div id="flightDetailsContainer" class="hidden max-w-4xl mx-auto glass p-8 rounded-lg shadow-lg animate-fade-in mt-8">
+        <h1 class="text-3xl font-bold text-center mb-6 text-white">
+            <i class="fas fa-plane-departure mr-2"></i> Flight Details
+        </h1>
 
-    <!-- STA -->
-    <div class="flex-1">
-        <label for="sta" class="block text-lg font-medium mb-2">STA</label>
-        <input type="text" id="sta" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" readonly>
-    </div>
+        <!-- Flight Information -->
+        <div class="flex space-x-4">
+            <div class="flex-1">
+                <label for="flightNumber" class="block text-lg font-medium mb-2">Flight</label>
+                <select id="flightNumber" class="w-full p-3 bg-gray-800 text-light rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" onchange="updateFlightDetails()">
+                    <option value="">Select Flight</option>
+                </select>
+            </div>
+            <div class="flex-1">
+                <label for="sta" class="block text-lg font-medium mb-2">STA</label>
+                <input type="text" id="sta" class="w-full p-3 bg-gray-800 text-light rounded-md focus:outline-none" readonly>
+            </div>
+            <div class="flex-1">
+                <label for="std" class="block text-lg font-medium mb-2">STD</label>
+                <input type="text" id="std" class="w-full p-3 bg-gray-800 text-light rounded-md focus:outline-none" readonly>
+            </div>
+        </div>
 
-    <!-- STD -->
-    <div class="flex-1">
-        <label for="std" class="block text-lg font-medium mb-2">STD</label>
-        <input type="text" id="std" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" readonly>
-    </div>
-</div>
-
-
-        <!-- Grid Layout for Other Inputs -->
-        <div class="grid grid-cols-2 gap-x-4 gap-y-6 mt-6">
-            
-
-            <!-- ATA -->
+        <!-- Time Inputs -->
+        <div class="grid grid-cols-2 gap-6 mt-6">
             <div>
                 <label for="ata" class="block text-lg font-medium mb-2">ATA</label>
-                <input type="text" inputmode="numeric" pattern="[0-9]*" id="ata" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
+                <input type="text" id="ata" class="w-full p-3 bg-gray-800 text-light rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
             </div>
-
-            <!-- FPB -->
             <div>
                 <label for="fpb" class="block text-lg font-medium mb-2">FPB</label>
-                <input type="text" inputmode="numeric" pattern="[0-9]*" id="fpb" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
+                <input type="text" id="fpb" class="w-full p-3 bg-gray-800 text-light rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
             </div>
-
-            <!-- LPB -->
             <div>
                 <label for="lpb" class="block text-lg font-medium mb-2">LPB</label>
-                <input type="text" inputmode="numeric" pattern="[0-9]*" id="lpb" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
+                <input type="text" id="lpb" class="w-full p-3 bg-gray-800 text-light rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
             </div>
-
-            <!-- DC -->
             <div>
                 <label for="dc" class="block text-lg font-medium mb-2">DC</label>
-                <input type="text" inputmode="numeric" pattern="[0-9]*" id="dc" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
+                <input type="text" id="dc" class="w-full p-3 bg-gray-800 text-light rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
             </div>
-
-            <!-- ATD -->
             <div>
                 <label for="atd" class="block text-lg font-medium mb-2">ATD</label>
-                <input type="text" inputmode="numeric" pattern="[0-9]*" id="atd" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
+                <input type="text" id="atd" class="w-full p-3 bg-gray-800 text-light rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
             </div>
-
-            <!-- DC Reason -->
             <div>
                 <label for="dcReason" class="block text-lg font-medium mb-2">DC Reason</label>
-                <select id="dcReason" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
+                <select id="dcReason" class="w-full p-3 bg-gray-800 text-light rounded-md focus:outline-none">
                     <option value="achieved">Achieved</option>
-                    <option value="delay due to holds not closed">Delay due to holds not closed</option>
-                    <option value="delay due to cabin congestion">Cabin congestion</option>
-                    <option value="delay due to onboard check">Delay due to onboard check</option>
-                    <option value="delay due to lmc">Delay due to lmc</option>
-                    <option value="delay due to cockpit briefing">Cockpit briefing</option>
-                </select>
-            </div>
-
-            <!-- Arrival Wheelchairs -->
-            <div>
-                <label for="arrivalWheelchairs" class="block text-lg font-medium mb-2">Arrival WC</label>
-                <select id="arrivalWheelchairs" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
-                    <option value="N/A">N/A</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                    <option value="8">8</option>
-                    <option value="9">9</option>
-                    <option value="10">10</option>
-                </select>
-            </div>
-
-            <!-- Departure Wheelchairs -->
-            <div>
-                <label for="departureWheelchairs" class="block text-lg font-medium mb-2">Departure WC</label>
-                <select id="departureWheelchairs" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
-                    <option value="N/A">N/A</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                    <option value="8">8</option>
-                    <option value="9">9</option>
-                    <option value="10">10</option>
+                    <option value="delay due to holds not closed">Holds Not Closed</option>
+                    <option value="delay due to cabin congestion">Cabin Congestion</option>
                 </select>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mt-8">
-            <!-- Submit (Share via WhatsApp) Button -->
-            <button onclick="shareOnWhatsApp()" class="flex items-center justify-center py-3 bg-green-500 text-white font-semibold rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 mb-4">
-  <i class="fa-brands fa-whatsapp fa-2x mr-2"></i> <!-- Added margin-right for space between icon and text -->
-  Share
-</button>
+        <!-- Wheelchair and Actions -->
+        <div class="grid grid-cols-2 gap-6 mt-8">
+            <div>
+                <label for="arrivalWheelchairs" class="block text-lg font-medium mb-2">Arrival WC</label>
+                <select id="arrivalWheelchairs" class="w-full p-3 bg-gray-800 text-light rounded-md focus:outline-none">
+                    <option value="N/A">N/A</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                </select>
+            </div>
+            <div>
+                <label for="departureWheelchairs" class="block text-lg font-medium mb-2">Departure WC</label>
+                <select id="departureWheelchairs" class="w-full p-3 bg-gray-800 text-light rounded-md focus:outline-none">
+                    <option value="N/A">N/A</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                </select>
+            </div>
+        </div>
 
-
-
-
-
-            <!-- Clear Button -->
-            <button onclick="resetFields()" class="py-3 bg-red-500 text-white font-semibold rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4">Clear</button>
+        <!-- Buttons -->
+        <div class="flex space-x-6 mt-8">
+            <button onclick="shareOnWhatsApp()" class="button-large button-icon py-3 bg-green-500 text-light font-semibold rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500">
+                <i class="fab fa-whatsapp fa-lg"></i> Share
+            </button>
+            <button onclick="resetFields()" class="button-large py-3 bg-red-500 text-light font-semibold rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500">Clear</button>
         </div>
     </div>
 
-    <footer class=" p-6 mt-8 text-center">
-        <!-- Manage Flights Data Button -->
-        <a 
-            href="https://docs.google.com/spreadsheets/d/1MroHUObbhujTElxj8GeoyFjpz8yHr2-aRDHoxXucgg4/edit?gid=0#gid=0" 
-            target="_blank" 
-            class="inline-block px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        >
+    <footer class="mt-16 text-center">
+        <a href="https://docs.google.com/spreadsheets" target="_blank" class="inline-block px-6 py-3 bg-blue-500 text-light font-medium rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400">
             Manage Flights Data
         </a>
     </footer>
 
     <script>
-        // Fetch and parse flight data from Google Sheets CSV
-const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vShqRG9tdnOev4RjPH0oE7swkrcDwgf7vqwGYnsbDKoY8YJDSdJ1LWUNXjglPtuZIIJTm_bdlHpabNE/pub?output=csv";
+        const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vShqRG9tdnOev4RjPH0oE7swkrcDwgf7vqwGYnsbDKoY8YJDSdJ1LWUNXjglPtuZIIJTm_bdlHpabNE/pub?output=csv";
+        const flightData = {};
+        const flightNumberSelect = document.getElementById('flightNumber');
+        const staInput = document.getElementById('sta');
+        const stdInput = document.getElementById('std');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const flightDetailsContainer = document.getElementById('flightDetailsContainer');
 
-const flightData = {}; // Initialize an empty object for flight data
+        async function loadFlightData() {
+            try {
+                const response = await fetch(googleSheetUrl);
+                const csvText = await response.text();
+                const rows = csvText.split('\n').slice(1);
 
-const flightNumberSelect = document.getElementById('flightNumber');
-const staInput = document.getElementById('sta');
-const stdInput = document.getElementById('std');
-const resultDiv = document.getElementById('result');
-const shareBtn = document.getElementById('shareBtn');
-const loadingSpinner = document.getElementById('loadingSpinner');
-const flightDetailsContainer = document.getElementById('flightDetailsContainer');
+                flightNumberSelect.innerHTML = '<option value="">Select Flight</option>';
 
-// Function to load flight data from Google Sheets
-async function loadFlightData() {
-    try {
-        const response = await fetch(googleSheetUrl);
-        const csvText = await response.text();
-        const rows = csvText.split('\n').slice(1); // Skip the header row
+                rows.forEach(row => {
+                    const [flightNumber, sta, std] = row.split(',');
+                    if (flightNumber && sta && std) {
+                        flightData[flightNumber] = { sta: sta.trim(), std: std.trim() };
+                        const option = document.createElement('option');
+                        option.value = flightNumber;
+                        option.textContent = flightNumber;
+                        flightNumberSelect.appendChild(option);
+                    }
+                });
 
-        // Clear existing options
-        flightNumberSelect.innerHTML = '<option value="">Select Flight</option>';
-
-        rows.forEach(row => {
-            const [flightNumber, sta, std] = row.split(','); // Assuming the columns are: flightNumber, STA, STD
-            if (flightNumber && sta && std) {
-                flightData[flightNumber] = { sta: sta.trim(), std: std.trim() };
-                const option = document.createElement('option');
-                option.value = flightNumber;
-                option.textContent = flightNumber;
-                flightNumberSelect.appendChild(option);
+                loadingSpinner.style.display = 'none';
+                flightDetailsContainer.style.display = 'block';
+            } catch (error) {
+                console.error('Error loading flight data:', error);
+                alert('Failed to load flight data.');
             }
-        });
+        }
 
-        // Hide loading spinner and show flight details container
-        loadingSpinner.style.display = 'none';
-        flightDetailsContainer.style.display = 'block';
+        document.addEventListener('DOMContentLoaded', loadFlightData);
 
-    } catch (error) {
-        console.error('Error loading flight data:', error);
-        alert('Failed to load flight data. Please check your internet connection or the Google Sheets URL.');
-    }
-}
+        function updateFlightDetails() {
+            const selectedFlight = flightNumberSelect.value;
+            if (selectedFlight) {
+                staInput.value = flightData[selectedFlight]?.sta || '';
+                stdInput.value = flightData[selectedFlight]?.std || '';
+            } else {
+                staInput.value = '';
+                stdInput.value = '';
+            }
+        }
 
-// Call the function to load flight data on page load
-document.addEventListener('DOMContentLoaded', loadFlightData);
+        function formatTime(input) {
+            let value = input.value.replace(/[^\d]/g, '').slice(0, 4);
+            if (value.length >= 3) {
+                value = value.slice(0, 2) + ':' + value.slice(2);
+            }
+            input.value = value;
+        }
 
-// Update STA and STD based on selected flight number
-function updateFlightDetails() {
-    const selectedFlight = flightNumberSelect.value;
-    if (selectedFlight) {
-        staInput.value = flightData[selectedFlight]?.sta || '';
-        stdInput.value = flightData[selectedFlight]?.std || '';
-    } else {
-        staInput.value = '';
-        stdInput.value = '';
-    }
-}
+        function shareOnWhatsApp() {
+            const ata = document.getElementById('ata').value;
+            const atd = document.getElementById('atd').value;
+            const dc = document.getElementById('dc').value;
 
-// Calculate time difference in minutes
-function calculateTimeDifference(time1, time2) {
-    const [h1, m1] = time1.split(':').map(Number);
-    const [h2, m2] = time2.split(':').map(Number);
-    return (h2 * 60 + m2) - (h1 * 60 + m1);
-}
+            if (!ata || !atd || !dc) {
+                alert("Fill all time fields!");
+                return;
+            }
 
-// Function to format and share the result on WhatsApp
-function shareOnWhatsApp() {
-    const ata = document.getElementById('ata').value;
-    const atd = document.getElementById('atd').value;
-    const dc = document.getElementById('dc').value;
-    const dcReason = document.getElementById('dcReason').value;
-    const arrivalWheelchairs = document.getElementById('arrivalWheelchairs').value;
-    const departureWheelchairs = document.getElementById('departureWheelchairs').value;
+            const msg = `
+*Flight*: ${flightNumberSelect.value}
+STA: ${staInput.value}, STD: ${stdInput.value}
+ATA: ${ata}, ATD: ${atd}, DC: ${dc}`;
 
-    if (!ata || !atd || !dc) {
-        alert("Please fill in all time fields (ATA, DC, and ATD).");
-        return;
-    }
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
 
-    const diffAtaDc = calculateTimeDifference(ata, dc);
-    const diffAtaAtd = calculateTimeDifference(ata, atd);
-
-    const resultText = `
-*${flightNumberSelect.value}*
-
-STA: ${staInput.value} hrs
-STD: ${stdInput.value} hrs
-ATA: ${ata} hrs
-FPB: ${document.getElementById('fpb').value} hrs
-LPB: ${document.getElementById('lpb').value} hrs
-DC:  ${dc} hrs
-ATD: ${atd} hrs
-
-${diffAtaDc} minutes door close
-${diffAtaAtd} minutes chocks off
-
-${arrivalWheelchairs} Arrival and ${departureWheelchairs} Departure WC
-
-DC ${dcReason}
-`;
-
-    // Create a WhatsApp share link
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(resultText)}`;
-
-    // Redirect to WhatsApp with the pre-filled message
-    window.open(whatsappUrl, '_blank');
-}
-
-// Reset all input fields
-function resetFields() {
-    document.getElementById('flightNumber').value = '';
-    document.getElementById('sta').value = '';
-    document.getElementById('std').value = '';
-    document.getElementById('ata').value = '';
-    document.getElementById('fpb').value = '';
-    document.getElementById('lpb').value = '';
-    document.getElementById('dc').value = '';
-    document.getElementById('atd').value = '';
-    document.getElementById('dcReason').value = 'achieved';
-    document.getElementById('arrivalWheelchairs').value = 'N/A';
-    document.getElementById('departureWheelchairs').value = 'N/A';
-
-    // Hide the share button and reset the flight details
-    shareBtn.classList.add('hidden');
-}
-
-// Time formatting for fields like ATA, FPB, LPB, DC, ATD
-function formatTime(input) {
-    let value = input.value.replace(/[^\d]/g, '').slice(0, 4); // Allow only 4 digits
-    if (value.length >= 3) {
-        value = value.slice(0, 2) + ':' + value.slice(2);
-    }
-    input.value = value;
-}
-
-// Validate time format (hh:mm) without alert
-function validateTimeFormat(input) {
-    const value = input.value;
-    const isValid = /^\d{2}:\d{2}$/.test(value);
-
-    if (!isValid) {
-        input.classList.add('border-red-500');
-    } else {
-        input.classList.remove('border-red-500');
-    }
-}
-
-// Listen for the submit button click to trigger the WhatsApp sharing
-document.getElementById('shareBtn').addEventListener('click', shareOnWhatsApp);
-
-// Automatically update flight details when flight number is selected
-flightNumberSelect.addEventListener('change', updateFlightDetails);
-
+        function resetFields() {
+            document.getElementById('flightNumber').value = '';
+            staInput.value = '';
+            stdInput.value = '';
+            document.querySelectorAll('input').forEach(input => input.value = '');
+        }
     </script>
 </body>
 </html>
