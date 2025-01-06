@@ -425,7 +425,7 @@ flightNumberSelect.addEventListener('change', updateFlightDetails);
 
     // Send the data to Google Sheets via the Google Apps Script Web App
     const url = 'https://script.google.com/macros/s/AKfycbwSErfksh91bqKRWRkHwa1HYYWV48LSBnC5r4jeOpF9KaNdZtAR3WN3oUP34L1J5ce_bg/exec';  // Replace with your Web App URL
-    fetch(url, {
+    fetch('https://script.google.com/macros/s/AKfycbwSErfksh91bqKRWRkHwa1HYYWV48LSBnC5r4jeOpF9KaNdZtAR3WN3oUP34L1J5ce_bg/exec', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
