@@ -382,7 +382,11 @@ function resetFields() {
     document.getElementById('departureWheelchairs').value = 'N/A';
 
     // Hide the share button and reset the flight details
-    shareBtn.classList.add('hidden');
+    // Keep the Share button visible
+    const shareBtn = document.getElementById('shareBtn');
+    if (shareBtn) {
+        shareBtn.style.display = 'block'; // Ensure it remains visible
+    }
 }
 
 // Time formatting for fields like ATA, FPB, LPB, DC, ATD
