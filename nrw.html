@@ -67,6 +67,33 @@
     .trail-dot:nth-child(3) {
         animation-delay: 0.4s;
     }
+    
+     /* Add transition for the floating label effect */
+        .floating-label-group input:focus ~ label,
+        .floating-label-group input:not(:placeholder-shown) ~ label {
+            transform: translateY(-1.5rem);
+            font-size: 0.75rem;
+            color: #3b82f6; /* Tailwind blue-500 */
+        }
+        .floating-label-group select:focus ~ label,
+        .floating-label-group select:not(:placeholder-shown) ~ label {
+            transform: translateY(-1.5rem);
+            font-size: 0.75rem;
+            color: #3b82f6; /* Tailwind blue-500 */
+        }
+        .floating-label-group label {
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* Adjust placeholder spacing */
+        .floating-label-group input,
+        .floating-label-group select {
+            padding-top: 1.25rem;
+        }
+
+        .floating-label-group label {
+            padding-top: 1.25rem;
+        }
 </style>
 
 
@@ -89,119 +116,123 @@
 
 
 
-    <div class="max-w-2xl mx-auto bg-gray-900 p-6 rounded-lg shadow-lg" id="flightDetailsContainer" style="display:none;">
+  <!-- Flight Details Container -->
+<div class="max-w-2xl mx-auto bg-gray-900 p-6 rounded-lg shadow-lg mt-10" id="flightDetailsContainer">
     
-    
-        <div class="flex space-x-4 mt-4">
-    <!-- Flight Number -->
-    <div class="flex-1">
-        <label for="flightNumber" class="block text-lg font-medium mb-2"> <i class="fas fa-plane-departure text-blue-400"></i> Flight</label>
-        <select id="flightNumber" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" onchange="updateFlightDetails()">
-            <option value="">Flight Number</option>
-        </select>
-    </div>
-
-    <!-- STA -->
-    <div class="flex-1">
-        <label for="sta" class="block text-lg font-medium mb-2">STA</label>
-        <input type="text" id="sta" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" readonly>
-    </div>
-
-    <!-- STD -->
-    <div class="flex-1">
-        <label for="std" class="block text-lg font-medium mb-2">STD</label>
-        <input type="text" id="std" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" readonly>
-    </div>
+    <!-- First Row (Flight Number, STA, STD) -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+        <!-- Flight Number -->
+<div class="relative z-0">
+    <select id="flightNumber" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer hover:bg-blue-600 hover:text-white" onchange="updateFlightDetails()">
+        <option value="" selected disabled>Flight Number</option>
+        <!-- You can add more options here -->
+    </select>
+    <label for="flightNumber" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"></label>
 </div>
 
 
-        <!-- Grid Layout for Other Inputs -->
-        <div class="grid grid-cols-2 gap-x-4 gap-y-6 mt-6">
-            
-
-            <!-- ATA -->
-            <div>
-                <label for="ata" class="block text-lg font-medium mb-2">ATA</label>
-                <input type="text" inputmode="numeric" pattern="[0-9]*" id="ata" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
-            </div>
-
-            <!-- FPB -->
-            <div>
-                <label for="fpb" class="block text-lg font-medium mb-2">FPB</label>
-                <input type="text" inputmode="numeric" pattern="[0-9]*" id="fpb" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
-            </div>
-
-            <!-- LPB -->
-            <div>
-                <label for="lpb" class="block text-lg font-medium mb-2">LPB</label>
-                <input type="text" inputmode="numeric" pattern="[0-9]*" id="lpb" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
-            </div>
-
-            <!-- DC -->
-            <div>
-                <label for="dc" class="block text-lg font-medium mb-2">DC</label>
-                <input type="text" inputmode="numeric" pattern="[0-9]*" id="dc" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
-            </div>
-
-            <!-- ATD -->
-            <div>
-                <label for="atd" class="block text-lg font-medium mb-2">ATD</label>
-                <input type="text" inputmode="numeric" pattern="[0-9]*" id="atd" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
-            </div>
-
-            <!-- DC Reason -->
-            <div>
-                <label for="dcReason" class="block text-lg font-medium mb-2">DC Reason</label>
-                <select id="dcReason" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
-                    <option value="achieved">Achieved</option>
-                    <option value="delay due to holds not closed">Delay due to holds not closed</option>
-                    <option value="delay due to cabin congestion">Cabin congestion</option>
-                    <option value="delay due to onboard check">Delay due to onboard check</option>
-                    <option value="delay due to lmc">Delay due to lmc</option>
-                    <option value="delay due to cockpit briefing">Cockpit briefing</option>
-                </select>
-            </div>
-
-            <!-- Arrival Wheelchairs -->
-            <div>
-                <label for="arrivalWheelchairs" class="block text-lg font-medium mb-2">Arrival WC</label>
-                <select id="arrivalWheelchairs" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
-                    <option value="N/A">N/A</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                    <option value="8">8</option>
-                    <option value="9">9</option>
-                    <option value="10">10</option>
-                </select>
-            </div>
-
-            <!-- Departure Wheelchairs -->
-            <div>
-                <label for="departureWheelchairs" class="block text-lg font-medium mb-2">Departure WC</label>
-                <select id="departureWheelchairs" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
-                    <option value="N/A">N/A</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                    <option value="8">8</option>
-                    <option value="9">9</option>
-                    <option value="10">10</option>
-                </select>
-            </div>
+        <!-- STA -->
+        <div class="relative z-0">
+            <input id="sta" type="text" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder="" readonly>
+            <label for="sta" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">STA</label>
         </div>
+
+        <!-- STD -->
+        <div class="relative z-0">
+            <input id="std" type="text" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder="" readonly>
+            <label for="std" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">STD</label>
+        </div>
+    </div>
+
+    <!-- Other Inputs (Grid Layout) -->
+    <div class="grid grid-cols-2 gap-4">
+        <!-- ATA -->
+        <div class="relative z-0">
+            <input id="ata" type="text" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder="" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
+            <label for="ata" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">ATA</label>
+        </div>
+
+        <!-- FPB -->
+        <div class="relative z-0">
+            <input id="fpb" type="text" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder="" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
+            <label for="fpb" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">FPB</label>
+        </div>
+
+        <!-- LPB -->
+        <div class="relative z-0">
+            <input id="lpb" type="text" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder="" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
+            <label for="lpb" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">LPB</label>
+        </div>
+
+        <!-- DC -->
+        <div class="relative z-0">
+            <input id="dc" type="text" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder="" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
+            <label for="dc" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">DC</label>
+        </div>
+
+        <!-- ATD -->
+        <div class="relative z-0">
+            <input id="atd" type="text" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder="" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
+            <label for="atd" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">ATD</label>
+        </div>
+
+        <!-- DC Reason -->
+        <div class="relative z-0">
+            <select id="dcReason" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer hover:bg-blue-600 hover:text-white">
+                <option value="" disabled selected>Select Reason</option>
+                <option value="achieved">Achieved</option>
+                <option value="delay due to holds not closed">Delay due to holds not closed</option>
+                <option value="delay due to cabin congestion">Cabin congestion</option>
+                <option value="delay due to onboard check">Delay due to onboard check</option>
+                <option value="delay due to lmc">Delay due to lmc</option>
+                <option value="delay due to cockpit briefing">Cockpit briefing</option>
+            </select>
+            <label for="dcReason" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">DC Reason</label>
+        </div>
+    </div>
+
+    <!-- Arrival and Departure Wheelchairs (New row) -->
+<div class="grid grid-cols-2 gap-4 mt-6 arrival-departure-wc">
+    <!-- Arrival Wheelchairs -->
+    <div class="relative z-0">
+        <select id="arrivalWheelchairs" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer hover:bg-blue-600 hover:text-white">
+            <option value="N/A" selected>N/A</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+        </select>
+        <label for="arrivalWheelchairs" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Arrival WC</label>
+    </div>
+
+    <!-- Departure Wheelchairs -->
+    <div class="relative z-0">
+        <select id="departureWheelchairs" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer hover:bg-blue-600 hover:text-white">
+            <option value="N/A" selected>N/A</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+        </select>
+        <label for="departureWheelchairs" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Departure WC</label>
+    </div>
+</div>
 
         <div class="grid grid-cols-2 gap-4 mt-8">
             <!-- Submit (Share via WhatsApp) Button -->
-            <button onclick="shareOnWhatsApp()" class="flex items-center justify-center py-3 bg-green-500 text-white font-semibold rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 mb-4">
+            <button id="shareBtn" onclick="shareOnWhatsApp()" class="flex items-center justify-center py-3 bg-green-500 text-white font-semibold rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 mb-4">
   <i class="fa-brands fa-whatsapp fa-2x mr-2"></i> <!-- Added margin-right for space between icon and text -->
   Share
 </button>
