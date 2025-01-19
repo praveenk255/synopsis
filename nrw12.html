@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Details App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+    .plane-animation {
+        position: relative;
+        font-size: 4rem; /* Larger plane size */
+        animation: fly-right 3s linear infinite;
+        display: flex;
+        align-items: center;
+    }
+
+    .plane-icon {
+        color: #3498db; /* Classy blue color */
+         /* Slightly straighten the plane */
+    }
+
+    .trail-dot {
+        width: 10px;
+        height: 10px;
+        background-color: #95a5a6; /* Light gray color for the dots */
+        border-radius: 50%;
+        animation: trail 3s linear infinite;
+    }
+
+    /* Flying animation for the plane */
+    @keyframes fly-right {
+        0% {
+            transform: translateX(-200px);
+        }
+        100% {
+            transform: translateX(300px);
+        }
+    }
+
+    /* Dot trail animation */
+    @keyframes trail {
+        0% {
+            opacity: 0;
+            transform: translateX(-50px);
+        }
+        50% {
+            opacity: 0.5;
+            transform: translateX(0);
+        }
+        100% {
+            opacity: 0;
+            transform: translateX(50px);
+        }
+    }
+
+    /* Staggered animations for dots */
+    .trail-dot:nth-child(1) {
+        animation-delay: 0s;
+    }
+
+    .trail-dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .trail-dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+    
+     /* Add transition for the floating label effect */
+        .floating-label-group input:focus ~ label,
+        .floating-label-group input:not(:placeholder-shown) ~ label {
+            transform: translateY(-1.5rem);
+            font-size: 0.75rem;
+            color: #3b82f6; /* Tailwind blue-500 */
+        }
+        .floating-label-group select:focus ~ label,
+        .floating-label-group select:not(:placeholder-shown) ~ label {
+            transform: translateY(-1.5rem);
+            font-size: 0.75rem;
+            color: #3b82f6; /* Tailwind blue-500 */
+        }
+        .floating-label-group label {
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* Adjust placeholder spacing */
+        .floating-label-group input,
+        .floating-label-group select {
+            padding-top: 1.25rem;
+        }
+
+        .floating-label-group label {
+            padding-top: 1.25rem;
+        }
+</style>
+
+
+
+</head>
+<body class="bg-gray-800 text-white font-sans p-6">
+
+    <!-- Loading Spinner -->
+    <!-- Loading Spinner -->
+<div id="loadingSpinner" class="flex justify-center items-center h-screen">
+    <div class="relative">
+        <div class="plane-animation flex items-center space-x-2">
+            <span class="trail-dot"></span>
+            <span class="trail-dot"></span>
+            <span class="trail-dot"></span>
+            <span class="plane-icon">✈︎</span>
+        </div>
+    </div>
+</div>
+
+
+
+  <!-- Flight Details Container -->
+<div class="max-w-2xl mx-auto bg-gray-900 p-6 rounded-lg shadow-lg mt-10" id="flightDetailsContainer">
+    
+    <!-- First Row (Flight Number, STA, STD) -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+        <!-- Flight Number -->
+<div class="relative z-0">
+    <select id="flightNumber" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer hover:bg-blue-600 hover:text-white" onchange="updateFlightDetails()">
+        <option value="" selected disabled>Flight Number</option>
+        <!-- You can add more options here -->
+    </select>
+    <label for="flightNumber" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"></label>
+</div>
+
+
+        <!-- STA -->
+        <div class="relative z-0">
+            <input id="sta" type="text" inputmode="numeric" pattern="[0-9]*" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder="" readonly>
+            <label for="sta" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">STA</label>
+        </div>
+
+        <!-- STD -->
+        <div class="relative z-0">
+            <input id="std" type="text" inputmode="numeric" pattern="[0-9]*" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder="" readonly>
+            <label for="std" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">STD</label>
+        </div>
+    </div>
+
+    <!-- Other Inputs (Grid Layout) -->
+    <div class="grid grid-cols-2 gap-4">
+        <!-- ATA -->
+        <div class="relative z-0">
+            <input id="ata" type="text" inputmode="numeric" pattern="[0-9]*" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder="" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
+            <label for="ata" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">ATA</label>
+        </div>
+
+        <!-- FPB -->
+        <div class="relative z-0">
+            <input id="fpb" type="text" inputmode="numeric" pattern="[0-9]*" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder="" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
+            <label for="fpb" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">FPB</label>
+        </div>
+
+        <!-- LPB -->
+        <div class="relative z-0">
+            <input id="lpb" type="text" inputmode="numeric" pattern="[0-9]*" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder="" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
+            <label for="lpb" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">LPB</label>
+        </div>
+
+        <!-- DC -->
+        <div class="relative z-0">
+            <input id="dc" type="text" inputmode="numeric" pattern="[0-9]*" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder="" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
+            <label for="dc" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">DC</label>
+        </div>
+
+        <!-- ATD -->
+        <div class="relative z-0">
+            <input id="atd" type="text" inputmode="numeric" pattern="[0-9]*" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder="" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
+            <label for="atd" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">ATD</label>
+        </div>
+
+        <!-- DC Reason -->
+        <div class="relative z-0">
+            <select id="dcReason" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer hover:bg-blue-600 hover:text-white">
+                
+                <option value="achieved">Achieved</option>
+                <option value="delay due to holds not closed">Delay due to holds not closed</option>
+                <option value="delay due to cabin congestion">Cabin congestion</option>
+                <option value="delay due to onboard check">Delay due to onboard check</option>
+                <option value="delay due to lmc">Delay due to lmc</option>
+                <option value="delay due to cockpit briefing">Cockpit briefing</option>
+            </select>
+            <label for="dcReason" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">DC Reason</label>
+        </div>
+    </div>
+
+    <!-- Arrival and Departure Wheelchairs (New row) -->
+<div class="grid grid-cols-2 gap-4 mt-6 arrival-departure-wc">
+    <!-- Arrival Wheelchairs -->
+    <div class="relative z-0">
+        <select id="arrivalWheelchairs" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer hover:bg-blue-600 hover:text-white">
+            <option value="N/A" selected>N/A</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+        </select>
+        <label for="arrivalWheelchairs" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Arrival WC</label>
+    </div>
+
+    <!-- Departure Wheelchairs -->
+    <div class="relative z-0">
+        <select id="departureWheelchairs" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer hover:bg-blue-600 hover:text-white">
+            <option value="N/A" selected>N/A</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+        </select>
+        <label for="departureWheelchairs" class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Departure WC</label>
+    </div>
+</div>
+
+        <div class="grid grid-cols-2 gap-4 mt-8">
+            <!-- Submit (Share via WhatsApp) Button -->
+            <button id="shareBtn" onclick="shareOnWhatsApp()" class="flex items-center justify-center py-3 bg-green-500 text-white font-semibold rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 mb-4">
+  <i class="fa-brands fa-whatsapp fa-2x mr-2"></i> <!-- Added margin-right for space between icon and text -->
+  Share
+</button>
+
+
+
+
+
+            <!-- Clear Button -->
+            <button onclick="resetFields()" class="py-3 bg-red-500 text-white font-semibold rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4">Clear</button>
+        </div>
+    </div>
+
+    <footer class=" p-6 mt-8 text-center">
+        <!-- Manage Flights Data Button -->
+        <a 
+            href="https://docs.google.com/spreadsheets/d/1MroHUObbhujTElxj8GeoyFjpz8yHr2-aRDHoxXucgg4/edit?gid=0#gid=0" 
+            target="_blank" 
+            class="inline-block px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        >
+            Manage  <i class="fa fa-plane text-black-400"></i> Data
+        </a>
+    </footer>
+
+    <script>
+        // Fetch and parse flight data from Google Sheets CSV
+const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vShqRG9tdnOev4RjPH0oE7swkrcDwgf7vqwGYnsbDKoY8YJDSdJ1LWUNXjglPtuZIIJTm_bdlHpabNE/pub?output=csv";
+
+const flightData = {}; // Initialize an empty object for flight data
+
+const flightNumberSelect = document.getElementById('flightNumber');
+const staInput = document.getElementById('sta');
+const stdInput = document.getElementById('std');
+const resultDiv = document.getElementById('result');
+const shareBtn = document.getElementById('shareBtn');
+const loadingSpinner = document.getElementById('loadingSpinner');
+const flightDetailsContainer = document.getElementById('flightDetailsContainer');
+
+// Function to load flight data from Google Sheets
+async function loadFlightData() {
+    try {
+        const response = await fetch(googleSheetUrl);
+        const csvText = await response.text();
+        const rows = csvText.split('\n').slice(1); // Skip the header row
+
+        // Clear existing options
+        flightNumberSelect.innerHTML = '<option value="">Select Flight</option>';
+
+        rows.forEach(row => {
+            const [flightNumber, sta, std] = row.split(','); // Assuming the columns are: flightNumber, STA, STD
+            if (flightNumber && sta && std) {
+                flightData[flightNumber] = { sta: sta.trim(), std: std.trim() };
+                const option = document.createElement('option');
+                option.value = flightNumber;
+                option.textContent = flightNumber;
+                flightNumberSelect.appendChild(option);
+            }
+        });
+
+        // Hide loading spinner and show flight details container
+        loadingSpinner.style.display = 'none';
+        flightDetailsContainer.style.display = 'block';
+
+    } catch (error) {
+        console.error('Error loading flight data:', error);
+        alert('Failed to load flight data. Please check your internet connection or the Google Sheets URL.');
+    }
+}
+
+// Call the function to load flight data on page load
+document.addEventListener('DOMContentLoaded', loadFlightData);
+
+// Update STA and STD based on selected flight number
+function updateFlightDetails() {
+    const selectedFlight = flightNumberSelect.value;
+    if (selectedFlight) {
+        staInput.value = flightData[selectedFlight]?.sta || '';
+        stdInput.value = flightData[selectedFlight]?.std || '';
+    } else {
+        staInput.value = '';
+        stdInput.value = '';
+    }
+}
+
+// Calculate time difference in minutes
+function calculateTimeDifference(time1, time2) {
+    const [h1, m1] = time1.split(':').map(Number);
+    const [h2, m2] = time2.split(':').map(Number);
+    return (h2 * 60 + m2) - (h1 * 60 + m1);
+}
+
+// Function to format and share the result on WhatsApp
+function shareOnWhatsApp() {
+    const ata = document.getElementById('ata').value;
+    const atd = document.getElementById('atd').value;
+    const dc = document.getElementById('dc').value;
+    const dcReason = document.getElementById('dcReason').value;
+    const arrivalWheelchairs = document.getElementById('arrivalWheelchairs').value;
+    const departureWheelchairs = document.getElementById('departureWheelchairs').value;
+
+    if (!ata || !atd || !dc) {
+        alert("Please fill in all time fields (ATA, DC, and ATD).");
+        return;
+    }
+
+    const diffAtaDc = calculateTimeDifference(ata, dc);
+    const diffAtaAtd = calculateTimeDifference(ata, atd);
+
+    const resultText = `
+*${flightNumberSelect.value}*
+
+STA: ${staInput.value} hrs
+STD: ${stdInput.value} hrs
+ATA: ${ata} hrs
+FPB: ${document.getElementById('fpb').value} hrs
+LPB: ${document.getElementById('lpb').value} hrs
+DC:  ${dc} hrs
+ATD: ${atd} hrs
+
+${diffAtaDc} minutes door close
+${diffAtaAtd} minutes chocks off
+
+${arrivalWheelchairs} Arrival and ${departureWheelchairs} Departure WC
+
+DC ${dcReason}
+`;
+
+    // Create a WhatsApp share link
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(resultText)}`;
+
+    // Redirect to WhatsApp with the pre-filled message
+    window.open(whatsappUrl, '_blank');
+}
+
+// Reset all input fields
+function resetFields() {
+    document.getElementById('flightNumber').value = '';
+    document.getElementById('sta').value = '';
+    document.getElementById('std').value = '';
+    document.getElementById('ata').value = '';
+    document.getElementById('fpb').value = '';
+    document.getElementById('lpb').value = '';
+    document.getElementById('dc').value = '';
+    document.getElementById('atd').value = '';
+    document.getElementById('dcReason').value = 'achieved';
+    document.getElementById('arrivalWheelchairs').value = 'N/A';
+    document.getElementById('departureWheelchairs').value = 'N/A';
+
+    // Hide the share button and reset the flight details
+    // Keep the Share button visible
+    
+}
+
+// Time formatting for fields like ATA, FPB, LPB, DC, ATD
+function formatTime(input) {
+    let value = input.value.replace(/[^\d]/g, '').slice(0, 4); // Allow only 4 digits
+    if (value.length >= 3) {
+        value = value.slice(0, 2) + ':' + value.slice(2);
+    }
+    input.value = value;
+}
+
+// Validate time format (hh:mm) without alert
+function validateTimeFormat(input) {
+    const value = input.value;
+    const isValid = /^\d{2}:\d{2}$/.test(value);
+
+    if (!isValid) {
+        input.classList.add('border-red-500');
+    } else {
+        input.classList.remove('border-red-500');
+    }
+}
+
+// Listen for the submit button click to trigger the WhatsApp sharing
+document.getElementById('shareBtn').addEventListener('click', shareOnWhatsApp);
+
+// Automatically update flight details when flight number is selected
+flightNumberSelect.addEventListener('change', updateFlightDetails);
+
+    </script>
+</body>
+  </html>
