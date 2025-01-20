@@ -140,7 +140,34 @@
         color: white !important;
     }
     
-    
+    /* Floating Label Style */
+.floating-label-group {
+  position: relative;
+}
+
+.floating-label-group input,
+.floating-label-group select {
+  padding-top: 1.25rem;
+}
+
+.floating-label-group label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: 0.2s ease all;
+  font-size: 1rem;
+  color: #bbb;
+}
+
+.floating-label-group input:focus ~ label,
+.floating-label-group input:not(:placeholder-shown) ~ label,
+.floating-label-group select:focus ~ label,
+.floating-label-group select:not(:placeholder-shown) ~ label {
+  transform: translateY(-1.5rem);
+  font-size: 0.75rem;
+  color: #3b82f6; /* Tailwind blue-500 */
+}
+
 </style>
 
 
