@@ -151,7 +151,7 @@ function generateResult() {
   const lbAchieved = (lastBagTime - firstBagTime) / 60000 <= 20 ? "Achieved" : "Not Achieved";
   
   // Calculate total time as CO time - Last Bag time
-  const totalTime = (coTime - lastBagTime) / 60000;
+  const totalTime = (lastBagTime - coTime) / 60000;
 
   // Prepare the result message
   const result = `
