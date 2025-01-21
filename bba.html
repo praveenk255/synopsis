@@ -232,7 +232,7 @@ function generateResult() {
 
   // Calculating statuses
   const fbAchieved = (firstBagTime - coTime) / 60000 <= 10 ? "Achieved" : "Not Achieved";
-  const lbAchieved = (lastBagTime - firstBagTime) / 60000 <= 20 ? "Achieved" : "Not Achieved";
+  const lbAchieved = (lastBagTime - coTime) / 60000 <= 20 ? "Achieved" : "Not Achieved";
 
   // Prepare the result message
   const result = `
