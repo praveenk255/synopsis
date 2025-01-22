@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flight Data Entry</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Legacy grid styling */
+    .legacy-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr); /* 3 columns for the first row */
+      gap: 16px;
+    }
+
+    /* For larger screens, the grid pattern will adjust to fit two items per row after the first row */
+    .legacy-grid > div:nth-child(n+4):nth-child(-n+8) {
+      grid-column: span 1;
+    }
+
+    /* Delay Reason should span full width */
+    .legacy-grid > div:last-child {
+      grid-column: span 3;
+    }
+
+    /* Responsive adjustments for smaller screens */
+    @media (max-width: 768px) {
+      .legacy-grid {
+        grid-template-columns: 1fr 1fr; /* Two items per row on smaller screens */
+      }
+
+      .legacy-grid > div:nth-child(n+4):nth-child(-n+8) {
+        grid-column: span 1;
+      }
+
+      .legacy-grid > div:last-child {
+        grid-column: span 2; /* Adjust Delay Reason to span two columns on small screens */
+      }
+    }
+
+    /* Custom styles for the disabled Delay Reason field */
+    .disabled-field {
+      background-color: #ffcccc; /* Light red color when disabled */
+      color: #a3a3a3; /* Gray text to indicate it's disabled */
+    }
+  </style>
+</head>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
+   
+    <form id="flightForm" class="legacy-grid">
+      <!-- Flight Number -->
+      <div>
+        <label for="flightNumber" class="block font-bold mb-2">Flight Number</label>
+        <input type="text" id="flightNumber" inputmode="numeric" pattern="[0-9]*" class="w-full p-2 border rounded" placeholder="e.g., 6E714" required value="6E">
+      </div>
+      <!-- CO Time -->
+      <div>
+        <label for="co" class="block font-bold mb-2">CO</label>
+        <input type="text" id="co" inputmode="numeric" pattern="[0-9]*" class="w-full p-2 border rounded time-input" placeholder="HH:MM" maxlength="5" required>
+      </div>
+      <!-- HO Time -->
+      <div>
+        <label for="ho" class="block font-bold mb-2">HO</label>
+        <input type="text" id="ho" inputmode="numeric" pattern="[0-9]*" class="w-full p-2 border rounded time-input" placeholder="HH:MM" maxlength="5" required>
+      </div>
+      <!-- First Bag -->
+      <div>
+        <label for="firstBag" class="block font-bold mb-2">First Bag</label>
+        <input type="text" id="firstBag" inputmode="numeric" pattern="[0-9]*" class="w-full p-2 border rounded time-input" placeholder="HH:MM" maxlength="5" required>
+      </div>
+      <!-- Last Bag -->
+      <div>
+        <label for="lastBag" class="block font-bold mb-2">Last Bag</label>
+        <input type="text" id="lastBag" inputmode="numeric" pattern="[0-9]*" class="w-full p-2 border rounded time-input" placeholder="HH:MM" maxlength="5" required>
+      </div>
+      <!-- Flight Manager -->
+      <div>
+        <label for="manager" class="block font-bold mb-2">Flight Manager</label>
+        <input type="text" id="manager" class="w-full p-2 border rounded" placeholder="e.g., Chitranshu Pathak" required>
+      </div>
+      <!-- Arrival Staff -->
+      <div>
+        <label for="arrivalStaff" class="block font-bold mb-2">Arrival Staff</label>
+        <input type="text" id="arrivalStaff" class="w-full p-2 border rounded" placeholder="e.g., Akshat Gupta" required>
+      </div>
+      <!-- BBA Staff -->
+      <div>
+        <label for="bbaStaff" class="block font-bold mb-2">BBA Staff</label>
+        <input type="text" id="bbaStaff" class="w-full p-2 border rounded" placeholder="e.g., Pritam" required>
+      </div>
+      <!-- Delay Reason with Total Time -->
+      <div class="flex flex-col">
+        <label for="delayReason" class="block font-bold mb-2" id="delayReasonLabel">Delay Reason</label>
+        <textarea id="delayReason" class="w-full p-2 border rounded disabled-field" placeholder="e.g., NA" disabled></textarea>
+      </div>
+    </form>
+    <div class="mt-6 grid grid-cols-2 gap-4">
+      <!-- WhatsApp Share Button -->
+      <button onclick="generateResult()" class="w-full bg-green-500 text-white font-bold py-2 px-4 rounded hover:bg-green-600">
+        Share
+      </button>
+      <!-- Clear Form Button -->
+      <button onclick="clearForm()" class="w-full bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600">
+        Clear
+      </button>
+    </div>
+    
+    <div class="mt-4">
+  <!-- Autofill Button -->
+  <button onclick="openAutofillPopup()" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600">
+    Autofill
+  </button>
+</div>
+
+<!-- Autofill Popup -->
+<div id="autofillPopup" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center hidden">
+  <div class="bg-white p-6 rounded-lg shadow-md max-w-lg w-full">
+    <h2 class="text-xl font-bold mb-4">Paste WhatsApp Message</h2>
+    <textarea id="messageInput" class="w-full p-2 border rounded mb-4" rows="6" placeholder="Paste message here..."></textarea>
+    <div class="flex justify-end">
+      <button onclick="closeAutofillPopup()" class="bg-gray-500 text-white py-2 px-4 rounded mr-2 hover:bg-gray-600">Cancel</button>
+      <button onclick="processAutofill()" class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">OK</button>
+    </div>
+  </div>
+</div>
+  </div>
+
+  <script>
+    // Auto-format time input with colon and validate
+document.querySelectorAll('.time-input').forEach(input => {
+  input.addEventListener('input', () => {
+    // Remove non-numeric characters except ':'
+    let value = input.value.replace(/[^0-9:]/g, '');
+
+    // Ensure proper colon placement if the user types manually
+    if (value.length > 2 && !value.includes(':')) {
+      value = value.slice(0, 2) + ':' + value.slice(2);
+    }
+
+    // Limit the value length to HH:MM format
+    if (value.length > 5) {
+      value = value.slice(0, 5);
+    }
+
+    // Update the input value
+    input.value = value;
+
+    // Validate the time
+    const [hours, minutes] = value.split(':').map(Number);
+
+    // Check for invalid hours or minutes
+    const isInvalid =
+      (hours > 23 || isNaN(hours)) || // Invalid hours
+      (minutes > 59 || isNaN(minutes) || (value.includes(':') && minutes === undefined)); // Invalid minutes
+
+    // Apply or remove the 'invalid' class
+    if (isInvalid) {
+      input.classList.add('border-red-500'); // Highlight the box red for invalid time
+    } else {
+      input.classList.remove('border-red-500'); // Remove red highlight for valid time
+    }
+  });
+});
+
+// Function to parse time
+function parseTime(time) {
+  const [hours, minutes] = time.split(':').map(Number);
+  return new Date(1970, 0, 1, hours, minutes);
+}
+
+// Function to format time into HH:MM
+function formatTime(date) {
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
+
+// Event listener for CO time change to auto-calculate HO time
+document.getElementById('co').addEventListener('input', () => {
+  const coTime = document.getElementById('co').value;
+  if (coTime && coTime.length === 5 && !document.getElementById('co').classList.contains('border-red-500')) {
+    // Parse CO time
+    const coDate = parseTime(coTime);
+
+    // Add 2 minutes to CO time for HO time
+    coDate.setMinutes(coDate.getMinutes() + 2);
+
+    // Set the new HO time in the HO input field
+    document.getElementById('ho').value = formatTime(coDate);
+  }
+});
+
+// Function to enable or disable Delay Reason and calculate total time
+function checkDelayReason() {
+  const co = document.getElementById('co').value;
+  const lastBag = document.getElementById('lastBag').value;
+
+  if (co && lastBag) {
+    const coTime = parseTime(co);
+    const lastBagTime = parseTime(lastBag);
+
+    // Calculate total time (Last Bag Time - CO Time)
+    const totalTime = (lastBagTime - coTime) / 60000; // in minutes
+
+    // Enable or disable the Delay Reason field based on total time
+    const delayReasonField = document.getElementById('delayReason');
+    const delayReasonLabel = document.getElementById('delayReasonLabel');
+    if (totalTime > 20) {
+      delayReasonField.disabled = false;
+      delayReasonField.classList.remove('disabled-field'); // Remove the red background when enabled
+      delayReasonLabel.innerText = `Delay Reason (${totalTime - 20} mins delay, enter reason)`;
+    } else {
+      delayReasonField.disabled = true;
+      delayReasonField.classList.add('disabled-field'); // Add the red background when disabled
+      delayReasonLabel.innerText = 'Delay Reason';
+    }
+  }
+}
+
+// Event listeners for CO and Last Bag time changes
+document.getElementById('co').addEventListener('input', checkDelayReason);
+document.getElementById('lastBag').addEventListener('input', checkDelayReason);
+
+// Generate the result and share on WhatsApp
+function generateResult() {
+  const flightNumber = document.getElementById('flightNumber').value;
+  const co = document.getElementById('co').value;
+  const ho = document.getElementById('ho').value;
+  const firstBag = document.getElementById('firstBag').value;
+  const lastBag = document.getElementById('lastBag').value;
+  const manager = document.getElementById('manager').value;
+  const arrivalStaff = document.getElementById('arrivalStaff').value;
+  const bbaStaff = document.getElementById('bbaStaff').value;
+  const delayReason = document.getElementById('delayReason').value || "NA";
+
+  // Function to format today's date as dd/mm/yy
+  function formatDate(date) {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = String(date.getFullYear()).slice(-2);
+    return `${day}/${month}/${year}`;
+  }
+
+  const today = new Date();
+  const formattedDate = formatDate(today);
+
+  const coTime = parseTime(co);
+  const firstBagTime = parseTime(firstBag);
+  const lastBagTime = parseTime(lastBag);
+
+  // Calculating statuses
+  const fbAchieved = (firstBagTime - coTime) / 60000 <= 10 ? "Achieved" : "Not Achieved";
+  const lbAchieved = (lastBagTime - coTime) / 60000 <= 20 ? "Achieved" : "Not Achieved";
+
+  // Prepare the result message
+  const result = `
+    *BBA FB-LB Status*
+    *${formattedDate}*
+    
+    *Flight Number:* ${flightNumber}
+    *CO:* ${co}
+    *HO:* ${ho}
+    *First Bag:* ${firstBag} (${fbAchieved})
+    *Last Bag:* ${lastBag} (${lbAchieved})
+    *Flight Manager:* ${manager}
+    *Arrival Staff:* ${arrivalStaff}
+    *BBA Staff:* ${bbaStaff}
+   
+    *Delay Reason:* ${delayReason}`;
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(result)}`;
+  window.open(whatsappUrl, '_blank');
+}
+
+// Clear the form
+function clearForm() {
+  document.getElementById('flightForm').reset();
+  document.querySelectorAll('.time-input').forEach(input => {
+    input.classList.remove('border-red-500'); // Remove red highlight on clear
+  });
+  document.getElementById('delayReason').disabled = true;
+  document.getElementById('delayReason').classList.add('disabled-field');
+  document.getElementById('delayReasonLabel').innerText = 'Delay Reason';
+}
+
+// Show the autofill popup
+  function openAutofillPopup() {
+    document.getElementById('autofillPopup').classList.remove('hidden');
+  }
+
+  // Close the autofill popup
+  function closeAutofillPopup() {
+    document.getElementById('autofillPopup').classList.add('hidden');
+  }
+
+  // Process the pasted message and autofill the form
+  function processAutofill() {
+    const message = document.getElementById('messageInput').value;
+    const flightForm = {
+      flightNumber: '',
+      co: '',
+      ho: '',
+      firstBag: '',
+      lastBag: ''
+    };
+
+    // Regular expressions for extracting data
+const flightNumberRegex = /\b(6[eE][ \-]?\d{1,4}|[0-9]{3,4})\b/; // Enhanced regex for flight numbers
+const coRegex = /(?:Co|C[ \-/]?O)[ \-:]?(\d{4})/i; // CO time pattern (e.g., "Co-1930")
+const hoRegex = /(?:Ho|H[ \-/]?O)[ \-:]?(\d{4})/i; // HO time pattern (e.g., "Ho-1932")
+const firstBagRegex = /(?:Fb|First[ \-]?Bag)[ \-:]?(\d{4})/i; // First Bag pattern (e.g., "Fb 1937" or "First Bag 1937")
+const lastBagRegex = /(?:Lb|Last[ \-]?Bag)[ \-:]?(\d{4})/i; // Last Bag pattern (e.g., "Lb 1954" or "Last Bag 1954")
+
+
+
+    // Extract data from the message
+    flightForm.flightNumber = (message.match(flightNumberRegex) || [])[1] || '';
+    flightForm.co = formatTime((message.match(coRegex) || [])[1]) || '';
+    flightForm.ho = formatTime((message.match(hoRegex) || [])[1]) || '';
+    flightForm.firstBag = formatTime((message.match(firstBagRegex) || [])[1]) || '';
+    flightForm.lastBag = formatTime((message.match(lastBagRegex) || [])[1]) || '';
+
+    // Autofill the form fields
+    document.getElementById('flightNumber').value = flightForm.flightNumber;
+    document.getElementById('co').value = flightForm.co;
+    document.getElementById('ho').value = flightForm.ho;
+    document.getElementById('firstBag').value = flightForm.firstBag;
+    document.getElementById('lastBag').value = flightForm.lastBag;
+
+    // Close the popup
+    closeAutofillPopup();
+  }
+
+  // Format time from HHMM to HH:MM
+  function formatTime(time) {
+    if (!time || time.length !== 4) return '';
+    return `${time.slice(0, 2)}:${time.slice(2)}`;
+  }
+
+  </script>
+</body>
+</html>
