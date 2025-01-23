@@ -42,6 +42,20 @@
     .disabled-field {
       background-color: #ffcccc; /* Light red color when disabled */
       color: #a3a3a3; /* Gray text to indicate it's disabled */
+      
+      /* Autofill Popup */
+#autofillPopup {
+  position: fixed;
+  bottom: 10px; /* 10px above the bottom of the page */
+  left: 50%;
+  transform: translateX(-50%); /* Center horizontally */
+  background: rgba(128, 128, 128, 0.8); /* Optional: Background overlay */
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
     }
   </style>
 </head>
@@ -114,17 +128,29 @@
 </div>
 
 <!-- Autofill Popup -->
-<div id="autofillPopup" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center hidden">
-  <div class="bg-white p-6 rounded-lg shadow-md max-w-lg w-full">
-    <h2 class="text-xl font-bold mb-4">Paste WhatsApp Message</h2>
-    <textarea id="messageInput" class="w-full p-2 border rounded mb-4" rows="6" placeholder="Paste message here..."></textarea>
+<div id="autofillPopup" 
+     class="fixed bottom-5 left-0 w-full bg-gray-800 bg-opacity-50 hidden" 
+     style="padding-bottom: 20px;" 
+     aria-hidden="true" role="dialog" aria-labelledby="popupTitle">
+  <div class="bg-white p-6 rounded-t-lg shadow-md max-w-full w-full">
+    <h2 id="popupTitle" class="text-xl font-bold mb-4">Paste WhatsApp Message</h2>
+    <textarea id="messageInput" 
+              class="w-full p-2 border rounded mb-4" 
+              rows="4" 
+              placeholder="Paste message here..."
+              aria-label="Paste message here"></textarea>
     <div class="flex justify-end">
-      <button onclick="closeAutofillPopup()" class="bg-gray-500 text-white py-2 px-4 rounded mr-2 hover:bg-gray-600">Cancel</button>
-      <button onclick="processAutofill()" class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">OK</button>
+      <button onclick="closeAutofillPopup()" 
+              class="bg-gray-500 text-white py-2 px-4 rounded mr-2 hover:bg-gray-600">
+        Cancel
+      </button>
+      <button onclick="processAutofill()" 
+              class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
+        OK
+      </button>
     </div>
   </div>
 </div>
-  </div>
 
   <script>
     // Auto-format time input with colon and validate
