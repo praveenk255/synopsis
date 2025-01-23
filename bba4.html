@@ -303,26 +303,25 @@ function processAutofill() {
     lastBag: ''
   };
 
-  // Preprocessing: Clean up the message
   console.log("Original message:", message);
 
-  // Remove timestamps, phone numbers, and other metadata (now only targeting the data after the phone number)
-  message = message.replace(/\[\d{1,2}\/\d{1,2}, \d{1,2}:\d{2}\] [\+\d\s]+:/, '').trim();
+  // Remove all data enclosed within square brackets, including the brackets themselves
+  message = message.replace(/\[[^\]]*\]/g, '').trim();
 
-  // Clean up unnecessary punctuation (remove :- or - between labels and times)
-  message = message.replace(/[:\-]+/g, '').trim();  // Remove all colons and dashes
-  message = message.replace(/\s+/g, ' ');  // Replace multiple spaces with a single space
+  // Clean up unnecessary punctuation (e.g., colons and dashes between labels and values)
+  message = message.replace(/(:-|-|:)/g, '').trim(); // Remove colons and dashes
+  message = message.replace(/\s+/g, ' '); // Replace multiple spaces with a single space
 
   console.log("Cleaned message:", message);
 
-  // Regular expressions for extracting data after cleaning
-  const coRegex = /(?:C[ \-/]?[oO0]|Co)\s*(\d{4})/i;  // Match C/o or Co followed by time
+  // Regular expressions for extracting data
+  const coRegex = /(?:C[ \-/]?[oO0]|Co)\s*(\d{4})/i; // Match C/o or Co followed by time
   const hoRegex = /(?:H[ \-/]?[oO0]|Ho|D[ \-.]?[oO0])\s*(\d{4})/i; // Match H/o or Ho followed by time
-  const fbRegex = /(?:Fb|F[bB])\s*(\d{4})/i;  // Match Fb followed by time
-  const lbRegex = /(?:L[bB])\s*(\d{4})/i;  // Match Lb followed by time
-  const flightNumberRegex = /\b(6[eE][ \-]?\d{1,4}|[0-9]{3,4})\b/;  // Match flight number (6E or any 3-4 digits)
+  const fbRegex = /(?:Fb|F[bB])\s*(\d{4})/i; // Match Fb followed by time
+  const lbRegex = /(?:L[bB])\s*(\d{4})/i; // Match Lb followed by time
+  const flightNumberRegex = /\b(6[eE][ \-]?\d{1,4}|[0-9]{3,4})\b/; // Match flight number (6E or any 3-4 digits)
 
-  // Extract CO, HO, FB, LB fields first
+  // Extract CO, HO, FB, LB fields
   const coMatch = message.match(coRegex);
   const hoMatch = message.match(hoRegex);
   const fbMatch = message.match(fbRegex);
@@ -333,7 +332,7 @@ function processAutofill() {
   console.log("FB Match:", fbMatch);
   console.log("LB Match:", lbMatch);
 
-  // Temporarily mask CO, HO, FB, and LB matches in the message to avoid extracting them as flight numbers
+  // Temporarily mask CO, HO, FB, and LB matches in the message
   let maskedMessage = message;
   if (coMatch) maskedMessage = maskedMessage.replace(coMatch[0], '[CO]');
   if (hoMatch) maskedMessage = maskedMessage.replace(hoMatch[0], '[HO]');
@@ -342,11 +341,12 @@ function processAutofill() {
 
   console.log("Masked Message:", maskedMessage);
 
-  // Extract flight number only after the phone number (relying on the space after phone number)
+  // Extract flight number from the remaining message
   const flightNumberMatch = maskedMessage.match(flightNumberRegex);
 
   console.log("Flight Number Match:", flightNumberMatch);
 
+  // Populate flight form fields
   flightForm.flightNumber = flightNumberMatch ? flightNumberMatch[1] : '';
   flightForm.co = coMatch ? formatTime(coMatch[1]) : '';
   flightForm.ho = hoMatch ? formatTime(hoMatch[1]) : '';
@@ -371,6 +371,7 @@ function formatTime(time) {
   if (!time || time.length !== 4) return '';
   return `${time.slice(0, 2)}:${time.slice(2)}`;
 }
+
 
 
 
