@@ -387,6 +387,10 @@ function processAutofill() {
   document.getElementById('firstBag').value = flightForm.firstBag;
   document.getElementById('lastBag').value = flightForm.lastBag;
 
+  
+  // Explicitly call checkDelayReason to update the Delay Reason field
+  checkDelayReason();
+  
   // Close the popup
   closeAutofillPopup();
 }
