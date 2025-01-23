@@ -306,34 +306,43 @@ function processAutofill() {
   // Preprocessing: Clean up the message
   console.log("Original message:", message);
 
-  // Remove timestamps, phone numbers, and other metadata
-  message = message.replace(/\[\d{1,2}\/\d{1,2}, \d{1,2}:\d{2}\] [+\d\s]+:/, '').trim();
+  // Remove timestamps, phone numbers, and other metadata (now only targeting the data after the phone number)
+  message = message.replace(/\[\d{1,2}\/\d{1,2}, \d{1,2}:\d{2}\] [\+\d\s]+:/, '').trim();
 
-  // Replace line breaks with spaces for consistent matching
-  message = message.replace(/\n/g, ' ');
+  // Clean up unnecessary punctuation (remove :- or - between labels and times)
+  message = message.replace(/[:\-]+/g, '').trim();  // Remove all colons and dashes
+  message = message.replace(/\s+/g, ' ');  // Replace multiple spaces with a single space
 
   console.log("Cleaned message:", message);
 
-  // Regular expressions for extracting data
-  const coRegex = /(?:C[ \-/]?[oO0]|Co)[ \-:]?[:-]?(\d{4})/i; // CO time pattern
-  const hoRegex = /(?:H[ \-/]?[oO0]|Ho|D[ \-.]?[oO0])[ \-:]?[:-]?(\d{4})/i; // HO time pattern
-  const flightNumberRegex = /\b(6[eE][ \-]?\d{1,4}|[0-9]{3,4})\b/; // Flight number pattern
+  // Regular expressions for extracting data after cleaning
+  const coRegex = /(?:C[ \-/]?[oO0]|Co)\s*(\d{4})/i;  // Match C/o or Co followed by time
+  const hoRegex = /(?:H[ \-/]?[oO0]|Ho|D[ \-.]?[oO0])\s*(\d{4})/i; // Match H/o or Ho followed by time
+  const fbRegex = /(?:Fb|F[bB])\s*(\d{4})/i;  // Match Fb followed by time
+  const lbRegex = /(?:L[bB])\s*(\d{4})/i;  // Match Lb followed by time
+  const flightNumberRegex = /\b(6[eE][ \-]?\d{1,4}|[0-9]{3,4})\b/;  // Match flight number (6E or any 3-4 digits)
 
-  // Extract CO and HO fields first
+  // Extract CO, HO, FB, LB fields first
   const coMatch = message.match(coRegex);
   const hoMatch = message.match(hoRegex);
+  const fbMatch = message.match(fbRegex);
+  const lbMatch = message.match(lbRegex);
 
   console.log("CO Match:", coMatch);
   console.log("HO Match:", hoMatch);
+  console.log("FB Match:", fbMatch);
+  console.log("LB Match:", lbMatch);
 
-  // Temporarily mask CO and HO matches in the message to avoid extracting them as flight numbers
+  // Temporarily mask CO, HO, FB, and LB matches in the message to avoid extracting them as flight numbers
   let maskedMessage = message;
-  if (coMatch) maskedMessage = maskedMessage.replace(coMatch[0], '');
-  if (hoMatch) maskedMessage = maskedMessage.replace(hoMatch[0], '');
+  if (coMatch) maskedMessage = maskedMessage.replace(coMatch[0], '[CO]');
+  if (hoMatch) maskedMessage = maskedMessage.replace(hoMatch[0], '[HO]');
+  if (fbMatch) maskedMessage = maskedMessage.replace(fbMatch[0], '[FB]');
+  if (lbMatch) maskedMessage = maskedMessage.replace(lbMatch[0], '[LB]');
 
   console.log("Masked Message:", maskedMessage);
 
-  // Extract flight number from the remaining message
+  // Extract flight number only after the phone number (relying on the space after phone number)
   const flightNumberMatch = maskedMessage.match(flightNumberRegex);
 
   console.log("Flight Number Match:", flightNumberMatch);
@@ -341,6 +350,8 @@ function processAutofill() {
   flightForm.flightNumber = flightNumberMatch ? flightNumberMatch[1] : '';
   flightForm.co = coMatch ? formatTime(coMatch[1]) : '';
   flightForm.ho = hoMatch ? formatTime(hoMatch[1]) : '';
+  flightForm.firstBag = fbMatch ? formatTime(fbMatch[1]) : '';
+  flightForm.lastBag = lbMatch ? formatTime(lbMatch[1]) : '';
 
   console.log("Extracted Data:", flightForm);
 
@@ -348,20 +359,20 @@ function processAutofill() {
   document.getElementById('flightNumber').value = flightForm.flightNumber;
   document.getElementById('co').value = flightForm.co;
   document.getElementById('ho').value = flightForm.ho;
+  document.getElementById('firstBag').value = flightForm.firstBag;
+  document.getElementById('lastBag').value = flightForm.lastBag;
 
   // Close the popup
   closeAutofillPopup();
 }
 
+// Format time from HHMM to HH:MM
+function formatTime(time) {
+  if (!time || time.length !== 4) return '';
+  return `${time.slice(0, 2)}:${time.slice(2)}`;
+}
 
 
-
-
-  // Format time from HHMM to HH:MM
-  function formatTime(time) {
-    if (!time || time.length !== 4) return '';
-    return `${time.slice(0, 2)}:${time.slice(2)}`;
-  }
 
   </script>
 </body>
