@@ -294,42 +294,40 @@ function clearForm() {
   }
 
   // Process the pasted message and autofill the form
-  function processAutofill() {
-    const message = document.getElementById('messageInput').value;
-    const flightForm = {
-      flightNumber: '',
-      co: '',
-      ho: '',
-      firstBag: '',
-      lastBag: ''
-    };
+function processAutofill() {
+  const message = document.getElementById('messageInput').value;
+  const flightForm = {
+    flightNumber: '',
+    co: '',
+    ho: '',
+    firstBag: '',
+    lastBag: ''
+  };
 
-    // Regular expressions for extracting data
-const flightNumberRegex = /\b(6[eE][ \-]?\d{1,4}|[0-9]{3,4})\b/; // Enhanced regex for flight numbers
-const coRegex = /(?:Co|C[ \-/]?O)[ \-:]?(\d{4})/i; // CO time pattern (e.g., "Co-1930")
-const hoRegex = /(?:Ho|H[ \-/]?O)[ \-:]?(\d{4})/i; // HO time pattern (e.g., "Ho-1932")
-const firstBagRegex = /(?:Fb|First[ \-]?Bag)[ \-:]?(\d{4})/i; // First Bag pattern (e.g., "Fb 1937" or "First Bag 1937")
-const lastBagRegex = /(?:Lb|Last[ \-]?Bag)[ \-:]?(\d{4})/i; // Last Bag pattern (e.g., "Lb 1954" or "Last Bag 1954")
+  // Regular expressions for extracting data
+  const flightNumberRegex = /\b(6[eE][ \-]?\d{1,4}|[0-9]{3,4})\b/; // Flight number pattern (e.g., "6E 1234")
+  const coRegex = /(?:C[ \-/]?O|Co)[ \-:]?(\d{4})/i; // CO time pattern (e.g., "C/o:-1148")
+  const hoRegex = /(?:H[ \-/]?O|Ho|D[ \-.]?[Oo]?)[ \-:]?(\d{4})/i; // HO time pattern (e.g., "H/o:-1150", "d.o.:1148")
+  const firstBagRegex = /(?:Fb|First[ \-]?Bag)[ \-:]?(\d{4})/i; // First Bag pattern (e.g., "Fb 1937")
+  const lastBagRegex = /(?:Lb|Last[ \-]?Bag)[ \-:]?(\d{4})/i; // Last Bag pattern (e.g., "Lb 1954")
 
+  // Extract data from the message
+  flightForm.flightNumber = (message.match(flightNumberRegex) || [])[1] || '';
+  flightForm.co = formatTime((message.match(coRegex) || [])[1]) || '';
+  flightForm.ho = formatTime((message.match(hoRegex) || [])[1]) || '';
+  flightForm.firstBag = formatTime((message.match(firstBagRegex) || [])[1]) || '';
+  flightForm.lastBag = formatTime((message.match(lastBagRegex) || [])[1]) || '';
 
+  // Autofill the form fields
+  document.getElementById('flightNumber').value = flightForm.flightNumber;
+  document.getElementById('co').value = flightForm.co;
+  document.getElementById('ho').value = flightForm.ho;
+  document.getElementById('firstBag').value = flightForm.firstBag;
+  document.getElementById('lastBag').value = flightForm.lastBag;
 
-    // Extract data from the message
-    flightForm.flightNumber = (message.match(flightNumberRegex) || [])[1] || '';
-    flightForm.co = formatTime((message.match(coRegex) || [])[1]) || '';
-    flightForm.ho = formatTime((message.match(hoRegex) || [])[1]) || '';
-    flightForm.firstBag = formatTime((message.match(firstBagRegex) || [])[1]) || '';
-    flightForm.lastBag = formatTime((message.match(lastBagRegex) || [])[1]) || '';
-
-    // Autofill the form fields
-    document.getElementById('flightNumber').value = flightForm.flightNumber;
-    document.getElementById('co').value = flightForm.co;
-    document.getElementById('ho').value = flightForm.ho;
-    document.getElementById('firstBag').value = flightForm.firstBag;
-    document.getElementById('lastBag').value = flightForm.lastBag;
-
-    // Close the popup
-    closeAutofillPopup();
-  }
+  // Close the popup
+  closeAutofillPopup();
+}
 
   // Format time from HHMM to HH:MM
   function formatTime(time) {
