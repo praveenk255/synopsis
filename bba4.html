@@ -341,7 +341,7 @@ function processAutofill() {
 
   // Regular expressions for extracting data
   const coRegex = /(?:C[ \-/]?[oO0]|Co)\s*(\d{4})/i; // Match C/o or Co followed by time
-  const hoRegex = /(?:H[ \-/]?[oO0]|Ho|D[ \-.]?[oO0])\s*(\d{4})/i; // Match H/o or Ho followed by time
+  const hoRegex = /(?:H[ \-/]?[oO0]|D[ \-/]?[oO0])\s*(\d{4})/i; // Match H/o or Ho followed by time
   const fbRegex = /(?:Fb|F[bB])\s*(\d{4})/i; // Match Fb followed by time
   const lbRegex = /(?:L[bB])\s*(\d{4})/i; // Match Lb followed by time
   const flightNumberRegex = /\b(6[eE][ \-]?\d{1,4}|[0-9]{3,4})\b/; // Match flight number (6E or any 3-4 digits)
