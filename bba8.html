@@ -325,7 +325,6 @@ function checkDelayReason() {
 document.getElementById('co').addEventListener('input', checkDelayReason);
 document.getElementById('lastBag').addEventListener('input', checkDelayReason);
 
-// Generate the result and share on WhatsApp
 function generateResult() {
   const flightNumber = document.getElementById('flightNumber').value;
   const co = document.getElementById('co').value;
@@ -337,7 +336,6 @@ function generateResult() {
   const bbaStaff = document.getElementById('bbaStaff').value;
   const delayReason = document.getElementById('delayReason').value || "NA";
 
-  // Function to format today's date as dd/mm/yy
   function formatDate(date) {
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -352,7 +350,10 @@ function generateResult() {
   const firstBagTime = parseTime(firstBag);
   const lastBagTime = parseTime(lastBag);
 
-  // Calculating statuses
+  // Calculate Total Time Taken in minutes
+  const totalTime = Math.round((lastBagTime - coTime) / 60000); // in minutes
+
+  // Calculate statuses
   const fbAchieved = (firstBagTime - coTime) / 60000 <= 10 ? "Achieved" : "Not Achieved";
   const lbAchieved = (lastBagTime - coTime) / 60000 <= 20 ? "Achieved" : "Not Achieved";
 
@@ -366,14 +367,17 @@ function generateResult() {
     *HO:* ${ho}
     *First Bag:* ${firstBag} (${fbAchieved})
     *Last Bag:* ${lastBag} (${lbAchieved})
+    *Total Time Taken:* ${totalTime} minutes
     *Flight Manager:* ${manager}
     *Arrival Staff:* ${arrivalStaff}
     *BBA Staff:* ${bbaStaff}
    
     *Delay Reason:* ${delayReason}`;
+    
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(result)}`;
   window.open(whatsappUrl, '_blank');
 }
+
 
 function clearForm() {
   // Get the form element
