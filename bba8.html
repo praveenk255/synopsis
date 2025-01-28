@@ -311,6 +311,11 @@ function checkDelayReason() {
     const coTime = parseTime(co);
     const lastBagTime = parseTime(lastBag);
 
+    // Adjust for midnight crossover
+    if (lastBagTime < coTime) {
+      lastBagTime.setDate(lastBagTime.getDate() + 1); // Move to the next day
+    }
+
     // Calculate total time (Last Bag Time - CO Time)
     const totalTime = (lastBagTime - coTime) / 60000; // in minutes
 
@@ -328,6 +333,7 @@ function checkDelayReason() {
     }
   }
 }
+
 
 // Event listeners for CO and Last Bag time changes
 document.getElementById('co').addEventListener('input', checkDelayReason);
