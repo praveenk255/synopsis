@@ -360,16 +360,22 @@ function generateResult() {
   const today = new Date();
   const formattedDate = formatDate(today);
 
-  const coTime = parseTime(co);
-  const firstBagTime = parseTime(firstBag);
-  const lastBagTime = parseTime(lastBag);
+  // Helper function to calculate total time considering midnight crossover
+  function calculateTimeDifference(startTime, endTime) {
+    const start = parseTime(startTime);
+    const end = parseTime(endTime);
+    const timeDifference = (end - start) / 60000; // Difference in minutes
 
-  // Calculate Total Time Taken in minutes
-  const totalTime = Math.round((lastBagTime - coTime) / 60000); // in minutes
+    // If timeDifference is negative, it indicates midnight crossover
+    return timeDifference >= 0 ? timeDifference : 1440 + timeDifference; // Add 24 hours (1440 minutes)
+  }
+
+  const totalTime = calculateTimeDifference(co, lastBag);
+  const firstBagTime = calculateTimeDifference(co, firstBag);
 
   // Calculate statuses
-  const fbAchieved = (firstBagTime - coTime) / 60000 <= 10 ? "Achieved" : "Not Achieved";
-  const lbAchieved = (lastBagTime - coTime) / 60000 <= 20 ? "Achieved" : "Not Achieved";
+  const fbAchieved = firstBagTime <= 10 ? "Achieved" : "Not Achieved";
+  const lbAchieved = totalTime <= 20 ? "Achieved" : "Not Achieved";
 
   // Prepare the result message
   const result = `
@@ -391,6 +397,7 @@ function generateResult() {
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(result)}`;
   window.open(whatsappUrl, '_blank');
 }
+
 
 
 function clearForm() {
