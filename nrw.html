@@ -26,10 +26,7 @@
                 transform: rotate(360deg);
             }
         }
-</style>
-
-
-
+    </style>
 </head>
 <body class="bg-gray-800 text-white font-sans p-6">
 
@@ -38,39 +35,33 @@
         <div class="spinner"></div>
     </div>
 
-
-
-
     <div class="max-w-2xl mx-auto bg-gray-900 p-6 rounded-lg shadow-lg" id="flightDetailsContainer" style="display:none;">
     
-    
         <div class="flex space-x-4 mt-4">
-    <!-- Flight Number -->
-    <div class="flex-1">
-        <label for="flightNumber" class="block text-lg font-medium mb-2"> <i class="fas fa-plane-departure text-blue-400"></i> Flight</label>
-        <select id="flightNumber" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" onchange="updateFlightDetails()">
-            <option value="">Flight Number</option>
-        </select>
-    </div>
+            <!-- Flight Number -->
+            <div class="flex-1">
+                <label for="flightNumber" class="block text-lg font-medium mb-2"> <i class="fas fa-plane-departure text-blue-400"></i> Flight</label>
+                <select id="flightNumber" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" onchange="updateFlightDetails()">
+                    <option value="">Flight Number</option>
+                </select>
+            </div>
 
-    <!-- STA -->
-    <div class="flex-1">
-        <label for="sta" class="block text-lg font-medium mb-2">STA</label>
-        <input type="text" id="sta" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" readonly>
-    </div>
+            <!-- STA -->
+            <div class="flex-1">
+                <label for="sta" class="block text-lg font-medium mb-2">STA</label>
+                <input type="text" id="sta" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" readonly>
+            </div>
 
-    <!-- STD -->
-    <div class="flex-1">
-        <label for="std" class="block text-lg font-medium mb-2">STD</label>
-        <input type="text" id="std" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" readonly>
-    </div>
-</div>
-
+            <!-- STD -->
+            <div class="flex-1">
+                <label for="std" class="block text-lg font-medium mb-2">STD</label>
+                <input type="text" id="std" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" readonly>
+            </div>
+        </div>
 
         <!-- Grid Layout for Other Inputs -->
         <div class="grid grid-cols-2 gap-x-4 gap-y-6 mt-6">
             
-
             <!-- ATA -->
             <div>
                 <label for="ata" class="block text-lg font-medium mb-2">ATA</label>
@@ -86,13 +77,13 @@
             <!-- LPB -->
             <div>
                 <label for="lpb" class="block text-lg font-medium mb-2">LPB</label>
-                <input type="text" inputmode="numeric" pattern="[0-9]*" id="lpb" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" id="lpb" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this); checkLpbDcDifference();" onblur="validateTimeFormat(this)">
             </div>
 
             <!-- DC -->
             <div>
                 <label for="dc" class="block text-lg font-medium mb-2">DC</label>
-                <input type="text" inputmode="numeric" pattern="[0-9]*" id="dc" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" id="dc" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" placeholder="hh:mm" oninput="formatTime(this); checkLpbDcDifference();" onblur="validateTimeFormat(this)">
             </div>
 
             <!-- ATD -->
@@ -102,17 +93,20 @@
             </div>
 
             <!-- DC Reason -->
-            <div>
-                <label for="dcReason" class="block text-lg font-medium mb-2">DC Reason</label>
-                <select id="dcReason" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none">
-                    <option value="achieved">Achieved</option>
-                    <option value="delay due to holds not closed">Delay due to holds not closed</option>
-                    <option value="delay due to cabin congestion">Cabin congestion</option>
-                    <option value="delay due to onboard check">Delay due to onboard check</option>
-                    <option value="delay due to lmc">Delay due to lmc</option>
-                    <option value="delay due to cockpit briefing">Cockpit briefing</option>
-                </select>
-            </div>
+<div>
+    <label for="dcReason" class="block text-lg font-medium mb-2">DC Reason</label>
+    <select id="dcReason" class="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none" required>
+        <option value="" disabled selected>Select a reason</option>
+        <option value="achieved">Achieved</option>
+        <option value="delay due to holds not closed">Delay due to holds not closed</option>
+        <option value="delay due to cabin congestion">Cabin congestion</option>
+        <option value="delay due to onboard check">Delay due to onboard check</option>
+        <option value="delay due to lmc">Delay due to lmc</option>
+        <option value="delay due to cockpit briefing">Cockpit briefing</option>
+    </select>
+</div>
+
+
 
             <!-- Arrival Wheelchairs -->
             <div>
@@ -154,13 +148,9 @@
         <div class="grid grid-cols-2 gap-4 mt-8">
             <!-- Submit (Share via WhatsApp) Button -->
             <button onclick="shareOnWhatsApp()" class="flex items-center justify-center py-3 bg-green-500 text-white font-semibold rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 mb-4">
-  <i class="fa-brands fa-whatsapp fa-2x mr-2"></i> <!-- Added margin-right for space between icon and text -->
-  Share
-</button>
-
-
-
-
+                <i class="fa-brands fa-whatsapp fa-2x mr-2"></i> <!-- Added margin-right for space between icon and text -->
+                Share
+            </button>
 
             <!-- Clear Button -->
             <button onclick="resetFields()" class="py-3 bg-red-500 text-white font-semibold rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4">Clear</button>
@@ -180,89 +170,109 @@
 
     <script>
         // Fetch and parse flight data from Google Sheets CSV
-const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vShqRG9tdnOev4RjPH0oE7swkrcDwgf7vqwGYnsbDKoY8YJDSdJ1LWUNXjglPtuZIIJTm_bdlHpabNE/pub?output=csv";
+        const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vShqRG9tdnOev4RjPH0oE7swkrcDwgf7vqwGYnsbDKoY8YJDSdJ1LWUNXjglPtuZIIJTm_bdlHpabNE/pub?output=csv";
 
-const flightData = {}; // Initialize an empty object for flight data
+        const flightData = {}; // Initialize an empty object for flight data
 
-const flightNumberSelect = document.getElementById('flightNumber');
-const staInput = document.getElementById('sta');
-const stdInput = document.getElementById('std');
-const resultDiv = document.getElementById('result');
-const shareBtn = document.getElementById('shareBtn');
-const loadingSpinner = document.getElementById('loadingSpinner');
-const flightDetailsContainer = document.getElementById('flightDetailsContainer');
+        const flightNumberSelect = document.getElementById('flightNumber');
+        const staInput = document.getElementById('sta');
+        const stdInput = document.getElementById('std');
+        const resultDiv = document.getElementById('result');
+        const shareBtn = document.getElementById('shareBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const flightDetailsContainer = document.getElementById('flightDetailsContainer');
 
-// Function to load flight data from Google Sheets
-async function loadFlightData() {
-    try {
-        const response = await fetch(googleSheetUrl);
-        const csvText = await response.text();
-        const rows = csvText.split('\n').slice(1); // Skip the header row
+        // Function to load flight data from Google Sheets
+        async function loadFlightData() {
+            try {
+                const response = await fetch(googleSheetUrl);
+                const csvText = await response.text();
+                const rows = csvText.split('\n').slice(1); // Skip the header row
 
-        // Clear existing options
-        flightNumberSelect.innerHTML = '<option value="">Select Flight</option>';
+                // Clear existing options
+                flightNumberSelect.innerHTML = '<option value="">Select Flight</option>';
 
-        rows.forEach(row => {
-            const [flightNumber, sta, std] = row.split(','); // Assuming the columns are: flightNumber, STA, STD
-            if (flightNumber && sta && std) {
-                flightData[flightNumber] = { sta: sta.trim(), std: std.trim() };
-                const option = document.createElement('option');
-                option.value = flightNumber;
-                option.textContent = flightNumber;
-                flightNumberSelect.appendChild(option);
+                rows.forEach(row => {
+                    const [flightNumber, sta, std] = row.split(','); // Assuming the columns are: flightNumber, STA, STD
+                    if (flightNumber && sta && std) {
+                        flightData[flightNumber] = { sta: sta.trim(), std: std.trim() };
+                        const option = document.createElement('option');
+                        option.value = flightNumber;
+                        option.textContent = flightNumber;
+                        flightNumberSelect.appendChild(option);
+                    }
+                });
+
+                // Hide loading spinner and show flight details container
+                loadingSpinner.style.display = 'none';
+                flightDetailsContainer.style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading flight data:', error);
+                alert('Failed to load flight data. Please check your internet connection or the Google Sheets URL.');
             }
-        });
+        }
 
-        // Hide loading spinner and show flight details container
-        loadingSpinner.style.display = 'none';
-        flightDetailsContainer.style.display = 'block';
+        // Call the function to load flight data on page load
+        document.addEventListener('DOMContentLoaded', loadFlightData);
 
-    } catch (error) {
-        console.error('Error loading flight data:', error);
-        alert('Failed to load flight data. Please check your internet connection or the Google Sheets URL.');
-    }
-}
+        // Update STA and STD based on selected flight number
+        function updateFlightDetails() {
+            const selectedFlight = flightNumberSelect.value;
+            if (selectedFlight) {
+                staInput.value = flightData[selectedFlight]?.sta || '';
+                stdInput.value = flightData[selectedFlight]?.std || '';
+            } else {
+                staInput.value = '';
+                stdInput.value = '';
+            }
+        }
 
-// Call the function to load flight data on page load
-document.addEventListener('DOMContentLoaded', loadFlightData);
+        // Calculate time difference in minutes
+        function calculateTimeDifference(time1, time2) {
+            const [h1, m1] = time1.split(':').map(Number);
+            const [h2, m2] = time2.split(':').map(Number);
+            return (h2 * 60 + m2) - (h1 * 60 + m1);
+        }
 
-// Update STA and STD based on selected flight number
-function updateFlightDetails() {
-    const selectedFlight = flightNumberSelect.value;
-    if (selectedFlight) {
-        staInput.value = flightData[selectedFlight]?.sta || '';
-        stdInput.value = flightData[selectedFlight]?.std || '';
-    } else {
-        staInput.value = '';
-        stdInput.value = '';
-    }
-}
-
-// Calculate time difference in minutes
-function calculateTimeDifference(time1, time2) {
-    const [h1, m1] = time1.split(':').map(Number);
-    const [h2, m2] = time2.split(':').map(Number);
-    return (h2 * 60 + m2) - (h1 * 60 + m1);
-}
-
-// Function to format and share the result on WhatsApp
-function shareOnWhatsApp() {
-    const ata = document.getElementById('ata').value;
-    const atd = document.getElementById('atd').value;
+       // Function to check the difference between LPB and DC
+function checkLpbDcDifference() {
+    const lpb = document.getElementById('lpb').value;
     const dc = document.getElementById('dc').value;
-    const dcReason = document.getElementById('dcReason').value;
-    const arrivalWheelchairs = document.getElementById('arrivalWheelchairs').value;
-    const departureWheelchairs = document.getElementById('departureWheelchairs').value;
+    const dcReason = document.getElementById('dcReason');
 
-    if (!ata || !atd || !dc) {
-        alert("Please fill in all time fields (ATA, DC, and ATD).");
-        return;
+    if (lpb && dc) {
+        const diff = calculateTimeDifference(lpb, dc);
+
+        if (Math.abs(diff) > 1) {
+            dcReason.value = ''; // Reset to default "Select a reason" option
+        } else {
+            dcReason.value = 'achieved';
+        }
+    } else {
+        dcReason.value = ''; // Reset to default if inputs are invalid
     }
+}
 
-    const diffAtaDc = calculateTimeDifference(ata, dc);
-    const diffAtaAtd = calculateTimeDifference(ata, atd);
 
-    const resultText = `
+        // Function to format and share the result on WhatsApp
+        function shareOnWhatsApp() {
+            const ata = document.getElementById('ata').value;
+            const atd = document.getElementById('atd').value;
+            const dc = document.getElementById('dc').value;
+            const dcReason = document.getElementById('dcReason').value;
+            const arrivalWheelchairs = document.getElementById('arrivalWheelchairs').value;
+            const departureWheelchairs = document.getElementById('departureWheelchairs').value;
+
+            if (!ata || !atd || !dc) {
+                alert("Please fill in all time fields (ATA, DC, and ATD).");
+                return;
+            }
+
+            const diffAtaDc = calculateTimeDifference(ata, dc);
+            const diffAtaAtd = calculateTimeDifference(ata, atd);
+
+            const resultText = `
 *${flightNumberSelect.value}*
 
 STA: ${staInput.value} hrs
@@ -281,57 +291,57 @@ ${arrivalWheelchairs} Arrival and ${departureWheelchairs} Departure WC
 DC ${dcReason}
 `;
 
-    // Create a WhatsApp share link
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(resultText)}`;
+            // Create a WhatsApp share link
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(resultText)}`;
 
-    // Redirect to WhatsApp with the pre-filled message
-    window.open(whatsappUrl, '_blank');
-}
+            // Redirect to WhatsApp with the pre-filled message
+            window.open(whatsappUrl, '_blank');
+        }
 
-// Reset all input fields
-function resetFields() {
-    document.getElementById('flightNumber').value = '';
-    document.getElementById('sta').value = '';
-    document.getElementById('std').value = '';
-    document.getElementById('ata').value = '';
-    document.getElementById('fpb').value = '';
-    document.getElementById('lpb').value = '';
-    document.getElementById('dc').value = '';
-    document.getElementById('atd').value = '';
-    document.getElementById('dcReason').value = 'achieved';
-    document.getElementById('arrivalWheelchairs').value = 'N/A';
-    document.getElementById('departureWheelchairs').value = 'N/A';
+        // Reset all input fields
+        function resetFields() {
+            document.getElementById('flightNumber').value = '';
+            document.getElementById('sta').value = '';
+            document.getElementById('std').value = '';
+            document.getElementById('ata').value = '';
+            document.getElementById('fpb').value = '';
+            document.getElementById('lpb').value = '';
+            document.getElementById('dc').value = '';
+            document.getElementById('atd').value = '';
+            document.getElementById('dcReason').value = 'achieved';
+            document.getElementById('arrivalWheelchairs').value = 'N/A';
+            document.getElementById('departureWheelchairs').value = 'N/A';
 
-    // Hide the share button and reset the flight details
-    shareBtn.classList.add('hidden');
-}
+            // Hide the share button and reset the flight details
+            shareBtn.classList.add('hidden');
+        }
 
-// Time formatting for fields like ATA, FPB, LPB, DC, ATD
-function formatTime(input) {
-    let value = input.value.replace(/[^\d]/g, '').slice(0, 4); // Allow only 4 digits
-    if (value.length >= 3) {
-        value = value.slice(0, 2) + ':' + value.slice(2);
-    }
-    input.value = value;
-}
+        // Time formatting for fields like ATA, FPB, LPB, DC, ATD
+        function formatTime(input) {
+            let value = input.value.replace(/[^\d]/g, '').slice(0, 4); // Allow only 4 digits
+            if (value.length >= 3) {
+                value = value.slice(0, 2) + ':' + value.slice(2);
+            }
+            input.value = value;
+        }
 
-// Validate time format (hh:mm) without alert
-function validateTimeFormat(input) {
-    const value = input.value;
-    const isValid = /^\d{2}:\d{2}$/.test(value);
+        // Validate time format (hh:mm) without alert
+        function validateTimeFormat(input) {
+            const value = input.value;
+            const isValid = /^\d{2}:\d{2}$/.test(value);
 
-    if (!isValid) {
-        input.classList.add('border-red-500');
-    } else {
-        input.classList.remove('border-red-500');
-    }
-}
+            if (!isValid) {
+                input.classList.add('border-red-500');
+            } else {
+                input.classList.remove('border-red-500');
+            }
+        }
 
-// Listen for the submit button click to trigger the WhatsApp sharing
-document.getElementById('shareBtn').addEventListener('click', shareOnWhatsApp);
+        // Listen for the submit button click to trigger the WhatsApp sharing
+        document.getElementById('shareBtn').addEventListener('click', shareOnWhatsApp);
 
-// Automatically update flight details when flight number is selected
-flightNumberSelect.addEventListener('change', updateFlightDetails);
+        // Automatically update flight details when flight number is selected
+        flightNumberSelect.addEventListener('change', updateFlightDetails);
 
     </script>
 </body>
