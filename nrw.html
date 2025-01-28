@@ -315,29 +315,30 @@ const reasonModal = document.getElementById('reasonModal');
     }
 
 
+    //share results on whatsapp
          function shareOnWhatsApp() {
-        if (dcReasonSelect.value === "") {
-            showReasonModal();
-            return;
-        }
+    // Check if the required time fields (ATA, DC, and ATD) are filled
+    const ata = document.getElementById('ata').value;
+    const atd = document.getElementById('atd').value;
+    const dc = document.getElementById('dc').value;
+    const dcReasonSelect = document.getElementById('dcReason');
 
-        // Continue with WhatsApp sharing
-        const ata = document.getElementById('ata').value;
-        const atd = document.getElementById('atd').value;
-        const dc = document.getElementById('dc').value;
-        const dcReason = dcReasonSelect.value;
-        const arrivalWheelchairs = document.getElementById('arrivalWheelchairs').value;
-        const departureWheelchairs = document.getElementById('departureWheelchairs').value;
+    if (!ata || !atd || !dc) {
+        alert("Please fill in all time fields (ATA, DC, and ATD).");
+        return; // If any field is missing, do not proceed
+    }
 
-        if (!ata || !atd || !dc) {
-            alert("Please fill in all time fields (ATA, DC, and ATD).");
-            return;
-        }
+    // If DC Reason is not selected and is needed, show the DC Reason modal
+    if (dcReasonSelect.value === "") {
+        showReasonModal(); // Show the modal to select DC Reason
+        return; // Exit the function until the DC Reason is selected
+    }
 
-        const diffAtaDc = calculateTimeDifference(ata, dc);
-        const diffAtaAtd = calculateTimeDifference(ata, atd);
+    // Proceed with WhatsApp sharing after all fields are validated
+    const diffAtaDc = calculateTimeDifference(ata, dc);
+    const diffAtaAtd = calculateTimeDifference(ata, atd);
 
-        const resultText = `
+    const resultText = `
 *${flightNumberSelect.value}*
 
 STA: ${staInput.value} hrs
@@ -353,15 +354,16 @@ ${diffAtaAtd} minutes chocks off
 
 ${arrivalWheelchairs} Arrival and ${departureWheelchairs} Departure WC
 
-DC ${dcReason}
+DC ${dcReasonSelect.value}
 `;
 
-        // Create a WhatsApp share link
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(resultText)}`;
+    // Create a WhatsApp share link
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(resultText)}`;
 
-        // Redirect to WhatsApp with the pre-filled message
-        window.open(whatsappUrl, '_blank');
-    }
+    // Redirect to WhatsApp with the pre-filled message
+    window.open(whatsappUrl, '_blank');
+}
+
 
 
         // Reset all input fields
