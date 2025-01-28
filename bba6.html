@@ -472,6 +472,84 @@ function clearMessageInput() {
 }
 
 
+    // Function to save entered values to localStorage
+function saveToMemory(id, value) {
+  let savedData = JSON.parse(localStorage.getItem(id)) || [];
+  if (value && !savedData.includes(value)) {
+    savedData.push(value);
+    localStorage.setItem(id, JSON.stringify(savedData));
+  }
+}
+
+// Function to load saved suggestions from localStorage
+function loadSuggestions(id, inputElement) {
+  let savedData = JSON.parse(localStorage.getItem(id)) || [];
+  inputElement.addEventListener("input", function () {
+    let suggestions = savedData.filter(item => item.toLowerCase().includes(inputElement.value.toLowerCase()));
+    showSuggestions(inputElement, suggestions);
+  });
+}
+
+function showSuggestions(inputElement, suggestions) {
+  // Remove existing dropdown
+  let existingDropdown = inputElement.nextElementSibling;
+  if (existingDropdown && existingDropdown.classList.contains('suggestions-dropdown')) {
+    existingDropdown.remove();
+  }
+
+  if (suggestions.length > 0) {
+    // Create a new dropdown
+    let dropdown = document.createElement('ul');
+    dropdown.classList.add('suggestions-dropdown', 'absolute', 'bg-white', 'border', 'border-gray-300', 'w-full', 'z-10');
+    
+    // Get the position of the input field and position the dropdown below it
+    const inputRect = inputElement.getBoundingClientRect();
+    const parentRect = inputElement.parentNode.getBoundingClientRect();
+
+    // Position the dropdown directly below the input field with a small gap
+    dropdown.style.top = `${inputRect.bottom - parentRect.top + 5}px`; // 5px gap from input
+    dropdown.style.left = `${inputRect.left - parentRect.left}px`;  // Align with input's left edge
+
+    // Add max height and scrollable overflow for large number of suggestions
+    dropdown.style.maxHeight = '200px';
+    dropdown.style.overflowY = 'auto';
+
+    suggestions.forEach(suggestion => {
+      let listItem = document.createElement('li');
+      listItem.classList.add('px-2', 'py-1', 'cursor-pointer');
+      listItem.textContent = suggestion;
+      listItem.addEventListener('click', () => {
+        inputElement.value = suggestion;
+        saveToMemory(inputElement.id, suggestion);
+        dropdown.remove();
+      });
+      dropdown.appendChild(listItem);
+    });
+
+    // Ensure the parent of the input element has relative positioning
+    inputElement.parentNode.style.position = 'relative';
+    inputElement.parentNode.appendChild(dropdown);
+  }
+}
+
+
+// Load suggestions for Arrival Staff, BBA Staff, and Delay Reason fields
+window.addEventListener('DOMContentLoaded', () => {
+  loadSuggestions('arrivalStaff', document.getElementById('arrivalStaff'));
+  loadSuggestions('bbaStaff', document.getElementById('bbaStaff'));
+  loadSuggestions('delayReason', document.getElementById('delayReason'));
+});
+
+// Save entered values when blur event happens
+document.getElementById('arrivalStaff').addEventListener('blur', (e) => saveToMemory(e.target.id, e.target.value));
+document.getElementById('bbaStaff').addEventListener('blur', (e) => saveToMemory(e.target.id, e.target.value));
+document.getElementById('delayReason').addEventListener('blur', (e) => saveToMemory(e.target.id, e.target.value));
+
+// Ensure delayReason field has a valid suggestion set up
+document.getElementById('delayReason').addEventListener('focus', () => {
+  loadSuggestions('delayReason', document.getElementById('delayReason'));
+});
+
 
 
   </script>
