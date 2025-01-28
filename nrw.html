@@ -156,6 +156,26 @@
             <button onclick="resetFields()" class="py-3 bg-red-500 text-white font-semibold rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4">Clear</button>
         </div>
     </div>
+    
+    <div id="reasonModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Select DC Reason</h2>
+        <p class="text-gray-600 mb-4">Please select a reason for DC before proceeding.</p>
+        <select id="modalDcReason" class="w-full p-3 bg-gray-100 text-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
+            <option value="" disabled selected>Select a reason</option>
+            
+            <option value="delay due to holds not closed">Delay due to holds not closed</option>
+            <option value="delay due to cabin congestion">Cabin congestion</option>
+            <option value="delay due to onboard check">Delay due to onboard check</option>
+            <option value="delay due to lmc">Delay due to LMC</option>
+            <option value="delay due to cockpit briefing">Cockpit briefing</option>
+        </select>
+        <div class="flex justify-end">
+            <button onclick="confirmDcReason()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Confirm</button>
+            <button onclick="closeModal()" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 ml-2">Cancel</button>
+        </div>
+    </div>
+</div>
 
     <footer class=" p-6 mt-8 text-center">
         <!-- Manage Flights Data Button -->
@@ -254,25 +274,59 @@ function checkLpbDcDifference() {
     }
 }
 
+const reasonModal = document.getElementById('reasonModal');
+    const modalDcReason = document.getElementById('modalDcReason');
+    const dcReasonSelect = document.getElementById('dcReason');
 
-        // Function to format and share the result on WhatsApp
-        function shareOnWhatsApp() {
-            const ata = document.getElementById('ata').value;
-            const atd = document.getElementById('atd').value;
-            const dc = document.getElementById('dc').value;
-            const dcReason = document.getElementById('dcReason').value;
-            const arrivalWheelchairs = document.getElementById('arrivalWheelchairs').value;
-            const departureWheelchairs = document.getElementById('departureWheelchairs').value;
+    function showReasonModal() {
+        reasonModal.classList.remove('hidden');
+    }
 
-            if (!ata || !atd || !dc) {
-                alert("Please fill in all time fields (ATA, DC, and ATD).");
-                return;
-            }
+    function closeModal() {
+        reasonModal.classList.add('hidden');
+    }
 
-            const diffAtaDc = calculateTimeDifference(ata, dc);
-            const diffAtaAtd = calculateTimeDifference(ata, atd);
+    function confirmDcReason() {
+        const selectedReason = modalDcReason.value;
+        if (!selectedReason) {
+            alert("Please select a reason.");
+            return;
+        }
 
-            const resultText = `
+        // Update the DC reason dropdown
+        dcReasonSelect.value = selectedReason;
+
+        // Close the modal
+        closeModal();
+        
+        // Now share the result after confirming
+        shareOnWhatsApp();
+    }
+
+
+         function shareOnWhatsApp() {
+        if (dcReasonSelect.value === "") {
+            showReasonModal();
+            return;
+        }
+
+        // Continue with WhatsApp sharing
+        const ata = document.getElementById('ata').value;
+        const atd = document.getElementById('atd').value;
+        const dc = document.getElementById('dc').value;
+        const dcReason = dcReasonSelect.value;
+        const arrivalWheelchairs = document.getElementById('arrivalWheelchairs').value;
+        const departureWheelchairs = document.getElementById('departureWheelchairs').value;
+
+        if (!ata || !atd || !dc) {
+            alert("Please fill in all time fields (ATA, DC, and ATD).");
+            return;
+        }
+
+        const diffAtaDc = calculateTimeDifference(ata, dc);
+        const diffAtaAtd = calculateTimeDifference(ata, atd);
+
+        const resultText = `
 *${flightNumberSelect.value}*
 
 STA: ${staInput.value} hrs
@@ -291,12 +345,13 @@ ${arrivalWheelchairs} Arrival and ${departureWheelchairs} Departure WC
 DC ${dcReason}
 `;
 
-            // Create a WhatsApp share link
-            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(resultText)}`;
+        // Create a WhatsApp share link
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(resultText)}`;
 
-            // Redirect to WhatsApp with the pre-filled message
-            window.open(whatsappUrl, '_blank');
-        }
+        // Redirect to WhatsApp with the pre-filled message
+        window.open(whatsappUrl, '_blank');
+    }
+
 
         // Reset all input fields
         function resetFields() {
