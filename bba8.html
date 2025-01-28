@@ -279,18 +279,26 @@ function formatTime(date) {
   return `${hours}:${minutes}`;
 }
 
-// Event listener for CO time change to auto-calculate HO time
 document.getElementById('co').addEventListener('input', () => {
   const coTime = document.getElementById('co').value;
   if (coTime && coTime.length === 5 && !document.getElementById('co').classList.contains('border-red-500')) {
-    // Parse CO time
-    const coDate = parseTime(coTime);
+    // Split CO time into hours and minutes
+    const [hours, minutes] = coTime.split(':').map(Number);
 
-    // Add 2 minutes to CO time for HO time
-    coDate.setMinutes(coDate.getMinutes() + 2);
+    // Calculate HO time by adding 2 minutes
+    let hoMinutes = minutes + 2;
+    let hoHours = hours;
+    if (hoMinutes >= 60) {
+      hoMinutes -= 60;
+      hoHours += 1;
+    }
+    if (hoHours >= 24) {
+      hoHours -= 24;
+    }
 
-    // Set the new HO time in the HO input field
-    document.getElementById('ho').value = formatTime(coDate);
+    // Format HO time as HH:MM
+    const hoTime = `${String(hoHours).padStart(2, '0')}:${String(hoMinutes).padStart(2, '0')}`;
+    document.getElementById('ho').value = hoTime;
   }
 });
 
