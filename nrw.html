@@ -316,7 +316,7 @@ const reasonModal = document.getElementById('reasonModal');
 
 
     //share results on whatsapp
-         function shareOnWhatsApp() {
+       function shareOnWhatsApp() {
     // Check if the required time fields (ATA, DC, and ATD) are filled
     const ata = document.getElementById('ata').value;
     const atd = document.getElementById('atd').value;
@@ -334,10 +334,15 @@ const reasonModal = document.getElementById('reasonModal');
         return; // Exit the function until the DC Reason is selected
     }
 
-    // Proceed with WhatsApp sharing after all fields are validated
+    // Retrieve arrival and departure wheelchair values
+    const arrivalWheelchairs = document.getElementById('arrivalWheelchairs').value;
+    const departureWheelchairs = document.getElementById('departureWheelchairs').value;
+
+    // Calculate time differences
     const diffAtaDc = calculateTimeDifference(ata, dc);
     const diffAtaAtd = calculateTimeDifference(ata, atd);
 
+    // Construct the result text
     const resultText = `
 *${flightNumberSelect.value}*
 
