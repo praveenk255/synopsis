@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tron Flight Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-blue: #2d8cf0;
+            --neon-glw: rgba(45, 140, 240, 0.3);
+        }
+
+        body {
+            background-color: #000;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-blue);
+            min-height: 100vh;
+        }
+
+        .tron-container {
+            background: #0d0d1a;
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 20px var(--neon-glw);
+            animation: container-glow 2s infinite alternate;
+        }
+
+        .tron-input {
+            background: #1a1a2d !important;
+            border: 1px solid var(--neon-blue) !important;
+            color: #fff !important;
+            transition: all 0.3s ease;
+        }
+
+        .tron-input:focus {
+            box-shadow: 0 0 10px var(--neon-glw) !important;
+            border-color: #4da8ff !important;
+        }
+
+        .tron-button {
+            background: var(--neon-blue) !important;
+            color: #fff !important;
+            border: none !important;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tron-button:hover {
+            background: #4da8ff !important;
+            box-shadow: 0 0 15px var(--neon-glw) !important;
+        }
+
+        .grid-pattern {
+            background: 
+                linear-gradient(0deg, transparent 24%, 
+                var(--neon-glw) 25%, 
+                var(--neon-glw) 26%, 
+                transparent 27%, 
+                transparent 74%, 
+                var(--neon-glw) 75%, 
+                var(--neon-glw) 76%, 
+                transparent 77%),
+                linear-gradient(90deg, transparent 24%, 
+                var(--neon-glw) 25%, 
+                var(--neon-glw) 26%, 
+                transparent 27%, 
+                transparent 74%, 
+                var(--neon-glw) 75%, 
+                var(--neon-glw) 76%, 
+                transparent 77%);
+            background-size: 50px 50px;
+            opacity: 0.3;
+        }
+
+        @keyframes container-glow {
+            from { box-shadow: 0 0 10px var(--neon-glw); }
+            to { box-shadow: 0 0 20px var(--neon-glw); }
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--neon-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .modal-inner {
+            background: #0d0d1a;
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 20px var(--neon-glw);
+        }
+    </style>
+</head>
+<body class="p-6">
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="flex justify-center items-center h-screen">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="max-w-2xl mx-auto p-6 rounded-lg relative tron-container" id="flightDetailsContainer" style="display:none;">
+        <div class="grid-pattern absolute inset-0 pointer-events-none"></div>
+        
+        <div class="flex space-x-4 mt-4">
+            <!-- Flight Number -->
+            <div class="flex-1">
+                <label class="block text-lg mb-2">
+                    <i class="fas fa-plane-departure text-[var(--neon-blue)]"></i> Flight
+                </label>
+                <select id="flightNumber" class="w-full p-3 tron-input rounded-md" onchange="updateFlightDetails()">
+                    <option value="">Flight Number</option>
+                </select>
+            </div>
+
+            <!-- STA -->
+            <div class="flex-1">
+                <label class="block text-lg mb-2">STA</label>
+                <input type="text" id="sta" class="w-full p-3 tron-input rounded-md" readonly>
+            </div>
+
+            <!-- STD -->
+            <div class="flex-1">
+                <label class="block text-lg mb-2">STD</label>
+                <input type="text" id="std" class="w-full p-3 tron-input rounded-md" readonly>
+            </div>
+        </div>
+
+        <!-- Grid Layout -->
+        <div class="grid grid-cols-2 gap-x-4 gap-y-6 mt-6">
+            <!-- ATA -->
+            <div>
+                <label class="block text-lg mb-2">ATA</label>
+                <input type="text" id="ata" class="w-full p-3 tron-input rounded-md" 
+                       placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
+            </div>
+
+            <!-- FPB -->
+            <div>
+                <label class="block text-lg mb-2">FPB</label>
+                <input type="text" id="fpb" class="w-full p-3 tron-input rounded-md" 
+                       placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
+            </div>
+
+            <!-- LPB -->
+            <div>
+                <label class="block text-lg mb-2">LPB</label>
+                <input type="text" id="lpb" class="w-full p-3 tron-input rounded-md" 
+                       placeholder="hh:mm" oninput="formatTime(this); checkLpbDcDifference();" 
+                       onblur="validateTimeFormat(this)">
+            </div>
+
+            <!-- DC -->
+            <div>
+                <label class="block text-lg mb-2">DC</label>
+                <input type="text" id="dc" class="w-full p-3 tron-input rounded-md" 
+                       placeholder="hh:mm" oninput="formatTime(this); checkLpbDcDifference();" 
+                       onblur="validateTimeFormat(this)">
+            </div>
+
+            <!-- ATD -->
+            <div>
+                <label class="block text-lg mb-2">ATD</label>
+                <input type="text" id="atd" class="w-full p-3 tron-input rounded-md" 
+                       placeholder="hh:mm" oninput="formatTime(this)" onblur="validateTimeFormat(this)">
+            </div>
+
+            <!-- DC Reason -->
+            <div>
+                <label class="block text-lg mb-2">DC Reason</label>
+                <select id="dcReason" class="w-full p-3 tron-input rounded-md" required>
+                    <option value="" disabled selected>Select reason</option>
+                    <option value="achieved">Achieved</option>
+                    <option value="delay due to holds not closed">Holds not closed</option>
+                    <option value="delay due to cabin congestion">Cabin congestion</option>
+                    <option value="delay due to onboard check">Onboard check</option>
+                    <option value="delay due to lmc">LMC</option>
+                    <option value="delay due to cockpit briefing">Cockpit briefing</option>
+                </select>
+            </div>
+
+            <!-- Wheelchairs -->
+            <div>
+                <label class="block text-lg mb-2">Arrival WC</label>
+                <select id="arrivalWheelchairs" class="w-full p-3 tron-input rounded-md">
+                    <option value="N/A">N/A</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-lg mb-2">Departure WC</label>
+                <select id="departureWheelchairs" class="w-full p-3 tron-input rounded-md">
+                    <option value="N/A">N/A</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-2 gap-4 mt-8">
+            <button onclick="shareOnWhatsApp()" class="tron-button py-3 rounded-md">
+                <i class="fa-brands fa-whatsapp fa-2x mr-2"></i> Share
+            </button>
+            <button onclick="resetFields()" class="tron-button py-3 rounded-md bg-red-500 hover:bg-red-600">
+                Clear
+            </button>
+        </div>
+    </div>
+
+    <!-- Reason Modal -->
+    <div id="reasonModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="modal-inner p-6 rounded-lg w-full max-w-md">
+            <h2 class="text-xl font-bold mb-4">Select DC Reason</h2>
+            <select id="modalDcReason" class="w-full p-3 tron-input rounded-md mb-4">
+                <option value="" disabled selected>Select reason</option>
+                <option value="delay due to holds not closed">Holds not closed</option>
+                <option value="delay due to cabin congestion">Cabin congestion</option>
+                <option value="delay due to onboard check">Onboard check</option>
+                <option value="delay due to lmc">LMC</option>
+                <option value="delay due to cockpit briefing">Cockpit briefing</option>
+            </select>
+            <div class="flex justify-end">
+                <button onclick="confirmDcReason()" class="tron-button px-4 py-2 rounded-md mr-2">
+                    Confirm
+                </button>
+                <button onclick="closeModal()" class="tron-button px-4 py-2 rounded-md bg-gray-500 hover:bg-gray-600">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="p-6 mt-8 text-center">
+        <a href="YOUR_GOOGLE_SHEETS_LINK" 
+           class="tron-button px-4 py-2 rounded-md text-sm inline-block">
+            Manage <i class="fa fa-plane ml-1"></i> Data
+        </a>
+    </footer>
+
+    <script>
+        // Flight Data Configuration
+        const googleSheetUrl = "YOUR_GOOGLE_SHEETS_CSV_URL";
+        const flightData = {};
+        let currentFlight = null;
+
+        // DOM Elements
+        const elements = {
+            loading: document.getElementById('loadingSpinner'),
+            container: document.getElementById('flightDetailsContainer'),
+            flightSelect: document.getElementById('flightNumber'),
+            sta: document.getElementById('sta'),
+            std: document.getElementById('std'),
+            modal: document.getElementById('reasonModal'),
+            modalReason: document.getElementById('modalDcReason')
+        };
+
+        // Initialization
+        document.addEventListener('DOMContentLoaded', initApp);
+
+        async function initApp() {
+            await loadFlightData();
+            elements.loading.style.display = 'none';
+            elements.container.style.display = 'block';
+        }
+
+        async function loadFlightData() {
+            try {
+                const response = await fetch(googleSheetUrl);
+                const csvData = await response.text();
+                
+                elements.flightSelect.innerHTML = '<option value="">Select Flight</option>';
+                
+                csvData.split('\n').slice(1).forEach(row => {
+                    const [flight, sta, std] = row.split(',');
+                    if (flight && sta && std) {
+                        flightData[flight] = { sta: sta.trim(), std: std.trim() };
+                        elements.flightSelect.innerHTML += 
+                            `<option value="${flight}">${flight}</option>`;
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading flight data:', error);
+                alert('Failed to load flight data. Please try again later.');
+            }
+        }
+
+        function updateFlightDetails() {
+            currentFlight = elements.flightSelect.value;
+            if (currentFlight) {
+                elements.sta.value = flightData[currentFlight]?.sta || '';
+                elements.std.value = flightData[currentFlight]?.std || '';
+            } else {
+                elements.sta.value = '';
+                elements.std.value = '';
+            }
+        }
+
+        // Time Calculation Functions
+        function calculateTimeDifference(start, end) {
+            const [h1, m1] = start.split(':').map(Number);
+            const [h2, m2] = end.split(':').map(Number);
+            let total1 = h1 * 60 + m1;
+            let total2 = h2 * 60 + m2;
+            if (total2 < total1) total2 += 1440; // Add 24h if overnight
+            return total2 - total1;
+        }
+
+        function checkLpbDcDifference() {
+            const lpb = document.getElementById('lpb').value;
+            const dc = document.getElementById('dc').value;
+            const reason = document.getElementById('dcReason');
+            
+            if (lpb && dc) {
+                const diff = calculateTimeDifference(lpb, dc);
+                reason.value = Math.abs(diff) > 1 ? '' : 'achieved';
+            }
+        }
+
+        // Modal Functions
+        function showReasonModal() {
+            elements.modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            elements.modal.classList.add('hidden');
+        }
+
+        function confirmDcReason() {
+            const reason = elements.modalReason.value;
+            if (!reason) return alert('Please select a reason');
+            document.getElementById('dcReason').value = reason;
+            closeModal();
+            shareOnWhatsApp(true);
+        }
+
+        // Core Application Logic
+        function shareOnWhatsApp(confirmed = false) {
+            const requiredFields = ['ata', 'dc', 'atd'];
+            const missing = requiredFields.filter(id => !document.getElementById(id).value);
+            
+            if (missing.length > 0) {
+                return alert('Please complete all required time fields');
+            }
+
+            const reason = document.getElementById('dcReason').value;
+            if (!reason && !confirmed) return showReasonModal();
+
+            const flightInfo = {
+                number: currentFlight,
+                sta: elements.sta.value,
+                std: elements.std.value,
+                ata: document.getElementById('ata').value,
+                fpb: document.getElementById('fpb').value,
+                lpb: document.getElementById('lpb').value,
+                dc: document.getElementById('dc').value,
+                atd: document.getElementById('atd').value,
+                arrivalWC: document.getElementById('arrivalWheelchairs').value,
+                departureWC: document.getElementById('departureWheelchairs').value,
+                reason
+            };
+
+            const message = formatWhatsAppMessage(flightInfo);
+            window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        function formatWhatsAppMessage(data) {
+            return `*${data.number}*
+STA: ${data.sta} | STD: ${data.std}
+ATA: ${data.ata} | FPB: ${data.fpb}
+LPB: ${data.lpb} | DC: ${data.dc}
+ATD: ${data.atd}
+
+${calculateTimeDifference(data.ata, data.dc)} min door close
+${calculateTimeDifference(data.ata, data.atd)} min chocks off
+
+WC: ${data.arrivalWC} Arrival / ${data.departureWC} Departure
+DC Reason: ${data.reason}`;
+        }
+
+        function resetFields() {
+            document.querySelectorAll('input, select').forEach(element => {
+                if (element.id !== 'dcReason') element.value = '';
+            });
+            document.getElementById('dcReason').value = 'achieved';
+        }
+
+        // Utility Functions
+        function formatTime(input) {
+            input.value = input.value.replace(/[^\d]/g, '')
+                .replace(/(\d{2})(\d{0,2})/, (_, hh, mm) => mm ? `${hh}:${mm}` : hh);
+        }
+
+        function validateTimeFormat(input) {
+            const isValid = /^([01]\d|2[0-3]):([0-5]\d)$/.test(input.value);
+            input.classList.toggle('border-red-500', !isValid);
+        }
+    </script>
+</body>
+</html>
