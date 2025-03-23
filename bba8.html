@@ -456,18 +456,20 @@ function processAutofill() {
   message = message.replace(/\[[^\]]*\]/g, '').trim();
 
   // Clean up unnecessary punctuation (e.g., colons and dashes between labels and values)
-  message = message.replace(/(:-|-|:)/g, '').trim(); // Remove colons and dashes
+  message = message.replace(/(:-|-|:|\/|_)/g, ' '); // Normalize special characters to space
   message = message.replace(/\s+/g, ' '); // Replace multiple spaces with a single space
 
-// Preprocess: Remove "n" if it follows 0, o, or O
-message = message.replace(/([oO0])n/g, "$1");
+  // Remove emojis & non-alphanumeric characters (except spaces & digits)
+  message = message.replace(/[^\w\s]/gu, ''); 
+
+  // Preprocess: Remove "n" if it follows 0, o, or O
+  message = message.replace(/([oO0])n/g, "$1");
 
   console.log("Cleaned message:", message);
 
   // Regular expressions for extracting data
-  const coRegex = /(?:C[ \-/]?[oO0nN]?)[ \-]*(\d{4})/i; // Match C/o, COn, Co, or similar followed by time
-
-  const hoRegex = /(?:H[ \-/]?[oO0]|D[ \-/]?[oO0])\s*(\d{4})/i; // Match H/o or Ho followed by time
+  const coRegex = /(?:C[ \-/]?[oO0nN]?)[ \-]*(\d{4})/i; // Match C/o, Co, etc.
+  const hoRegex = /(?:H[ \-/]?[oO0]|D[ \-/]?[oO0])\s*(\d{4})/i; // Match H/o, Ho, D/o, etc.
   const fbRegex = /(?:Fb|F[bB])\s*(\d{4})/i; // Match Fb followed by time
   const lbRegex = /(?:L[bB])\s*(\d{4})/i; // Match Lb followed by time
   const flightNumberRegex = /\b(6[eE][ \-]?\d{1,4}|[0-9]{3,4})\b/; // Match flight number (6E or any 3-4 digits)
@@ -513,13 +515,13 @@ message = message.replace(/([oO0])n/g, "$1");
   document.getElementById('firstBag').value = flightForm.firstBag;
   document.getElementById('lastBag').value = flightForm.lastBag;
 
-  
   // Explicitly call checkDelayReason to update the Delay Reason field
   checkDelayReason();
   
   // Close the popup
   closeAutofillPopup();
 }
+
 
 // Format time from HHMM to HH:MM
 function formatTime(time) {
@@ -579,6 +581,39 @@ function setupFloatingLabels() {
     });
   });
 }
+
+    
+// Function to save Arrival Staff and BBA Staff in local storage
+function saveStaffData() {
+  const arrivalStaff = document.getElementById('arrivalStaff').value;
+  const bbaStaff = document.getElementById('bbaStaff').value;
+  
+  localStorage.setItem('arrivalStaff', arrivalStaff);
+  localStorage.setItem('bbaStaff', bbaStaff);
+}
+
+// Function to load saved Arrival Staff and BBA Staff from local storage
+function loadStaffData() {
+  const savedArrivalStaff = localStorage.getItem('arrivalStaff');
+  const savedBbaStaff = localStorage.getItem('bbaStaff');
+
+  if (savedArrivalStaff) {
+    document.getElementById('arrivalStaff').value = savedArrivalStaff;
+  }
+
+  if (savedBbaStaff) {
+    document.getElementById('bbaStaff').value = savedBbaStaff;
+  }
+}
+
+// Attach event listeners to save data when input fields change
+document.getElementById('arrivalStaff').addEventListener('input', saveStaffData);
+document.getElementById('bbaStaff').addEventListener('input', saveStaffData);
+
+// Load saved data when the page loads
+window.addEventListener('DOMContentLoaded', loadStaffData);
+
+
 
 // Initialize floating labels on page load
 window.addEventListener('DOMContentLoaded', setupFloatingLabels);
