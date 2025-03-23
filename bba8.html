@@ -411,20 +411,27 @@ function clearForm() {
       input.id !== 'bbaStaff' && 
       input.type !== 'button'
     ) {
-      input.value = ''; // Clear the value
+      // For flight number, reset to default "6E"
+      if (input.id === 'flightNumber') {
+        input.value = '6E'; // Reset to default value
+      } else {
+        input.value = ''; // Clear other fields
+      }
+      
       if (input.type === 'textarea') {
         input.innerText = ''; // Clear textarea content
       }
     }
   });
 
-  // Reset specific styles or attributes
+  // Reset validation states
   document.querySelectorAll('.time-input').forEach(input => {
-    input.classList.remove('border-red-500'); // Remove red highlight on clear
+    input.classList.remove('border-red-500');
   });
 
   const delayReason = document.getElementById('delayReason');
   delayReason.disabled = true;
+  delayReason.value = ''; // Clear delay reason
   delayReason.classList.add('disabled-field');
   document.getElementById('delayReasonLabel').innerText = 'Delay Reason';
 }
