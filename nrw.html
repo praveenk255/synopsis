@@ -153,7 +153,10 @@
             </button>
 
             <!-- Clear Button -->
-            <button onclick="resetFields()" class="py-3 bg-red-500 text-white font-semibold rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4">Clear</button>
+            <button onclick="resetFields()" class="py-3 bg-red-500 text-white font-semibold rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4">
+    Clear
+</button>
+
         </div>
     </div>
     
@@ -186,6 +189,25 @@
         >
             Manage  <i class="fa fa-plane text-black-400"></i> Data
         </a>
+        
+       <!-- Confirmation Modal -->
+<div id="confirmClearModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+        <h2 class="text-xl font-semibold text-gray-800 text-center mb-4">Confirm Clear</h2>
+        <p class="text-gray-600 text-center mb-6">Are you sure you want to clear all fields?</p>
+        <div class="flex justify-center space-x-4">
+            <button onclick="clearForm()" class="bg-red-500 text-white w-36 h-12 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 flex items-center justify-center text-lg font-medium">
+                OK
+            </button>
+            <button onclick="closeClearModal()" class="bg-gray-300 text-gray-800 w-36 h-12 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 flex items-center justify-center text-lg font-medium">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+
+
     </footer>
 
     <script>
@@ -373,21 +395,33 @@ DC ${dcReasonSelect.value}
 
         // Reset all input fields
         function resetFields() {
-            document.getElementById('flightNumber').value = '';
-            document.getElementById('sta').value = '';
-            document.getElementById('std').value = '';
-            document.getElementById('ata').value = '';
-            document.getElementById('fpb').value = '';
-            document.getElementById('lpb').value = '';
-            document.getElementById('dc').value = '';
-            document.getElementById('atd').value = '';
-            document.getElementById('dcReason').value = 'achieved';
-            document.getElementById('arrivalWheelchairs').value = 'N/A';
-            document.getElementById('departureWheelchairs').value = 'N/A';
+    document.getElementById('confirmClearModal').classList.remove('hidden');
+}
 
-            // Hide the share button and reset the flight details
+function closeClearModal() {
+    document.getElementById('confirmClearModal').classList.add('hidden');
+}
+
+function clearForm() {
+    document.getElementById('flightNumber').value = '';
+    document.getElementById('sta').value = '';
+    document.getElementById('std').value = '';
+    document.getElementById('ata').value = '';
+    document.getElementById('fpb').value = '';
+    document.getElementById('lpb').value = '';
+    document.getElementById('dc').value = '';
+    document.getElementById('atd').value = '';
+    document.getElementById('dcReason').value = '';
+    document.getElementById('arrivalWheelchairs').value = 'N/A';
+    document.getElementById('departureWheelchairs').value = 'N/A';
+    
+    closeClearModal();
+    
+    // Hide the share button and reset the flight details
             shareBtn.classList.add('hidden');
-        }
+}
+
+        
 
         // Time formatting for fields like ATA, FPB, LPB, DC, ATD
         function formatTime(input) {
