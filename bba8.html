@@ -437,44 +437,9 @@ function generateResult() {
 
 
 function clearForm() {
-  // Get the form element
-  const form = document.getElementById('flightForm');
-
-  // Clear all fields except "Arrival Staff" and "BBA Staff"
-  Array.from(form.elements).forEach(input => {
-    if (
-      input.id !== 'arrivalStaff' && 
-      input.id !== 'bbaStaff' && 
-      input.type !== 'button'
-    ) {
-      // For flight number, reset to default "6E"
-      if (input.id === 'flightNumber') {
-        input.value = '6E'; // Reset to default value
-      } else {
-        input.value = ''; // Clear other fields
-      }
-      
-      if (input.type === 'textarea') {
-        input.innerText = ''; // Clear textarea content
-      }
-    }
-  });
-
-  // Reset validation states
-  document.querySelectorAll('.time-input').forEach(input => {
-    input.classList.remove('border-red-500');
-  });
-
-  const delayReason = document.getElementById('delayReason');
-  delayReason.disabled = true;
-  delayReason.value = ''; // Clear delay reason
-  delayReason.classList.add('disabled-field');
-  document.getElementById('delayReasonLabel').innerText = 'Delay Reason';
-  
-  // Add these two lines to hide checkboxes and clear their selections
-  document.getElementById('delayReasonOptions').classList.add('hidden');
-  document.querySelectorAll('.delay-reason-checkbox').forEach(checkbox => checkbox.checked = false);
+  location.reload(); // Reloads the page
 }
+
 
 
 // Show the autofill popup
