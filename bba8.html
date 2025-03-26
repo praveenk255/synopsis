@@ -156,6 +156,31 @@
   <!-- Delay Reason with Total Time -->
       <div class="form-group">
         <label for="delayReason" class="form-input" id="delayReasonLabel">Delay Reason</label>
+        
+        <!-- Delay Reason Checkboxes -->
+<div id="delayReasonOptions" class="hidden">
+  <br/>
+  <div class="flex flex-col space-y-2 mt-1">
+    <label>
+      <input type="checkbox" class="delay-reason-checkbox" value="Heavy and bulky bags" />
+      Heavy and bulky bags
+    </label>
+    <label>
+      <input type="checkbox" class="delay-reason-checkbox" value="Shortage of helpers" />
+      Shortage of helpers
+    </label>
+    <label>
+      <input type="checkbox" class="delay-reason-checkbox" value="Clashing of flights" />
+      Clashing of flights
+    </label>
+    <label>
+      <input type="checkbox" class="delay-reason-checkbox" value="Trolleys received late" />
+      Trolleys received late
+    </label>
+     <br/>
+  </div>
+</div>
+        
         <textarea id="delayReason" class="w-full p-2 border rounded disabled-field" placeholder="e.g., NA" disabled></textarea>
       </div>
     </form>
@@ -620,6 +645,48 @@ document.getElementById('bbaStaff').addEventListener('input', saveStaffData);
 // Load saved data when the page loads
 window.addEventListener('DOMContentLoaded', loadStaffData);
 
+function checkDelayReason() {
+    const co = document.getElementById('co').value;
+    const lastBag = document.getElementById('lastBag').value;
+    const delayReasonOptions = document.getElementById('delayReasonOptions');
+
+    if (co && lastBag) {
+      const coTime = parseTime(co);
+      const lastBagTime = parseTime(lastBag);
+
+      if (lastBagTime < coTime) lastBagTime.setDate(lastBagTime.getDate() + 1);
+      const totalTime = (lastBagTime - coTime) / 60000;
+
+      const delayReasonField = document.getElementById('delayReason');
+      const delayReasonLabel = document.getElementById('delayReasonLabel');
+
+      if (totalTime > 20) {
+        delayReasonField.disabled = false;
+        delayReasonField.classList.remove('disabled-field');
+        delayReasonLabel.innerText = `Delay Reason (${totalTime - 20} mins delay, pick or type reason)`;
+        delayReasonOptions.classList.remove('hidden'); // Show checkboxes
+      } else {
+        delayReasonField.disabled = true;
+        delayReasonField.classList.add('disabled-field');
+        delayReasonLabel.innerText = 'Delay Reason';
+        delayReasonOptions.classList.add('hidden'); // Hide checkboxes
+        delayReasonField.value = ''; // Clear reasons when hidden
+      }
+    }
+  }
+
+  // Function to update delay reason input with selected checkboxes
+  document.querySelectorAll('.delay-reason-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+      const selectedReasons = Array.from(document.querySelectorAll('.delay-reason-checkbox:checked'))
+        .map(checkbox => checkbox.value)
+        .join(', ');
+      document.getElementById('delayReason').value = selectedReasons;
+    });
+  });
+
+  document.getElementById('co').addEventListener('input', checkDelayReason);
+  document.getElementById('lastBag').addEventListener('input', checkDelayReason);
 
 
 // Initialize floating labels on page load
