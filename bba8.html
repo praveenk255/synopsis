@@ -106,6 +106,16 @@
   background-color: #ffcccc; /* Light red color when disabled */
   color: #a3a3a3; /* Gray text to indicate it's disabled */
 }
+
+/* Remove form-input class from the label */
+  #delayReasonLabel {
+    display: block;
+    font-size: 14px;
+    color: #000000;
+    margin-bottom: 8px;
+  }
+  
+  
   </style>
 </head>
 <body class="bg-gray-100 p-6">
@@ -155,11 +165,13 @@
   
   <!-- Delay Reason with Total Time -->
       <div class="form-group">
-        <label for="delayReason" class="form-input" id="delayReasonLabel">Delay Reason</label>
+        <label for="delayReason" id="delayReasonLabel" class="block text-sm text-gray-600 mb-1">
+  Delay Reason
+</label>
         
        <!-- Delay Reason Checkboxes -->
 <div id="delayReasonOptions" class="hidden mt-2">
-  <br/>
+  
   <div class="grid grid-cols-2 gap-x-4 gap-y-1">
     <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
       <input type="checkbox" class="delay-reason-checkbox" value="Heavy and bulky bags" />
