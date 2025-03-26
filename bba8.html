@@ -459,6 +459,10 @@ function clearForm() {
   delayReason.value = ''; // Clear delay reason
   delayReason.classList.add('disabled-field');
   document.getElementById('delayReasonLabel').innerText = 'Delay Reason';
+  
+  // Add these two lines to hide checkboxes and clear their selections
+  document.getElementById('delayReasonOptions').classList.add('hidden');
+  document.querySelectorAll('.delay-reason-checkbox').forEach(checkbox => checkbox.checked = false);
 }
 
 
