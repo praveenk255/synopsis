@@ -1,373 +1,374 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flight Data Entry</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    /* Legacy grid styling */
-    .legacy-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr); /* 3 columns for the first row */
-      gap: 16px;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Data Entry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Legacy grid styling */
+        .legacy-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3 columns for the first row */
+            gap: 16px;
+        }
 
-    /* For larger screens, the grid pattern will adjust to fit two items per row after the first row */
-    .legacy-grid > div:nth-child(n+4):nth-child(-n+8) {
-      grid-column: span 1;
-    }
+        /* For larger screens, the grid pattern will adjust to fit two items per row after the first row */
+        .legacy-grid > div:nth-child(n+4):nth-child(-n+8) {
+            grid-column: span 1;
+        }
 
-    /* Delay Reason should span full width */
-    .legacy-grid > div:last-child {
-      grid-column: span 3;
-    }
+        /* Delay Reason should span full width */
+        .legacy-grid > div:last-child {
+            grid-column: span 3;
+        }
 
-    /* Responsive adjustments for smaller screens */
-    @media (max-width: 768px) {
-      .legacy-grid {
-        grid-template-columns: 1fr 1fr; /* Two items per row on smaller screens */
-      }
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 768px) {
+            .legacy-grid {
+                grid-template-columns: 1fr 1fr; /* Two items per row on smaller screens */
+            }
 
-      .legacy-grid > div:nth-child(n+4):nth-child(-n+8) {
-        grid-column: span 1;
-      }
+            .legacy-grid > div:nth-child(n+4):nth-child(-n+8) {
+                grid-column: span 1;
+            }
 
-      .legacy-grid > div:last-child {
-        grid-column: span 2; /* Adjust Delay Reason to span two columns on small screens */
-      }
-    }
+            .legacy-grid > div:last-child {
+                grid-column: span 2; /* Adjust Delay Reason to span two columns on small screens */
+            }
+        }
 
-    /* Custom styles for the disabled Delay Reason field */
-    .disabled-field {
-      background-color: #ffcccc; /* Light red color when disabled */
-      color: #a3a3a3; /* Gray text to indicate it's disabled */
-      
-      /* Autofill Popup */
-#autofillPopup {
-  position: fixed;
-  bottom: 10px; /* 10px above the bottom of the page */
-  left: 50%;
-  transform: translateX(-50%); /* Center horizontally */
-  background: rgba(128, 128, 128, 0.8); /* Optional: Background overlay */
-  z-index: 1000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+        /* Custom styles for the disabled Delay Reason field */
+        .disabled-field {
+            background-color: #ffcccc; /* Light red color when disabled */
+            color: #a3a3a3; /* Gray text to indicate it's disabled */
 
-    }
-    
-    /* Form group container */
-.form-group {
-  position: relative;
-  margin-bottom: 1.5rem; /* Adjust spacing as needed */
-}
+            /* Autofill Popup */
+            #autofillPopup {
+                position: fixed;
+                bottom: 10px; /* 10px above the bottom of the page */
+                left: 50%;
+                transform: translateX(-50%); /* Center horizontally */
+                background: rgba(128, 128, 128, 0.8); /* Optional: Background overlay */
+                z-index: 1000;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
 
-/* Input and textarea styles */
-.form-input {
-  width: 100%;
-  padding: 8px 0;
-  font-size: 14px;
-  border: none;
-  border-bottom: 2px solid #ccc;
-  background-color: transparent;
-  outline: none;
-  transition: border-color 0.3s ease;
-}
+        }
 
-/* Focus and valid states */
-.form-input:focus,
-.form-input:not(:placeholder-shown) {
-  border-bottom-color: #3b82f6; /* Blue color for focus */
-}
+        /* Form group container */
+        .form-group {
+            position: relative;
+            margin-bottom: 1.5rem; /* Adjust spacing as needed */
+        }
 
-/* Label styles */
-.form-label {
-  position: absolute;
-  top: 8px;
-  left: 0;
-  font-size: 14px;
-  color: #666;
-  transition: all 0.3s ease;
-  pointer-events: none; /* Ensure clicks pass through to the input */
-}
+        /* Input and textarea styles */
+        .form-input {
+            width: 100%;
+            padding: 8px 0;
+            font-size: 14px;
+            border: none;
+            border-bottom: 2px solid #ccc;
+            background-color: transparent;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
 
-/* Move label up when input is focused or has content */
-.form-input:focus ~ .form-label,
-.form-input:not(:placeholder-shown) ~ .form-label {
-  top: -12px;
-  font-size: 12px;
-  color: #3b82f6; /* Blue color for focus */
-}
+        /* Focus and valid states */
+        .form-input:focus,
+        .form-input:not(:placeholder-shown) {
+            border-bottom-color: #3b82f6; /* Blue color for focus */
+        }
 
-/* Disabled field styles */
-.disabled-field {
-  background-color: #ffcccc; /* Light red color when disabled */
-  color: #a3a3a3; /* Gray text to indicate it's disabled */
-}
+        /* Label styles */
+        .form-label {
+            position: absolute;
+            top: 8px;
+            left: 0;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.3s ease;
+            pointer-events: none; /* Ensure clicks pass through to the input */
+        }
 
-/* Remove form-input class from the label */
-  #delayReasonLabel {
-    display: block;
-    font-size: 14px;
-    color: #000000;
-    margin-bottom: 8px;
-  }
-  
-  
-  </style>
+        /* Move label up when input is focused or has content */
+        .form-input:focus ~ .form-label,
+        .form-input:not(:placeholder-shown) ~ .form-label {
+            top: -12px;
+            font-size: 12px;
+            color: #3b82f6; /* Blue color for focus */
+        }
+
+        /* Disabled field styles */
+        .disabled-field {
+            background-color: #ffcccc; /* Light red color when disabled */
+            color: #a3a3a3; /* Gray text to indicate it's disabled */
+        }
+
+        /* Remove form-input class from the label */
+        #delayReasonLabel {
+            display: block;
+            font-size: 14px;
+            color: #000000;
+            margin-bottom: 8px;
+        }
+
+    </style>
 </head>
 <body class="bg-gray-100 p-6">
-  <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
-   
-   <form id="flightForm" class="legacy-grid">
-  <!-- Flight Number -->
-  <div class="form-group">
-    <input type="text" id="flightNumber" inputmode="numeric" pattern="[0-9]*" class="form-input" placeholder=" " required value="6E" />
-    <label for="flightNumber" class="form-label">Flight Number</label>
-  </div>
-  <!-- CO Time -->
-  <div class="form-group">
-    <input type="text" id="co" inputmode="numeric" pattern="[0-9]*" class="form-input time-input" placeholder=" " maxlength="5" required />
-    <label for="co" class="form-label">CO</label>
-  </div>
-  <!-- HO Time -->
-  <div class="form-group">
-    <input type="text" id="ho" inputmode="numeric" pattern="[0-9]*" class="form-input time-input" placeholder=" " maxlength="5" required />
-    <label for="ho" class="form-label">HO</label>
-  </div>
-  <!-- First Bag -->
-  <div class="form-group">
-    <input type="text" id="firstBag" inputmode="numeric" pattern="[0-9]*" class="form-input time-input" placeholder=" " maxlength="5" required />
-    <label for="firstBag" class="form-label">First Bag</label>
-  </div>
-  <!-- Last Bag -->
-  <div class="form-group">
-    <input type="text" id="lastBag" inputmode="numeric" pattern="[0-9]*" class="form-input time-input" placeholder=" " maxlength="5" required />
-    <label for="lastBag" class="form-label">Last Bag</label>
-  </div>
-  <!-- Flight Manager -->
-  <div class="form-group">
-    <input type="text" id="manager" class="form-input" placeholder=" " required />
-    <label for="manager" class="form-label">Flight Manager</label>
-  </div>
-  <!-- Arrival Staff -->
-  <div class="form-group">
-    <input type="text" id="arrivalStaff" class="form-input" placeholder=" " required />
-    <label for="arrivalStaff" class="form-label">Arrival Staff</label>
-  </div>
-  <!-- BBA Staff -->
-  <div class="form-group">
-    <input type="text" id="bbaStaff" class="form-input" placeholder=" " required />
-    <label for="bbaStaff" class="form-label">BBA Staff</label>
-  </div>
-  
-  <!-- Delay Reason with Total Time -->
-      <div class="form-group">
-        <label for="delayReason" id="delayReasonLabel" class="block text-sm text-gray-600 mb-1">
-  Delay Reason
-</label>
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
+
+        <form id="flightForm" class="legacy-grid">
+            
+            <div class="form-group">
+                <input type="text" id="flightNumber" inputmode="numeric" pattern="[0-9]*" class="form-input" placeholder=" " required value="6E" />
+                <label for="flightNumber" class="form-label">Flight Number</label>
+            </div>
+            
+            <div class="form-group">
+                <input type="text" id="co" inputmode="numeric" pattern="[0-9]*" class="form-input time-input" placeholder=" " maxlength="5" required />
+                <label for="co" class="form-label">CO</label>
+            </div>
+            
+            <div class="form-group">
+                <input type="text" id="ho" inputmode="numeric" pattern="[0-9]*" class="form-input time-input" placeholder=" " maxlength="5" required />
+                <label for="ho" class="form-label">HO</label>
+            </div>
+            
+            <div class="form-group">
+                <input type="text" id="firstBag" inputmode="numeric" pattern="[0-9]*" class="form-input time-input" placeholder=" " maxlength="5" required />
+                <label for="firstBag" class="form-label">First Bag</label>
+            </div>
+            
+            <div class="form-group">
+                <input type="text" id="lastBag" inputmode="numeric" pattern="0-9]*" class="form-input time-input" placeholder=" " maxlength="5" required />
+                <label for="lastBag" class="form-label">Last Bag</label>
+            </div>
+            
+            <div class="form-group">
+                <input type="text" id="manager" class="form-input" placeholder=" " required />
+                <label for="manager" class="form-label">Flight Manager</label>
+            </div>
+            
+            <div class="form-group">
+                <input type="text" id="arrivalStaff" class="form-input" placeholder=" " required />
+                <label for="arrivalStaff" class="form-label">Arrival Staff</label>
+            </div>
+            
+            <div class="form-group">
+                <input type="text" id="bbaStaff" class="form-input" placeholder=" " required />
+                <label for="bbaStaff" class="form-label">BBA Staff</label>
+            </div>
+
+            
+            <div class="form-group">
+                <label for="delayReason" id="delayReasonLabel" class="block text-sm text-gray-600 mb-1">
+                    Delay Reason
+                </label>
+
+                
+                <div id="delayReasonOptions" class="hidden mt-2">
+
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-1">
+                        <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
+                            <input type="checkbox" class="delay-reason-checkbox" value="Heavy and bulky bags" />
+                            <span class="text-sm whitespace-nowrap">Heavy and bulky bags</span>
+                        </label>
+                        <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
+                            <input type="checkbox" class="delay-reason-checkbox" value="Shortage of helpers" />
+                            <span class="text-sm whitespace-nowrap">Shortage of helpers</span>
+                        </label>
+                        <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
+                            <input type="checkbox" class="delay-reason-checkbox" value="Clashing of flights" />
+                            <span class="text-sm whitespace-nowrap">Clashing of flights</span>
+                        </label>
+                        <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
+                            <input type="checkbox" class="delay-reason-checkbox" value="Trolleys received late" />
+                            <span class="text-sm whitespace-nowrap">Trolleys received late</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <textarea id="delayReason" class="w-full p-2 border rounded disabled-field" placeholder="e.g., NA" disabled></textarea>
+            </div>
+        </form>
+        <div>
         
-       <!-- Delay Reason Checkboxes -->
-<div id="delayReasonOptions" class="hidden mt-2">
-  
-  <div class="grid grid-cols-2 gap-x-4 gap-y-1">
-    <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
-      <input type="checkbox" class="delay-reason-checkbox" value="Heavy and bulky bags" />
-      <span class="text-sm whitespace-nowrap">Heavy and bulky bags</span>
-    </label>
-    <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
-      <input type="checkbox" class="delay-reason-checkbox" value="Shortage of helpers" />
-      <span class="text-sm whitespace-nowrap">Shortage of helpers</span>
-    </label>
-    <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
-      <input type="checkbox" class="delay-reason-checkbox" value="Clashing of flights" />
-      <span class="text-sm whitespace-nowrap">Clashing of flights</span>
-    </label>
-    <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
-      <input type="checkbox" class="delay-reason-checkbox" value="Trolleys received late" />
-      <span class="text-sm whitespace-nowrap">Trolleys received late</span>
-    </label>
-  </div>
-</div>
         
-        <textarea id="delayReason" class="w-full p-2 border rounded disabled-field" placeholder="e.g., NA" disabled></textarea>
-      </div>
-    </form>
-    <div>
     
-    
-  
 </form>
-    
-    <div class="mt-6 grid grid-cols-2 gap-4">
-      <!-- WhatsApp Share Button -->
-      <button onclick="generateResult()" class="w-full bg-green-500 text-white font-bold py-2 px-4 rounded hover:bg-green-600">
-        Share
-      </button>
-      <!-- Clear Form Button -->
-      <button onclick="clearForm()" class="w-full bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600">
-        Clear
-      </button>
-    </div>
-    
-    <div class="mt-4">
-  <!-- Autofill Button -->
-  <button onclick="openAutofillPopup()" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600">
-    Autofill
-  </button>
+        
+        <div class="mt-6 grid grid-cols-2 gap-4">
+            <button onclick="generateResult()" class="w-full bg-green-500 text-white font-bold py-2 px-4 rounded hover:bg-green-600">
+                Share
+            </button>
+            <button onclick="showClearConfirmation()" class="w-full bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600">
+                Clear
+            </button>
+        </div>
+        
+        <div class="mt-4">
+        <button onclick="openAutofillPopup()" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600">
+            Autofill
+        </button>
 </div>
 
-<!-- Autofill Popup -->
-<div id="autofillPopup" 
-     class="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-end hidden" 
-     aria-hidden="true" role="dialog" aria-labelledby="popupTitle">
-  <div class="bg-white p-6 rounded-t-lg shadow-md max-w-full w-full mb-[100px]">
-    <h2 id="popupTitle" class="text-xl font-bold mb-4">Paste WhatsApp Message</h2>
-    <textarea id="messageInput" 
-              class="w-full p-2 border rounded mb-4" 
-              rows="4" 
-              placeholder="Paste message here..."
-              aria-label="Paste message here"></textarea>
-    <!-- Button Section -->
-    <div class="flex justify-between mt-4">
-      <!-- Left Aligned Buttons -->
-      <div class="flex gap-2">
-        <!-- Paste Button -->
-        <button onclick="pasteMessage()" 
-                class="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">
-          Paste
-        </button>
-        <!-- Clear Button -->
-        <button onclick="clearMessageInput()" 
-                class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600">
-          Clear
-        </button>
-      </div>
-      <!-- Right Aligned Buttons -->
-      <div class="flex gap-2">
-        <!-- Cancel Button -->
-        <button onclick="closeAutofillPopup()" 
-                class="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">
-          Cancel
-        </button>
-        <!-- OK Button -->
-        <button onclick="processAutofill()" 
-                class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
-          OK
-        </button>
-      </div>
+<div id="autofillPopup"
+        class="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-end hidden"
+        aria-hidden="true" role="dialog" aria-labelledby="popupTitle">
+    <div class="bg-white p-6 rounded-t-lg shadow-md max-w-full w-full mb-[100px]">
+        <h2 id="popupTitle" class="text-xl font-bold mb-4">Paste WhatsApp Message</h2>
+        <textarea id="messageInput"
+                    class="w-full p-2 border rounded mb-4"
+                    rows="4"
+                    placeholder="Paste message here..."
+                    aria-label="Paste message here"></textarea>
+        <div class="flex justify-between mt-4">
+            <div class="flex gap-2">
+                <button onclick="pasteMessage()"
+                        class="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">
+                    Paste
+                </button>
+                <button onclick="clearMessageInput()"
+                        class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600">
+                    Clear
+                </button>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="closeAutofillPopup()"
+                        class="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">
+                    Cancel
+                </button>
+                <button onclick="confirmedClearForm()"
+                        class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
+                    OK
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
+</div>
+
+<div id="clearConfirmation" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden" aria-hidden="true">
+    <div class="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+        <h2 class="text-lg font-semibold mb-4">Are you sure?</h2>
+        <p class="text-gray-700 mb-6">This will clear all entered data. Do you want to continue?</p>
+        <div class="flex justify-end gap-4">
+            <button onclick="confirmedClearForm()" class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600">
+                OK
+            </button>
+            <button onclick="hideClearConfirmation()" class="bg-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-400">
+                Cancel
+            </button>
+        </div>
+    </div>
 </div>
 
 
-
-
-  <script>
-    // Auto-format time input with colon and validate
+    <script>
+        // Auto-format time input with colon and validate
 document.querySelectorAll('.time-input').forEach(input => {
-  input.addEventListener('input', () => {
-    // Remove non-numeric characters except ':'
-    let value = input.value.replace(/[^0-9:]/g, '');
+    input.addEventListener('input', () => {
+        // Remove non-numeric characters except ':'
+        let value = input.value.replace(/[^0-9:]/g, '');
 
-    // Ensure proper colon placement if the user types manually
-    if (value.length > 2 && !value.includes(':')) {
-      value = value.slice(0, 2) + ':' + value.slice(2);
-    }
+        // Ensure proper colon placement if the user types manually
+        if (value.length > 2 && !value.includes(':')) {
+            value = value.slice(0, 2) + ':' + value.slice(2);
+        }
 
-    // Limit the value length to HH:MM format
-    if (value.length > 5) {
-      value = value.slice(0, 5);
-    }
+        // Limit the value length to HH:MM format
+        if (value.length > 5) {
+            value = value.slice(0, 5);
+        }
 
-    // Update the input value
-    input.value = value;
+        // Update the input value
+        input.value = value;
 
-    // Validate the time
-    const [hours, minutes] = value.split(':').map(Number);
+        // Validate the time
+        const [hours, minutes] = value.split(':').map(Number);
 
-    // Check for invalid hours or minutes
-    const isInvalid =
-      (hours > 23 || isNaN(hours)) || // Invalid hours
-      (minutes > 59 || isNaN(minutes) || (value.includes(':') && minutes === undefined)); // Invalid minutes
+        // Check for invalid hours or minutes
+        const isInvalid =
+            (hours > 23 || isNaN(hours)) || // Invalid hours
+            (minutes > 59 || isNaN(minutes) || (value.includes(':') && minutes === undefined)); // Invalid minutes
 
-    // Apply or remove the 'invalid' class
-    if (isInvalid) {
-      input.classList.add('border-red-500'); // Highlight the box red for invalid time
-    } else {
-      input.classList.remove('border-red-500'); // Remove red highlight for valid time
-    }
-  });
+        // Apply or remove the 'invalid' class
+        if (isInvalid) {
+            input.classList.add('border-red-500'); // Highlight the box red for invalid time
+        } else {
+            input.classList.remove('border-red-500'); // Remove red highlight for valid time
+        }
+    });
 });
 
 // Function to parse time
 function parseTime(time) {
-  const [hours, minutes] = time.split(':').map(Number);
-  return new Date(1970, 0, 1, hours, minutes);
+    const [hours, minutes] = time.split(':').map(Number);
+    return new Date(1970, 0, 1, hours, minutes);
 }
 
 // Function to format time into HH:MM
 function formatTime(date) {
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${hours}:${minutes}`;
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
 }
 
 document.getElementById('co').addEventListener('input', () => {
-  const coTime = document.getElementById('co').value;
-  if (coTime && coTime.length === 5 && !document.getElementById('co').classList.contains('border-red-500')) {
-    // Split CO time into hours and minutes
-    const [hours, minutes] = coTime.split(':').map(Number);
+    const coTime = document.getElementById('co').value;
+    if (coTime && coTime.length === 5 && !document.getElementById('co').classList.contains('border-red-500')) {
+        // Split CO time into hours and minutes
+        const [hours, minutes] = coTime.split(':').map(Number);
 
-    // Calculate HO time by adding 2 minutes
-    let hoMinutes = minutes + 2;
-    let hoHours = hours;
-    if (hoMinutes >= 60) {
-      hoMinutes -= 60;
-      hoHours += 1;
-    }
-    if (hoHours >= 24) {
-      hoHours -= 24;
-    }
+        // Calculate HO time by adding 2 minutes
+        let hoMinutes = minutes + 2;
+        let hoHours = hours;
+        if (hoMinutes >= 60) {
+            hoMinutes -= 60;
+            hoHours += 1;
+        }
+        if (hoHours >= 24) {
+            hoHours -= 24;
+        }
 
-    // Format HO time as HH:MM
-    const hoTime = `${String(hoHours).padStart(2, '0')}:${String(hoMinutes).padStart(2, '0')}`;
-    document.getElementById('ho').value = hoTime;
-  }
+        // Format HO time as HH:MM
+        const hoTime = `${String(hoHours).padStart(2, '0')}:${String(hoMinutes).padStart(2, '0')}`;
+        document.getElementById('ho').value = hoTime;
+    }
 });
 
 // Function to enable or disable Delay Reason and calculate total time
 function checkDelayReason() {
-  const co = document.getElementById('co').value;
-  const lastBag = document.getElementById('lastBag').value;
+    const co = document.getElementById('co').value;
+    const lastBag = document.getElementById('lastBag').value;
 
-  if (co && lastBag) {
-    const coTime = parseTime(co);
-    const lastBagTime = parseTime(lastBag);
+    if (co && lastBag) {
+        const coTime = parseTime(co);
+        const lastBagTime = parseTime(lastBag);
 
-    // Adjust for midnight crossover
-    if (lastBagTime < coTime) {
-      lastBagTime.setDate(lastBagTime.getDate() + 1); // Move to the next day
+        // Adjust for midnight crossover
+        if (lastBagTime < coTime) {
+            lastBagTime.setDate(lastBagTime.getDate() + 1); // Move to the next day
+        }
+
+        // Calculate total time (Last Bag Time - CO Time)
+        const totalTime = (lastBagTime - coTime) / 60000; // in minutes
+
+        // Enable or disable the Delay Reason field based on total time
+        const delayReasonField = document.getElementById('delayReason');
+        const delayReasonLabel = document.getElementById('delayReasonLabel');
+        if (totalTime > 20) {
+            delayReasonField.disabled = false;
+            delayReasonField.classList.remove('disabled-field'); // Remove the red background when enabled
+            delayReasonLabel.innerText = `Delay Reason (${totalTime - 20} mins delay, enter reason)`;
+        } else {
+            delayReasonField.disabled = true;
+            delayReasonField.classList.add('disabled-field'); // Add the red background when disabled
+            delayReasonLabel.innerText = 'Delay Reason';
+        }
     }
-
-    // Calculate total time (Last Bag Time - CO Time)
-    const totalTime = (lastBagTime - coTime) / 60000; // in minutes
-
-    // Enable or disable the Delay Reason field based on total time
-    const delayReasonField = document.getElementById('delayReason');
-    const delayReasonLabel = document.getElementById('delayReasonLabel');
-    if (totalTime > 20) {
-      delayReasonField.disabled = false;
-      delayReasonField.classList.remove('disabled-field'); // Remove the red background when enabled
-      delayReasonLabel.innerText = `Delay Reason (${totalTime - 20} mins delay, enter reason)`;
-    } else {
-      delayReasonField.disabled = true;
-      delayReasonField.classList.add('disabled-field'); // Add the red background when disabled
-      delayReasonLabel.innerText = 'Delay Reason';
-    }
-  }
 }
 
 
@@ -376,45 +377,45 @@ document.getElementById('co').addEventListener('input', checkDelayReason);
 document.getElementById('lastBag').addEventListener('input', checkDelayReason);
 
 function generateResult() {
-  const flightNumber = document.getElementById('flightNumber').value;
-  const co = document.getElementById('co').value;
-  const ho = document.getElementById('ho').value;
-  const firstBag = document.getElementById('firstBag').value;
-  const lastBag = document.getElementById('lastBag').value;
-  const manager = document.getElementById('manager').value;
-  const arrivalStaff = document.getElementById('arrivalStaff').value;
-  const bbaStaff = document.getElementById('bbaStaff').value;
-  const delayReason = document.getElementById('delayReason').value || "NA";
+    const flightNumber = document.getElementById('flightNumber').value;
+    const co = document.getElementById('co').value;
+    const ho = document.getElementById('ho').value;
+    const firstBag = document.getElementById('firstBag').value;
+    const lastBag = document.getElementById('lastBag').value;
+    const manager = document.getElementById('manager').value;
+    const arrivalStaff = document.getElementById('arrivalStaff').value;
+    const bbaStaff = document.getElementById('bbaStaff').value;
+    const delayReason = document.getElementById('delayReason').value || "NA";
 
-  function formatDate(date) {
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = String(date.getFullYear()).slice(-2);
-    return `${day}/${month}/${year}`;
-  }
+    function formatDate(date) {
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = String(date.getFullYear()).slice(-2);
+        return `${day}/${month}/${year}`;
+    }
 
-  const today = new Date();
-  const formattedDate = formatDate(today);
+    const today = new Date();
+    const formattedDate = formatDate(today);
 
-  // Helper function to calculate total time considering midnight crossover
-  function calculateTimeDifference(startTime, endTime) {
-    const start = parseTime(startTime);
-    const end = parseTime(endTime);
-    const timeDifference = (end - start) / 60000; // Difference in minutes
+    // Helper function to calculate total time considering midnight crossover
+    function calculateTimeDifference(startTime, endTime) {
+        const start = parseTime(startTime);
+        const end = parseTime(endTime);
+        const timeDifference = (end - start) / 60000; // Difference in minutes
 
-    // If timeDifference is negative, it indicates midnight crossover
-    return timeDifference >= 0 ? timeDifference : 1440 + timeDifference; // Add 24 hours (1440 minutes)
-  }
+        // If timeDifference is negative, it indicates midnight crossover
+        return timeDifference >= 0 ? timeDifference : 1440 + timeDifference; // Add 24 hours (1440 minutes)
+    }
 
-  const totalTime = calculateTimeDifference(co, lastBag);
-  const firstBagTime = calculateTimeDifference(co, firstBag);
+    const totalTime = calculateTimeDifference(co, lastBag);
+    const firstBagTime = calculateTimeDifference(co, firstBag);
 
-  // Calculate statuses
-  const fbAchieved = firstBagTime <= 10 ? "Achieved" : "Not Achieved";
-  const lbAchieved = totalTime <= 20 ? "Achieved" : "Not Achieved";
+    // Calculate statuses
+    const fbAchieved = firstBagTime <= 10 ? "Achieved" : "Not Achieved";
+    const lbAchieved = totalTime <= 20 ? "Achieved" : "Not Achieved";
 
-  // Prepare the result message
-  const result = `
+    // Prepare the result message
+    const result = `
     *BBA FB-LB Status*
     *${formattedDate}*
     
@@ -427,143 +428,181 @@ function generateResult() {
     *Flight Manager:* ${manager}
     *Arrival Staff:* ${arrivalStaff}
     *BBA Staff:* ${bbaStaff}
-   
+    
     *Delay Reason:* ${delayReason}`;
     
-  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(result)}`;
-  window.open(whatsappUrl, '_blank');
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(result)}`;
+    window.open(whatsappUrl, '_blank');
 }
 
 
 
 function clearForm() {
-  location.reload(); // Reloads the page
+    document.getElementById('flightNumber').value = '6E';
+    document.getElementById('co').value = '';
+    document.getElementById('ho').value = '';
+    document.getElementById('firstBag').value = '';
+    document.getElementById('lastBag').value = '';
+    document.getElementById('manager').value = '';
+    document.getElementById('delayReason').value = '';
+
+    // Clear red borders from time inputs
+    document.querySelectorAll('.time-input').forEach(input => {
+        input.classList.remove('border-red-500');
+    });
+
+    // Reset Delay Reason section
+    const delayReasonField = document.getElementById('delayReason');
+    const delayReasonLabel = document.getElementById('delayReasonLabel');
+    const delayReasonOptions = document.getElementById('delayReasonOptions');
+    delayReasonField.disabled = true;
+    delayReasonField.classList.add('disabled-field');
+    delayReasonLabel.innerText = 'Delay Reason';
+    delayReasonOptions.classList.add('hidden');
+    
+    // Uncheck all checkboxes in delay reason options.
+    document.querySelectorAll('.delay-reason-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
 }
 
 
 
-// Show the autofill popup
-  function openAutofillPopup() {
-    document.getElementById('autofillPopup').classList.remove('hidden');
-  }
+function showClearConfirmation() {
+    document.getElementById('clearConfirmation').classList.remove('hidden');
+}
 
-  // Close the autofill popup
-  function closeAutofillPopup() {
+function hideClearConfirmation() {
+    document.getElementById('clearConfirmation').classList.add('hidden');
+}
+
+function confirmedClearForm() {
+    clearForm();
+    hideClearConfirmation(); // Added this line to hide the confirmation popup
+}
+
+
+// Show the autofill popup
+    function openAutofillPopup() {
+    document.getElementById('autofillPopup').classList.remove('hidden');
+    }
+
+    // Close the autofill popup
+    function closeAutofillPopup() {
     document.getElementById('autofillPopup').classList.add('hidden');
-  }
+    }
 
 function processAutofill() {
-  let message = document.getElementById('messageInput').value;
-  const flightForm = {
+    let message = document.getElementById('messageInput').value;
+    const flightForm = {
     flightNumber: '',
     co: '',
     ho: '',
     firstBag: '',
     lastBag: ''
-  };
+    };
 
-  console.log("Original message:", message);
+    console.log("Original message:", message);
 
-  // Remove all data enclosed within square brackets, including the brackets themselves
-  message = message.replace(/\[[^\]]*\]/g, '').trim();
+    // Remove all data enclosed within square brackets, including the brackets themselves
+    message = message.replace(/\[[^\]]*\]/g, '').trim();
 
-  // Clean up unnecessary punctuation (e.g., colons and dashes between labels and values)
-  message = message.replace(/(:-|-|:|\/|_)/g, ' '); // Normalize special characters to space
-  message = message.replace(/\s+/g, ' '); // Replace multiple spaces with a single space
+    // Clean up unnecessary punctuation (e.g., colons and dashes between labels and values)
+    message = message.replace(/(:-|-|:|\/|_)/g, ' '); // Normalize special characters to space
+    message = message.replace(/\s+/g, ' '); // Replace multiple spaces with a single space
 
-  // Remove emojis & non-alphanumeric characters (except spaces & digits)
-  message = message.replace(/[^\w\s]/gu, ''); 
+    // Remove emojis & non-alphanumeric characters (except spaces & digits)
+    message = message.replace(/[^\w\s]/gu, '');
 
-  // Preprocess: Remove "n" if it follows 0, o, or O
-  message = message.replace(/([oO0])n/g, "$1");
+    // Preprocess: Remove "n" if it follows 0, o, or O
+    message = message.replace(/([oO0])n/g, "$1");
 
-  console.log("Cleaned message:", message);
+    console.log("Cleaned message:", message);
 
-  // Regular expressions for extracting data
-  const coRegex = /(?:C[ \-/]?[oO0nN]?)[ \-]*(\d{4})/i; // Match C/o, Co, etc.
-  const hoRegex = /(?:H[ \-/]?[oO0]|D[ \-/]?[oO0])\s*(\d{4})/i; // Match H/o, Ho, D/o, etc.
-  const fbRegex = /(?:Fb|F[bB])\s*(\d{4})/i; // Match Fb followed by time
-  const lbRegex = /(?:L[bB])\s*(\d{4})/i; // Match Lb followed by time
-  const flightNumberRegex = /\b(6[eE][ \-]?\d{1,4}|[0-9]{3,4})\b/; // Match flight number (6E or any 3-4 digits)
+    // Regular expressions for extracting data
+    const coRegex = /(?:C[ \-/]?[oO0nN]?)[ \-]*(\d{4})/i; // Match C/o, Co, etc.
+    const hoRegex = /(?:H[ \-/]?[oO0]|D[ \-/]?[oO0])\s*(\d{4})/i; // Match H/o, Ho, D/o, etc.
+    const fbRegex = /(?:Fb|F[bB])\s*(\d{4})/i; // Match Fb followed by time
+    const lbRegex = /(?:L[bB])\s*(\d{4})/i; // Match Lb followed by time
+    const flightNumberRegex = /\b(6[eE][ \-]?\d{1,4}|[0-9]{3,4})\b/; // Match flight number (6E or any 3-4 digits)
 
-  // Extract CO, HO, FB, LB fields
-  const coMatch = message.match(coRegex);
-  const hoMatch = message.match(hoRegex);
-  const fbMatch = message.match(fbRegex);
-  const lbMatch = message.match(lbRegex);
+    // Extract CO, HO, FB, LB fields
+    const coMatch = message.match(coRegex);
+    const hoMatch = message.match(hoRegex);
+    const fbMatch = message.match(fbRegex);
+    const lbMatch = message.match(lbRegex);
 
-  console.log("CO Match:", coMatch);
-  console.log("HO Match:", hoMatch);
-  console.log("FB Match:", fbMatch);
-  console.log("LB Match:", lbMatch);
+    console.log("CO Match:", coMatch);
+    console.log("HO Match:", hoMatch);
+    console.log("FB Match:", fbMatch);
+    console.log("LB Match:", lbMatch);
 
-  // Temporarily mask CO, HO, FB, and LB matches in the message
-  let maskedMessage = message;
-  if (coMatch) maskedMessage = maskedMessage.replace(coMatch[0], '[CO]');
-  if (hoMatch) maskedMessage = maskedMessage.replace(hoMatch[0], '[HO]');
-  if (fbMatch) maskedMessage = maskedMessage.replace(fbMatch[0], '[FB]');
-  if (lbMatch) maskedMessage = maskedMessage.replace(lbMatch[0], '[LB]');
+    // Temporarily mask CO, HO, FB, and LB matches in the message
+    let maskedMessage = message;
+    if (coMatch) maskedMessage = maskedMessage.replace(coMatch[0], '[CO]');
+    if (hoMatch) maskedMessage = maskedMessage.replace(hoMatch[0], '[HO]');
+    if (fbMatch) maskedMessage = maskedMessage.replace(fbMatch[0], '[FB]');
+    if (lbMatch) maskedMessage = maskedMessage.replace(lbMatch[0], '[LB]');
 
-  console.log("Masked Message:", maskedMessage);
+    console.log("Masked Message:", maskedMessage);
 
-  // Extract flight number from the remaining message
-  const flightNumberMatch = maskedMessage.match(flightNumberRegex);
+    // Extract flight number from the remaining message
+    const flightNumberMatch = maskedMessage.match(flightNumberRegex);
 
-  console.log("Flight Number Match:", flightNumberMatch);
+    console.log("Flight Number Match:", flightNumberMatch);
 
-  // Populate flight form fields
-  flightForm.flightNumber = flightNumberMatch ? flightNumberMatch[1] : '';
-  flightForm.co = coMatch ? formatTime(coMatch[1]) : '';
-  flightForm.ho = hoMatch ? formatTime(hoMatch[1]) : '';
-  flightForm.firstBag = fbMatch ? formatTime(fbMatch[1]) : '';
-  flightForm.lastBag = lbMatch ? formatTime(lbMatch[1]) : '';
+    // Populate flight form fields
+    flightForm.flightNumber = flightNumberMatch ? flightNumberMatch[1] : '';
+    flightForm.co = coMatch ? formatTime(coMatch[1]) : '';
+    flightForm.ho = hoMatch ? formatTime(hoMatch[1]) : '';
+    flightForm.firstBag = fbMatch ? formatTime(fbMatch[1]) : '';
+    flightForm.lastBag = lbMatch ? formatTime(lbMatch[1]) : '';
 
-  console.log("Extracted Data:", flightForm);
+    console.log("Extracted Data:", flightForm);
 
-  // Autofill the form fields
-  document.getElementById('flightNumber').value = flightForm.flightNumber;
-  document.getElementById('co').value = flightForm.co;
-  document.getElementById('ho').value = flightForm.ho;
-  document.getElementById('firstBag').value = flightForm.firstBag;
-  document.getElementById('lastBag').value = flightForm.lastBag;
+    // Autofill the form fields
+    document.getElementById('flightNumber').value = flightForm.flightNumber;
+    document.getElementById('co').value = flightForm.co;
+    document.getElementById('ho').value = flightForm.ho;
+    document.getElementById('firstBag').value = flightForm.firstBag;
+    document.getElementById('lastBag').value = flightForm.lastBag;
 
-  // Explicitly call checkDelayReason to update the Delay Reason field
-  checkDelayReason();
-  
-  // Close the popup
-  closeAutofillPopup();
+    // Explicitly call checkDelayReason to update the Delay Reason field
+    checkDelayReason();
+    
+    // Close the popup
+    closeAutofillPopup();
 }
 
 
 // Format time from HHMM to HH:MM
 function formatTime(time) {
-  if (!time || time.length !== 4) return '';
-  return `${time.slice(0, 2)}:${time.slice(2)}`;
+    if (!time || time.length !== 4) return '';
+    return `${time.slice(0, 2)}:${time.slice(2)}`;
 }
 
 function pasteMessage() {
-  // Ensure the browser supports clipboard API
-  if (navigator.clipboard) {
+    // Ensure the browser supports clipboard API
+    if (navigator.clipboard) {
     navigator.clipboard.readText().then(
-      (text) => {
-        // Paste text into the textarea
-        const messageInput = document.getElementById('messageInput');
+        (text) => {
+        // Paste text into the textareaconst messageInput = document.getElementById('messageInput');
         messageInput.value = text;
-      },
-      (err) => {
+        },
+        (err) => {
         console.error('Failed to read clipboard contents:', err);
         alert('Unable to paste. Please allow clipboard access.');
-      }
+        }
     );
-  } else {
+    } else {
     alert('Clipboard access is not supported in your browser.');
-  }
+    }
 }
 
 
 // Clear the message input field
 function clearMessageInput() {
-  document.getElementById('messageInput').value = '';
+    document.getElementById('messageInput').value = '';
 }
 
 
@@ -571,51 +610,51 @@ function clearMessageInput() {
 
 // Function to handle floating labels
 function setupFloatingLabels() {
-  const formInputs = document.querySelectorAll('.form-input');
+    const formInputs = document.querySelectorAll('.form-input');
 
-  formInputs.forEach(input => {
+    formInputs.forEach(input => {
     const label = input.nextElementSibling;
 
     // Check if the input has content on page load
     if (input.value.trim() !== '') {
-      label.classList.add('floating');
+        label.classList.add('floating');
     }
 
     // Add event listeners for focus and blur
     input.addEventListener('focus', () => {
-      label.classList.add('floating');
+        label.classList.add('floating');
     });
 
     input.addEventListener('blur', () => {
-      if (input.value.trim() === '') {
+        if (input.value.trim() === '') {
         label.classList.remove('floating');
-      }
+        }
     });
-  });
+    });
 }
 
     
 // Function to save Arrival Staff and BBA Staff in local storage
 function saveStaffData() {
-  const arrivalStaff = document.getElementById('arrivalStaff').value;
-  const bbaStaff = document.getElementById('bbaStaff').value;
-  
-  localStorage.setItem('arrivalStaff', arrivalStaff);
-  localStorage.setItem('bbaStaff', bbaStaff);
+    const arrivalStaff = document.getElementById('arrivalStaff').value;
+    const bbaStaff = document.getElementById('bbaStaff').value;
+    
+    localStorage.setItem('arrivalStaff', arrivalStaff);
+    localStorage.setItem('bbaStaff', bbaStaff);
 }
 
 // Function to load saved Arrival Staff and BBA Staff from local storage
 function loadStaffData() {
-  const savedArrivalStaff = localStorage.getItem('arrivalStaff');
-  const savedBbaStaff = localStorage.getItem('bbaStaff');
+    const savedArrivalStaff = localStorage.getItem('arrivalStaff');
+    const savedBbaStaff = localStorage.getItem('bbaStaff');
 
-  if (savedArrivalStaff) {
+    if (savedArrivalStaff) {
     document.getElementById('arrivalStaff').value = savedArrivalStaff;
-  }
+    }
 
-  if (savedBbaStaff) {
+    if (savedBbaStaff) {
     document.getElementById('bbaStaff').value = savedBbaStaff;
-  }
+    }
 }
 
 // Attach event listeners to save data when input fields change
@@ -631,48 +670,48 @@ function checkDelayReason() {
     const delayReasonOptions = document.getElementById('delayReasonOptions');
 
     if (co && lastBag) {
-      const coTime = parseTime(co);
-      const lastBagTime = parseTime(lastBag);
+    const coTime = parseTime(co);
+    const lastBagTime = parseTime(lastBag);
 
-      if (lastBagTime < coTime) lastBagTime.setDate(lastBagTime.getDate() + 1);
-      const totalTime = (lastBagTime - coTime) / 60000;
+    if (lastBagTime < coTime) lastBagTime.setDate(lastBagTime.getDate() + 1);
+    const totalTime = (lastBagTime - coTime) / 60000;
 
-      const delayReasonField = document.getElementById('delayReason');
-      const delayReasonLabel = document.getElementById('delayReasonLabel');
+    const delayReasonField = document.getElementById('delayReason');
+    const delayReasonLabel = document.getElementById('delayReasonLabel');
 
-      if (totalTime > 20) {
+    if (totalTime > 20) {
         delayReasonField.disabled = false;
         delayReasonField.classList.remove('disabled-field');
         delayReasonLabel.innerText = `Delay Reason (${totalTime - 20} mins delay, pick or type reason)`;
         delayReasonOptions.classList.remove('hidden'); // Show checkboxes
-      } else {
+    } else {
         delayReasonField.disabled = true;
         delayReasonField.classList.add('disabled-field');
         delayReasonLabel.innerText = 'Delay Reason';
         delayReasonOptions.classList.add('hidden'); // Hide checkboxes
         delayReasonField.value = ''; // Clear reasons when hidden
-      }
     }
-  }
+    }
+}
 
-  // Function to update delay reason input with selected checkboxes
-  document.querySelectorAll('.delay-reason-checkbox').forEach(checkbox => {
+// Function to update delay reason input with selected checkboxes
+document.querySelectorAll('.delay-reason-checkbox').forEach(checkbox => {
     checkbox.addEventListener('change', () => {
-      const selectedReasons = Array.from(document.querySelectorAll('.delay-reason-checkbox:checked'))
+    const selectedReasons = Array.from(document.querySelectorAll('.delay-reason-checkbox:checked'))
         .map(checkbox => checkbox.value)
         .join(', ');
-      document.getElementById('delayReason').value = selectedReasons;
+    document.getElementById('delayReason').value = selectedReasons;
     });
-  });
+});
 
-  document.getElementById('co').addEventListener('input', checkDelayReason);
-  document.getElementById('lastBag').addEventListener('input', checkDelayReason);
+document.getElementById('co').addEventListener('input', checkDelayReason);
+document.getElementById('lastBag').addEventListener('input', checkDelayReason);
 
 
 // Initialize floating labels on page load
 window.addEventListener('DOMContentLoaded', setupFloatingLabels);
 
 
-  </script>
+    </script>
 </body>
 </html>
