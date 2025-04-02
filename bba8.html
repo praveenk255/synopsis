@@ -186,6 +186,8 @@
     </form>
     <div>
     </div>
+    
+    <div id="statusContainer" class="mt-4 p-3 bg-gray-100 rounded-lg"></div>
 
     <div class="mt-6 grid grid-cols-2 gap-4">
         <button onclick="generateResult()"
@@ -697,6 +699,64 @@
 
         document.getElementById('co').addEventListener('input', checkDelayReason);
         document.getElementById('lastBag').addEventListener('input', checkDelayReason);
+        
+        document.addEventListener('DOMContentLoaded', function() {
+    const delayReasonSection = document.getElementById('delayReason').closest('.form-group');
+    const statusContainer = document.getElementById('statusContainer');
+    
+    // Initialize both sections as hidden
+    delayReasonSection.style.display = 'none';
+    statusContainer.style.display = 'none';
+
+    function checkDelayReason() {
+        const co = document.getElementById('co').value;
+        const firstBag = document.getElementById('firstBag').value;
+        const lastBag = document.getElementById('lastBag').value;
+
+        if (co && firstBag && lastBag) {
+            const coTime = parseTime(co);
+            const firstBagTime = parseTime(firstBag);
+            const lastBagTime = parseTime(lastBag);
+
+            // Handle midnight crossover
+            if (firstBagTime < coTime) firstBagTime.setDate(firstBagTime.getDate() + 1);
+            if (lastBagTime < coTime) lastBagTime.setDate(lastBagTime.getDate() + 1);
+
+            const firstDiff = Math.round((firstBagTime - coTime) / 60000);
+            const lastDiff = Math.round((lastBagTime - coTime) / 60000);
+
+            // Update status container content
+            statusContainer.innerHTML = `
+                <div class="mb-2">
+                    ${firstDiff <= 10 ? 'first bag - achieved' : 'first bag - not achieved'}, 
+                    ${lastDiff <= 20 ? 'last bag - achieved' : 'last bag - not achieved'}
+                </div>
+                <div>Total time taken: ${lastDiff} minutes</div>
+            `;
+
+            // Toggle visibility (mutually exclusive)
+            if (lastDiff > 20) {
+                delayReasonSection.style.display = 'block';
+                statusContainer.style.display = 'none';
+            } else {
+                delayReasonSection.style.display = 'none';
+                statusContainer.style.display = 'block';
+            }
+        } else {
+            // Hide both if any field is empty
+            delayReasonSection.style.display = 'none';
+            statusContainer.style.display = 'none';
+        }
+    }
+
+    // Event listeners for all relevant inputs
+    ['co', 'firstBag', 'lastBag'].forEach(id => {
+        document.getElementById(id).addEventListener('input', checkDelayReason);
+    });
+
+    // Initial check
+    checkDelayReason();
+});
 
 
         // Initialize floating labels on page load
