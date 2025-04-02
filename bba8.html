@@ -560,14 +560,26 @@
             console.log("Extracted Data:", flightForm);
 
             // Autofill the form fields
-            document.getElementById('flightNumber').value = flightForm.flightNumber;
-            document.getElementById('co').value = flightForm.co;
-            document.getElementById('ho').value = flightForm.ho;
-            document.getElementById('firstBag').value = flightForm.firstBag;
-            document.getElementById('lastBag').value = flightForm.lastBag;
+            const fields = {
+        'flightNumber': flightForm.flightNumber,
+        'co': flightForm.co,
+        'ho': flightForm.ho,
+        'firstBag': flightForm.firstBag,
+        'lastBag': flightForm.lastBag
+    };
 
-            // Explicitly call checkDelayReason to update the Delay Reason field
-            checkDelayReason();
+    // Set values and trigger validation
+    Object.entries(fields).forEach(([id, value]) => {
+        const field = document.getElementById(id);
+        if (field) {
+            field.value = value;
+            // Trigger input event for validation
+            field.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    });
+
+    // Force delay reason check
+    setTimeout(checkDelayReason, 50); // Allow DOM update
         }
 
 
