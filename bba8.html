@@ -728,10 +728,12 @@
             // Update status container content
             statusContainer.innerHTML = `
                 <div class="mb-2">
-                    ${firstDiff <= 10 ? 'first bag - achieved' : 'first bag - not achieved'}, 
-                    ${lastDiff <= 20 ? 'last bag - achieved' : 'last bag - not achieved'}
+                    ${firstDiff <= 10 ? 'First bag - Achieved' : 'First bag - not Achieved'}, 
+                    ${lastDiff <= 20 ? 'Last bag - Achieved' : 'Last bag - not achieved'}
                 </div>
-                <div>Total time taken: ${lastDiff} minutes</div>
+                <div class="mb-2">Total time taken: ${lastDiff} minutes</div>
+                
+                <div>Delay : NA </div>
             `;
 
             // Toggle visibility (mutually exclusive)
