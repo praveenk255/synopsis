@@ -14,7 +14,7 @@
         .legacy-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
+            gap: 32px;
         }
 
         .legacy-grid > div:nth-child(n+4):nth-child(-n+8) {
@@ -36,15 +36,16 @@
 
         .form-group {
             position: relative;
+            margin-bottom: 12px;
         }
 
         .form-input {
             width: 100%;
-            padding: 8px 0;
-            font-size: 14px;
+            padding: 12px 0;
+            font-size: 17px;
             border: none;
             border-bottom: 2px solid #334155;
-            background-color: transparent;
+            background-color: #1e293b; /* Set to slate-800 equivalent */
             outline: none;
             transition: all 0.3s ease;
             color: #e2e8f0;
@@ -53,14 +54,15 @@
         .form-input:focus,
         .form-input:not(:placeholder-shown) {
             border-bottom-color: #38bdf8;
-            box-shadow: 0 2px 8px -1px rgba(56, 189, 248, 0.25);
+            box-shadow: none;
+            background-color: #1e293b; /* Keep the same background color */
         }
 
         .form-label {
             position: absolute;
-            top: 8px;
+            top: 12px;
             left: 0;
-            font-size: 14px;
+            font-size: 17px;
             color: #94a3b8;
             transition: all 0.3s ease;
             pointer-events: none;
@@ -68,15 +70,15 @@
 
         .form-input:focus ~ .form-label,
         .form-input:not(:placeholder-shown) ~ .form-label {
-            top: -12px;
-            font-size: 12px;
+            top: -16px;
+            font-size: 15px;
             color: #38bdf8;
         }
 
         #delayReasonLabel {
             color: #ffffff;
-            font-size: 14px;
-            margin-bottom: 8px;
+            font-size: 17px;
+            margin-bottom: 12px;
         }
 
         .delay-reason-checkbox:checked {
