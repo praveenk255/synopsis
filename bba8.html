@@ -434,33 +434,41 @@
             window.open(whatsappUrl, '_blank');
         }
 
-        function clearMainForm() {
-            document.getElementById('flightNumber').value = '6E';
-            document.getElementById('co').value = '';
-            document.getElementById('ho').value = '';
-            document.getElementById('firstBag').value = '';
-            document.getElementById('lastBag').value = '';
-            document.getElementById('manager').value = '';
-            document.getElementById('delayReason').value = '';
+       function clearMainForm() {
+    // Clear form fields
+    document.getElementById('flightNumber').value = '6E';
+    document.getElementById('co').value = '';
+    document.getElementById('ho').value = '';
+    document.getElementById('firstBag').value = '';
+    document.getElementById('lastBag').value = '';
+    document.getElementById('manager').value = '';
+    document.getElementById('delayReason').value = '';
 
-            // Clear red borders from time inputs
-            document.querySelectorAll('.time-input').forEach(input => {
-                input.classList.remove('border-red-500');
-            });
+    // Clear red borders from time inputs
+    document.querySelectorAll('.time-input').forEach(input => {
+        input.classList.remove('border-red-500');
+    });
 
-            // Reset Delay Reason section
-            const delayReasonField = document.getElementById('delayReason');
-            const delayReasonLabel = document.getElementById('delayReasonLabel');
-            const delayReasonOptions = document.getElementById('delayReasonOptions');
-            delayReasonField.disabled = true;
-            delayReasonField.classList.add('disabled-field');
-            delayReasonLabel.innerText = 'Delay Reason';
-            delayReasonOptions.classList.add('hidden');
-             document.querySelectorAll('.delay-reason-checkbox').forEach(checkbox => {
-             checkbox.checked = false;
-             });
+    // Reset Delay Reason section
+    const delayReasonSection = document.getElementById('delayReason').closest('.form-group');
+    const statusContainer = document.getElementById('statusContainer');
+    
+    delayReasonSection.style.display = 'none';
+    statusContainer.style.display = 'none';
+    
+    document.getElementById('delayReason').disabled = true;
+    document.getElementById('delayReason').classList.add('disabled-field');
+    document.getElementById('delayReasonLabel').innerText = 'Delay Reason';
+    document.getElementById('delayReasonOptions').classList.add('hidden');
+    
+    // Clear checkbox selections
+    document.querySelectorAll('.delay-reason-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
 
-        }
+    // Explicitly trigger checkDelayReason to ensure consistent state
+    checkDelayReason();
+}
 
         function showClearConfirmation() {
             document.getElementById('clearConfirmation').classList.remove('hidden');
