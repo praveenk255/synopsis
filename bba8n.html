@@ -14,7 +14,7 @@
         .legacy-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 32px;
+            gap: 20px; /* Reduced gap */
         }
 
         .legacy-grid > div:nth-child(n+4):nth-child(-n+8) {
@@ -36,16 +36,16 @@
 
         .form-group {
             position: relative;
-            margin-bottom: 12px;
+            margin-bottom: 8px; /* Reduced margin */
         }
 
         .form-input {
             width: 100%;
-            padding: 12px 0;
-            font-size: 17px;
+            padding: 10px 0; /* Reduced padding */
+            font-size: 16px; /* Reduced font size */
             border: none;
             border-bottom: 2px solid #334155;
-            background-color: #1e293b; /* Set to slate-800 equivalent */
+            background-color: #1e293b;
             outline: none;
             transition: all 0.3s ease;
             color: #e2e8f0;
@@ -55,14 +55,13 @@
         .form-input:not(:placeholder-shown) {
             border-bottom-color: #38bdf8;
             box-shadow: none;
-            background-color: #1e293b; /* Keep the same background color */
         }
 
         .form-label {
             position: absolute;
-            top: 12px;
+            top: 10px; /* Adjusted top */
             left: 0;
-            font-size: 17px;
+            font-size: 16px; /* Reduced font size */
             color: #94a3b8;
             transition: all 0.3s ease;
             pointer-events: none;
@@ -70,15 +69,15 @@
 
         .form-input:focus ~ .form-label,
         .form-input:not(:placeholder-shown) ~ .form-label {
-            top: -16px;
-            font-size: 15px;
+            top: -14px; /* Adjusted top */
+            font-size: 14px; /* Reduced font size */
             color: #38bdf8;
         }
 
         #delayReasonLabel {
             color: #ffffff;
-            font-size: 17px;
-            margin-bottom: 12px;
+            font-size: 16px; /* Reduced font size */
+            margin-bottom: 8px; /* Reduced margin */
         }
 
         .delay-reason-checkbox:checked {
@@ -239,7 +238,7 @@
 </div>
 
 <script>
-    // Auto-format time input with colon and validate
+     // Auto-format time input with colon and validate
         document.querySelectorAll('.time-input').forEach(input => {
             input.addEventListener('input', () => {
                 // Remove non-numeric characters except ':'
