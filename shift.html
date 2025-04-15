@@ -6,11 +6,23 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    html, body {
+      height: 100%;
+    }
+    #nameList {
+      font-size: 1.5em;
+    }
+    #nameList input[type="checkbox"] {
+      width: 1.5em;
+      height: 1.5em;
+    }
+  </style>
 </head>
-<body class="bg-gray-50 p-4 text-sm sm:text-base">
+<body class="bg-gray-50 p-4 text-sm sm:text-base h-full">
 
 <!-- PAGE 1 -->
-<div id="page1" class="page block">
+<div id="page1" class="page block h-full">
   <h2 class="text-xl font-semibold mb-4">📤 Upload Excel File</h2>
   <input type="file" id="excelFile" accept=".xlsx,.xls" class="mb-4 block w-full" />
   <input type="text" id="inputText" placeholder="Enter value for column D" class="border p-2 mb-4 w-full rounded" />
@@ -18,9 +30,9 @@
 </div>
 
 <!-- PAGE 2 -->
-<div id="page2" class="page hidden">
+<div id="page2" class="page hidden h-full">
   <h2 class="text-xl font-semibold mb-4">👥 Select Names</h2>
-  <div id="nameList" class="border p-2 h-64 overflow-y-auto mb-4 rounded bg-white"></div>
+  <div id="nameList" class="border p-2 h-[30rem] overflow-y-auto mb-4 rounded bg-white"></div>
   <div class="flex flex-col sm:flex-row flex-wrap gap-2 w-full">
     <button id="backToPage1" class="bg-gray-500 text-white px-4 py-2 rounded w-full sm:w-auto">⬅️ Back</button>
     <button id="viewSelected" class="bg-indigo-600 text-white px-4 py-2 rounded w-full sm:w-auto">👁️ View Selected</button>
@@ -47,17 +59,14 @@
   </div>
 </div>
 
-<!-- Your JS Script (unchanged except for small tweaks if needed) -->
 <script>
-let workbook, worksheet, jsonData = [], selectedRows = [], filteredNames = [];
+let workbook, worksheet, jsonData = [], selectedRows = [];
 
-// Page navigation
 const showPage = (id) => {
   document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
   document.getElementById(id).classList.remove('hidden');
 };
 
-// Excel upload
 document.getElementById('excelFile').addEventListener('change', function (e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -71,21 +80,19 @@ document.getElementById('excelFile').addEventListener('change', function (e) {
   reader.readAsArrayBuffer(file);
 });
 
-// Page 1 ➡️ Page 2
 document.getElementById('toPage2').addEventListener('click', () => {
   if (!jsonData.length) return alert('Please upload an Excel file.');
   loadNameList();
   showPage('page2');
 });
 
-// Load checkboxes
 function loadNameList() {
   const list = document.getElementById('nameList');
   list.innerHTML = '';
   for (let i = 1; i < jsonData.length; i++) {
     if (!selectedRows.includes(i) && jsonData[i][1]) {
       const label = document.createElement('label');
-      label.className = 'block';
+      label.className = 'block mb-2';
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.value = i;
@@ -97,7 +104,6 @@ function loadNameList() {
   }
 }
 
-// Apply text to selected
 document.getElementById('applyText').addEventListener('click', () => {
   const inputText = document.getElementById('inputText').value;
   const checkboxes = document.querySelectorAll('#nameList input[type="checkbox"]:checked');
@@ -113,7 +119,6 @@ document.getElementById('applyText').addEventListener('click', () => {
   alert('Text applied.');
 });
 
-// View selected modal
 document.getElementById('viewSelected').addEventListener('click', () => {
   const container = document.getElementById('selectedList');
   const count = document.getElementById('selectedCount');
@@ -161,20 +166,15 @@ document.getElementById('viewSelected').addEventListener('click', () => {
       delBtn.textContent = '❌';
       delBtn.className = 'text-red-500';
       delBtn.onclick = () => {
-  selectedRows = selectedRows.filter(idx => idx !== i);
-
-  // Re-render both selected list and name list immediately
-  renderSelectedList(filter);
-  loadNameList();
-
-  // Auto-return if all selections removed
-  if (selectedRows.length === 0) {
-    document.getElementById('selectedModal').classList.add('hidden');
-    showPage('page2');
-    alert('All selections removed. Returning to name selection.');
-  }
-};
-
+        selectedRows = selectedRows.filter(idx => idx !== i);
+        renderSelectedList(filter);
+        loadNameList();
+        if (selectedRows.length === 0) {
+          document.getElementById('selectedModal').classList.add('hidden');
+          showPage('page2');
+          alert('All selections removed. Returning to name selection.');
+        }
+      };
 
       div.appendChild(text);
       div.appendChild(delBtn);
@@ -188,7 +188,6 @@ document.getElementById('viewSelected').addEventListener('click', () => {
   document.getElementById('selectedModal').classList.remove('hidden');
 });
 
-// Page 2 ➡️ Page 3
 document.getElementById('toPage3').addEventListener('click', () => showPage('page3'));
 document.getElementById('backToPage1').addEventListener('click', () => showPage('page1'));
 document.getElementById('backToPage2').addEventListener('click', () => {
@@ -196,18 +195,32 @@ document.getElementById('backToPage2').addEventListener('click', () => {
   showPage('page2');
 });
 
-// Download Excel
 document.getElementById('downloadExcel').addEventListener('click', () => {
   const header = jsonData[0];
+
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+  header[3] = { t: 'd', v: tomorrow, z: 'dd-mm-yyyy' };
+
   const sorted = [...selectedRows].sort((a, b) => {
     const valA = jsonData[a][3] || '';
     const valB = jsonData[b][3] || '';
-    if (valA === valB) return selectedRows.indexOf(a) - selectedRows.indexOf(b);
     return valA.localeCompare(valB);
   });
 
-  const finalData = [header, ...sorted.map(i => jsonData[i])];
-  const newWs = XLSX.utils.aoa_to_sheet(finalData);
+  const formattedData = [header];
+  for (let i of sorted) {
+    const row = jsonData[i];
+    formattedData.push([
+      Number(row[0]),
+      String(row[1]),
+      Number(row[2]),
+      String(row[3])
+    ]);
+  }
+
+  const newWs = XLSX.utils.aoa_to_sheet(formattedData);
   const newWb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(newWb, newWs, 'Sheet1');
   XLSX.writeFile(newWb, 'Modified_Excel.xlsx');
