@@ -1,49 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Excel Handler</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
 <body class="bg-gray-50 p-4 text-sm sm:text-base">
 
 <!-- PAGE 1 -->
 <div id="page1" class="page block">
   <h2 class="text-xl font-semibold mb-4">📤 Upload Excel File</h2>
-  <input type="file" id="excelFile" accept=".xlsx,.xls" class="mb-4 block" />
-  <input type="text" id="inputText" placeholder="Enter value for column D" class="border p-2 mb-4 w-full" />
-  <button id="toPage2" class="bg-blue-600 text-white px-4 py-2 rounded">➡️ Next</button>
+  <input type="file" id="excelFile" accept=".xlsx,.xls" class="mb-4 block w-full" />
+  <input type="text" id="inputText" placeholder="Enter value for column D" class="border p-2 mb-4 w-full rounded" />
+  <button id="toPage2" class="bg-blue-600 text-white px-4 py-2 rounded w-full sm:w-auto">➡️ Next</button>
 </div>
 
 <!-- PAGE 2 -->
 <div id="page2" class="page hidden">
   <h2 class="text-xl font-semibold mb-4">👥 Select Names</h2>
-  <div id="nameList" class="border p-2 h-64 overflow-y-auto mb-4"></div>
-  <div class="flex flex-wrap gap-2">
-    <button id="backToPage1" class="bg-gray-500 text-white px-3 py-1 rounded">⬅️ Back</button>
-    <button id="viewSelected" class="bg-indigo-600 text-white px-3 py-1 rounded">👁️ View Selected</button>
-    <button id="applyText" class="bg-green-600 text-white px-3 py-1 rounded">✅ Apply Text</button>
-    <button id="toPage3" class="bg-blue-700 text-white px-3 py-1 rounded">📤 Submit</button>
+  <div id="nameList" class="border p-2 h-64 overflow-y-auto mb-4 rounded bg-white"></div>
+  <div class="flex flex-col sm:flex-row flex-wrap gap-2 w-full">
+    <button id="backToPage1" class="bg-gray-500 text-white px-4 py-2 rounded w-full sm:w-auto">⬅️ Back</button>
+    <button id="viewSelected" class="bg-indigo-600 text-white px-4 py-2 rounded w-full sm:w-auto">👁️ View Selected</button>
+    <button id="applyText" class="bg-green-600 text-white px-4 py-2 rounded w-full sm:w-auto">✅ Apply Text</button>
+    <button id="toPage3" class="bg-blue-700 text-white px-4 py-2 rounded w-full sm:w-auto">📤 Submit</button>
   </div>
 </div>
 
 <!-- PAGE 3 -->
 <div id="page3" class="page hidden">
   <h2 class="text-xl font-semibold mb-4">📥 Download Final Excel</h2>
-  <button id="backToPage2" class="bg-gray-500 text-white px-3 py-1 rounded mb-2">⬅️ Back</button>
-  <button id="downloadExcel" class="bg-green-700 text-white px-3 py-1 rounded">⬇️ Download</button>
-</div>
-
-<!-- SELECTED MODAL -->
-<div id="selectedModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
-  <div class="bg-white p-6 rounded shadow-lg w-11/12 max-w-md max-h-[90vh] overflow-y-auto">
-    <h3 class="text-lg font-bold mb-2">Selected Names (<span id="selectedCount">0</span>)</h3>
-    <div id="selectedList" class="space-y-2"></div>
-    <button onclick="document.getElementById('selectedModal').classList.add('hidden')" class="mt-4 bg-red-500 text-white px-4 py-1 rounded">❌ Close</button>
+  <div class="flex flex-col sm:flex-row gap-2">
+    <button id="backToPage2" class="bg-gray-500 text-white px-4 py-2 rounded w-full sm:w-auto">⬅️ Back</button>
+    <button id="downloadExcel" class="bg-green-700 text-white px-4 py-2 rounded w-full sm:w-auto">⬇️ Download</button>
   </div>
 </div>
 
+<!-- SELECTED MODAL -->
+<div id="selectedModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10 p-4">
+  <div class="bg-white p-4 rounded shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <h3 class="text-lg font-bold mb-2">Selected Names (<span id="selectedCount">0</span>)</h3>
+    <div id="selectedList" class="space-y-2"></div>
+    <button onclick="document.getElementById('selectedModal').classList.add('hidden')" class="mt-4 bg-red-500 text-white px-4 py-2 rounded w-full">❌ Close</button>
+  </div>
+</div>
+
+<!-- Your JS Script (unchanged except for small tweaks if needed) -->
 <script>
 let workbook, worksheet, jsonData = [], selectedRows = [], filteredNames = [];
 
