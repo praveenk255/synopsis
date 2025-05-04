@@ -413,36 +413,26 @@
             const fbAchieved = firstBagTime <= 10 ? "Achieved" : "Not Achieved";
             const lbAchieved = totalTime <= 20 ? "Achieved" : "Not Achieved";
 
-           // Prepare the result message
-const result = `
-BBA FB-LB Status
-${formattedDate}
+            // Prepare the result message
+            const result = `
+    *BBA FB-LB Status*
+    *${formattedDate}*
+    
+    *Flight Number:* ${flightNumber}
+    *CO:* ${co}
+    *HO:* ${ho}
+    *First Bag:* ${firstBag} (${fbAchieved})
+    *Last Bag:* ${lastBag} (${lbAchieved})
+    *Total Time Taken:* ${totalTime} minutes
+    *Flight Manager:* ${manager}
+    *Arrival Staff:* ${arrivalStaff}
+    *BBA Staff:* ${bbaStaff}
+    
+    *Delay Reason:* ${delayReason}`;
 
-Flight Number: ${flightNumber}
-CO: ${co}
-HO: ${ho}
-First Bag: ${firstBag} (${fbAchieved})
-Last Bag: ${lastBag} (${lbAchieved})
-Total Time Taken: ${totalTime} minutes
-Flight Manager: ${manager}
-Arrival Staff: ${arrivalStaff}
-BBA Staff: ${bbaStaff}
-
-Delay Reason: ${delayReason}`;
-
-// Use Web Share API
-if (navigator.share) {
-  navigator.share({
-    title: 'BBA FB-LB Status',
-    text: result,
-  })
-  .then(() => console.log('Shared successfully'))
-  .catch((error) => console.error('Error sharing:', error));
-} else {
-  // Fallback (e.g. copy to clipboard or show a message)
-  alert('Sharing not supported on this device. Please copy the text manually.');
-}
-
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(result)}`;
+            window.open(whatsappUrl, '_blank');
+        }
 
        function clearMainForm() {
     // Clear form fields
