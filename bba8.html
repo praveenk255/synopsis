@@ -376,63 +376,69 @@
         document.getElementById('lastBag').addEventListener('input', checkDelayReason);
 
         function generateResult() {
-            const flightNumber = document.getElementById('flightNumber').value;
-            const co = document.getElementById('co').value;
-            const ho = document.getElementById('ho').value;
-            const firstBag = document.getElementById('firstBag').value;
-            const lastBag = document.getElementById('lastBag').value;
-            const manager = document.getElementById('manager').value;
-            const arrivalStaff = document.getElementById('arrivalStaff').value;
-            const bbaStaff = document.getElementById('bbaStaff').value;
-            const delayReason = document.getElementById('delayReason').value || "NA";
+    const flightNumber = document.getElementById('flightNumber').value;
+    const co = document.getElementById('co').value;
+    const ho = document.getElementById('ho').value;
+    const firstBag = document.getElementById('firstBag').value;
+    const lastBag = document.getElementById('lastBag').value;
+    const manager = document.getElementById('manager').value;
+    const arrivalStaff = document.getElementById('arrivalStaff').value;
+    const bbaStaff = document.getElementById('bbaStaff').value;
+    const delayReason = document.getElementById('delayReason').value || "NA";
 
-            function formatDate(date) {
-                const day = String(date.getDate()).padStart(2, '0');
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const year = String(date.getFullYear()).slice(-2);
-                return `${day}/${month}/${year}`;
-            }
+    function formatDate(date) {
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = String(date.getFullYear()).slice(-2);
+        return `${day}/${month}/${year}`;
+    }
 
-            const today = new Date();
-            const formattedDate = formatDate(today);
+    const today = new Date();
+    const formattedDate = formatDate(today);
 
-            // Helper function to calculate total time considering midnight crossover
-            function calculateTimeDifference(startTime, endTime) {
-                const start = parseTime(startTime);
-                const end = parseTime(endTime);
-                const timeDifference = (end - start) / 60000; // Difference in minutes
+    // Helper to calculate time difference in minutes
+    function calculateTimeDifference(startTime, endTime) {
+        const start = parseTime(startTime);
+        const end = parseTime(endTime);
+        const timeDifference = (end - start) / 60000;
+        return timeDifference >= 0 ? timeDifference : 1440 + timeDifference; // midnight crossover
+    }
 
-                // If timeDifference is negative, it indicates midnight crossover
-                return timeDifference >= 0 ? timeDifference : 1440 + timeDifference; // Add 24 hours (1440 minutes)
-            }
+    const totalTime = calculateTimeDifference(co, lastBag);
+    const firstBagTime = calculateTimeDifference(co, firstBag);
 
-            const totalTime = calculateTimeDifference(co, lastBag);
-            const firstBagTime = calculateTimeDifference(co, firstBag);
+    const fbAchieved = firstBagTime <= 10 ? "Achieved" : "Not Achieved";
+    const lbAchieved = totalTime <= 20 ? "Achieved" : "Not Achieved";
 
-            // Calculate statuses
-            const fbAchieved = firstBagTime <= 10 ? "Achieved" : "Not Achieved";
-            const lbAchieved = totalTime <= 20 ? "Achieved" : "Not Achieved";
+    const result = `
+BBA FB-LB Status
+${formattedDate}
 
-            // Prepare the result message
-            const result = `
-    *BBA FB-LB Status*
-    *${formattedDate}*
-    
-    *Flight Number:* ${flightNumber}
-    *CO:* ${co}
-    *HO:* ${ho}
-    *First Bag:* ${firstBag} (${fbAchieved})
-    *Last Bag:* ${lastBag} (${lbAchieved})
-    *Total Time Taken:* ${totalTime} minutes
-    *Flight Manager:* ${manager}
-    *Arrival Staff:* ${arrivalStaff}
-    *BBA Staff:* ${bbaStaff}
-    
-    *Delay Reason:* ${delayReason}`;
+Flight Number: ${flightNumber}
+CO: ${co}
+HO: ${ho}
+First Bag: ${firstBag} (${fbAchieved})
+Last Bag: ${lastBag} (${lbAchieved})
+Total Time Taken: ${totalTime} minutes
+Flight Manager: ${manager}
+Arrival Staff: ${arrivalStaff}
+BBA Staff: ${bbaStaff}
 
-            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(result)}`;
-            window.open(whatsappUrl, '_blank');
-        }
+Delay Reason: ${delayReason}`.trim();
+
+    if (navigator.share) {
+        navigator.share({
+            title: 'BBA FB-LB Status',
+            text: result
+        }).catch(error => {
+            console.error('Sharing failed:', error);
+        });
+    } else {
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(result)}`;
+        window.open(whatsappUrl, '_blank');
+    }
+}
+
 
        function clearMainForm() {
     // Clear form fields
