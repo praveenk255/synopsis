@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Aircraft Security Rules Quiz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 8px; }
+  </style>
+  <script defer>
+    const rules = [
+      { rule: "Rule 1", title: "Short title and commencement" },
+      { rule: "Rule 2", title: "Role and responsibilities of Director General" },
+      { rule: "Rule 3", title: "National Civil Aviation Security Committee" },
+      { rule: "Rule 4", title: "Airport Security Committee" },
+      { rule: "Rule 6", title: "Aviation Security Group" },
+      { rule: "Rule 7", title: "Duties of Chief Aerodrome Security Officer" },
+      { rule: "Rule 8", title: "Disembarkation of unruly passenger" },
+      { rule: "Rule 9", title: "Private Security Agency" },
+      { rule: "Rule 10", title: "Security programme of aerodrome and aircraft operators" },
+      { rule: "Rule 11", title: "Commencement of operations by aerodrome and aircraft operators" },
+      { rule: "Rule 12", title: "Power to suspend or cancel security clearance and security programme" },
+      { rule: "Rule 13", title: "Renewal or review of security clearance and security programme" },
+      { rule: "Rule 14", title: "Appointment of Chief Security Officer" },
+      { rule: "Rule 15", title: "Operation of entities at aerodrome" },
+      { rule: "Rule 16", title: "Planning, design, and layout of aerodrome" },
+      { rule: "Rule 17", title: "Aerodrome perimeter" },
+      { rule: "Rule 18", title: "Provision of lighting, road for patrolling, and observation post" },
+      { rule: "Rule 19", title: "Protection of facilities under aerodrome operator" },
+      { rule: "Rule 20", title: "Handling of unidentified baggage or suspicious object" },
+      { rule: "Rule 21", title: "Contingency Plan" },
+      { rule: "Rule 22", title: "Entry into aerodrome" },
+      { rule: "Rule 23", title: "Security measures related to vehicles" },
+      { rule: "Rule 24", title: "Issue of aerodrome entry permit and vehicle entry permit" },
+      { rule: "Rule 25", title: "Background check of employees" },
+      { rule: "Rule 26", title: "Display of aerodrome entry permit and vehicle entry permit" },
+      { rule: "Rule 27", title: "Surrender of aerodrome entry permit and vehicle entry permit" },
+      { rule: "Rule 28", title: "Maintenance and availability of stop list" },
+      { rule: "Rule 29", title: "Reserved right of admission" },
+      { rule: "Rule 30", title: "Prohibition to carry weapons or explosive" },
+      { rule: "(Rules 31-32)", title: "Entry into Security Restricted Area and Security Hold Area" },
+      { rule: "Rule 32", title: "Security Check Before Embarkation" },
+      { rule: "Rule 33", title: "Prohibition on Carriage of Certain Articles" },
+      { rule: "Rule 34", title: "Deployment of Security Staff" },
+      { rule: "Rule 35", title: "Security Check/Search of Aircraft" },
+      { rule: "Rule 37", title: "Protection of Cockpit Door and Flight Crew Compartment" },
+      { rule: "Rule 38", title: "Deployment of In-Flight Security Officers" },
+      { rule: "Rule 39", title: "Security Control for Hold Baggage" },
+      { rule: "Rule 40", title: "Carriage of Prisoners in Aircraft" },
+      { rule: "Rule 41", title: "Carriage of Cargo, Mail, and Supplies" },
+      { rule: "(Rules 49-50)", title: "Detection of Cyber-Attack and Cyber Security Response" },
+      { rule: "(Rules 51-52)", title: "Reporting and Investigation of Security Occurrences" },
+      { rule: "(Rules 54-57)", title: "Protection of Information and Records" },
+      { rule: "(Rules 64-66)", title: "Appeals, Compounding of Offences, and Penalties" }
+    ];
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    function loadQuiz() {
+      const quizContainer = document.getElementById("quiz");
+      shuffle(rules);
+      rules.forEach((correctItem, index) => {
+        const wrongOptions = rules.filter(r => r.rule !== correctItem.rule);
+        shuffle(wrongOptions);
+        const options = [correctItem, ...wrongOptions.slice(0, 3)];
+        shuffle(options);
+
+        const qBlock = document.createElement("div");
+        qBlock.className = "bg-white p-4 rounded-xl shadow mb-5";
+
+        const q = document.createElement("p");
+        q.className = "font-semibold mb-3";
+        q.innerText = `Q${index + 1}. Which Rule deals with "${correctItem.title}"?`;
+        qBlock.appendChild(q);
+
+        let answeredCorrectly = false;
+
+        options.forEach(opt => {
+          const btn = document.createElement("button");
+          btn.innerText = opt.rule;
+          btn.className = "w-full text-left border rounded p-2 mb-2 hover:bg-gray-100";
+          btn.onclick = () => {
+            if (answeredCorrectly) return; // already correct, ignore further clicks
+
+            if (opt.rule === correctItem.rule) {
+              btn.classList.add("bg-green-200");
+              btn.innerText += " ✓ Correct";
+              answeredCorrectly = true;
+              [...btn.parentElement.querySelectorAll("button")].forEach(b => b.disabled = true);
+            } else {
+              btn.classList.add("bg-red-200");
+              btn.disabled = true;
+              btn.innerText += " ✗ Incorrect";
+            }
+          };
+          qBlock.appendChild(btn);
+        });
+
+        quizContainer.appendChild(qBlock);
+      });
+    }
+
+    window.onload = loadQuiz;
+  </script>
+</head>
+<body class="bg-gray-100">
+
+  <!-- Top Header with Rules Button -->
+  <div class="sticky top-0 bg-white p-4 shadow flex justify-between items-center z-50">
+    <h1 class="text-base font-bold">Aircraft Security Rules Quiz</h1>
+    <button onclick="document.getElementById('rulesModal').classList.remove('hidden')" class="bg-blue-500 text-white px-3 py-1 rounded">Rules</button>
+  </div>
+
+  <!-- Quiz Content -->
+  <div id="quiz" class="p-4 text-sm"></div>
+
+  <!-- Modal with Rules -->
+  <div id="rulesModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center z-50">
+    <div class="bg-white w-11/12 h-5/6 p-4 overflow-y-auto rounded-xl relative">
+      <button onclick="document.getElementById('rulesModal').classList.add('hidden')" class="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded">Close</button>
+      <h2 class="text-lg font-semibold mb-2">Aircraft (Security) Rules, 2023</h2>
+      <pre class="whitespace-pre-wrap text-xs leading-relaxed">
+<p style="text-align: justify;"><strong>Rule 1: Short title and commencement &#8211; </strong> These rules are referred to as the Aircraft (Security) Rules, 2023. They become effective from the date of publication in the Official Gazette.</p>
+<p style="text-align: justify;"><strong>Rule 2: Role and responsibilities of Director General &#8211; </strong>The Director General holds the responsibility of regulatory and oversight functions related to civil aviation security. This includes developing and implementing the National Civil Aviation Security Programme, coordinating activities, ensuring security training, risk assessment, and providing guidelines.</p>
+<p style="text-align: justify;"><strong>Rule 3: National Civil Aviation Security Committee &#8211; </strong>This rule establishes the National Civil Aviation Security Committee as a coordinating body, consisting of key members including the Secretary of the Ministry of Civil Aviation, and the Director General as the Member-Secretary.</p>
+<p style="text-align: justify;"><strong>Rule 4: Airport Security Committee &#8211; </strong>Airport operators with approved security programmes must establish an Airport Security Committee to assist in coordinating security controls, ensuring compliance with the National Civil Aviation Security Programme.</p>
+<p style="text-align: justify;"><strong>Rule 6: Aviation Security Group</strong> <strong> &#8211; </strong>Aerodrome operators must engage personnel from government security agencies for security duties, forming an Aviation Security Group. The Chief Aerodrome Security Officer oversees this group.</p><div class="video-ad-container">
+                </div>
+<p style="text-align: justify;"><strong>Rule 7: Duties of Chief Aerodrome Security Officer</strong> <strong> &#8211; </strong>The Chief Aerodrome Security Officer is responsible for various security aspects, including safeguarding passengers, enforcing access control, maintaining order, liaising with authorities, and more.</p>
+<p style="text-align: justify;"><strong>Rule 8: Disembarkation of unruly passenger</strong> <strong> &#8211; </strong>The Chief Aerodrome Security Officer or authorized personnel assists the pilot-in-command in disembarking unruly passengers to ensure aircraft, crew, and passenger safety.</p>
+<p style="text-align: justify;"><strong>Rule 9: Private Security Agency</strong> <strong> &#8211; </strong>Private Security Agencies are engaged to perform security duties under the operational supervision of the Chief Aerodrome Security Officer and administrative supervision of the Aerodrome Operator.</p>
+<p style="text-align: justify;"><strong>Rule 10: Security programme of aerodrome and aircraft operators</strong> <strong> &#8211; </strong>Aerodrome and aircraft operators are required to develop, implement, maintain, and periodically review their security programmes in accordance with the National Civil Aviation Security Programme.</p>
+<p style="text-align: justify;"><strong>Rule 11: Commencement of operations by aerodrome and aircraft operators</strong> <strong> &#8211; </strong>No aerodrome or aircraft operator can commence operations without obtaining security clearance and approval of security arrangements from the Director General, ensuring safety and security compliance.</p>
+<p style="text-align: justify;"><strong>Rule 12: Power to suspend or cancel security clearance and security programme</strong> <strong> &#8211; </strong>The Director General holds the authority to suspend, cancel, or impose conditions on security clearances and programmes in cases of non-compliance or national security concerns.</p>
+<p style="text-align: justify;"><strong>Rule 13: Renewal or review of security clearance and security programme</strong> <strong> &#8211; </strong>Entities are required to apply for the renewal of security clearances and review their security programmes periodically, ensuring ongoing adherence to security standards.</p>
+<p style="text-align: justify;"><strong>Rule 14: Appointment of Chief Security Officer</strong> <strong> &#8211; </strong>Entities must appoint a Chief Security Officer or Aviation Security Compliance Officer, responsible for ensuring security compliance and coordination.</p>
+<p style="text-align: justify;"><strong>Rule 15: Operation of entities at aerodrome</strong> <strong> &#8211; </strong>Aerodrome operators cannot operate or allow entities to operate in security restricted areas without obtaining security clearance and approval from the Director General.</p>
+<p style="text-align: justify;"><strong>Rule 16: Planning, design, and layout of aerodrome &#8211; </strong> Aerodromes must adhere to security specifications outlined in the National Civil Aviation Security Programme, ensuring secure planning, design, and layout.</p>
+<p style="text-align: justify;"><strong>Rule 17: Aerodrome perimeter &#8211; </strong> Aerodrome operators are required to construct a perimeter wall or fence for peripheral protection, as specified by the Director General.</p>
+<p style="text-align: justify;"><strong>Rule 18: Provision of lighting, road for patrolling, and observation post</strong> <strong> &#8211; </strong>Aerodrome operators are mandated to provide lighting, roads for patrolling, and observation posts to enhance security measures.</p>
+<p style="text-align: justify;"><strong>Rule 19: Protection of facilities under aerodrome operator &#8211; </strong> All vulnerable areas and operational facilities under aerodrome operators must be identified, demarcated, and protected to ensure aviation security.</p>
+<p style="text-align: justify;"><strong>Rule 20: Handling of unidentified baggage or suspicious object</strong> <strong> &#8211; </strong>Aerodrome operators must establish protected areas for suspicious objects and undertake appropriate measures to assess, investigate, and dispose of them.</p>
+<p style="text-align: justify;"><strong>Rule 21: Contingency Plan</strong> <strong> &#8211; </strong>Aerodrome operators are required to develop, implement, and maintain contingency plans to handle security alerts effectively.</p>
+<p style="text-align: justify;"><strong>Rule 22: Entry into aerodrome</strong> <strong> &#8211; </strong>Guidelines for aerodrome entry permits are issued by the Central Government. Access to aerodromes is regulated through permits, ensuring authorized entry.</p>
+<p style="text-align: justify;"><strong>Rule 23: Security measures related to vehicles &#8211; </strong> Aerodrome operators must apply screening or security controls to vehicles granted airside access, along with items within them.</p>
+<p style="text-align: justify;"><strong>Rule 24: Issue of aerodrome entry permit and vehicle entry permit</strong> <strong> &#8211; </strong>Rules for issuing aerodrome entry permits and vehicle entry permits are established, promoting controlled and secure access.</p>
+<p style="text-align: justify;"><strong>Rule 25: Background check of employees</strong> <strong> &#8211; </strong>Entities are mandated to conduct initial and periodic background checks on employees with airside access, enhancing security measures.</p>
+<p style="text-align: justify;"><strong>Rule 26: Display of aerodrome entry permit and vehicle entry permit &#8211; </strong> Permit holders are required to display their permits conspicuously at all times, ensuring visible compliance.</p>
+<p style="text-align: justify;"><strong>Rule 27: Surrender of aerodrome entry permit and vehicle entry permit</strong> <strong> &#8211; </strong>Procedures for surrendering entry permits are outlined, ensuring proper management and control.</p>
+<p style="text-align: justify;"><strong>Rule 28: Maintenance and availability of stop list</strong> <strong> &#8211; </strong>Issuing authorities maintain a stop list, available at access points and security restricted areas, enhancing security personnel&#8217;s ability to identify unauthorized individuals.</p>
+<p style="text-align: justify;"><strong>Rule 29: Reserved right of admission</strong> <strong> &#8211; </strong>The aerodrome operator and Director General hold the authority to refuse admission or require anyone to leave the aerodrome in the interest of security.</p>
+<p style="text-align: justify;"><strong>Rule 30: Prohibition to carry weapons or explosive</strong> Entering aerodromes or aircraft with weapons, firearms, ammunition, or explosives is prohibited, except under specific circumstances such as armed forces personnel or for testing purposes.</p>
+<p style="text-align: justify;"><strong>Entry into Security Restricted Area and Security Hold Area (Rules 31-32):</strong> These rules emphasize the importance of controlling access to security restricted and hold areas. No vehicle, person, baggage, supplies, or tools can enter these areas without applying specified security controls. Security screening of individuals and items is mandatory before granting access to such areas.</p>
+<p style="text-align: justify;"><strong>Security Check Before Embarkation (Rule 32):</strong> Passengers and their cabin baggage must be screened before boarding an aircraft. This rule ensures that potential threats are identified and prevented from entering the aircraft.</p>
+<p style="text-align: justify;"><strong>Prohibition on Carriage of Certain Articles (Rule 33):</strong> The Director General can prohibit the carriage of articles that could potentially be used for unlawful interference with civil aviation. Detection of prohibited items during screening prompts appropriate action.</p>
+<p style="text-align: justify;"><strong>Deployment of Security Staff (Rule 34):</strong> Aircraft operators must engage security personnel who undergo background checks, proper selection, training, and certification. This ensures that security personnel are qualified to handle security duties effectively.</p>
+<p style="text-align: justify;"><strong>Security Check/Search of Aircraft (Rule 35):</strong> Aircraft operators must conduct security checks or searches of their aircraft before departure, between flights, and as directed by the Director General. This rule ensures the security of the aircraft between flights.</p>
+<p style="text-align: justify;"><strong>Protection of Cockpit Door and Flight Crew Compartment (Rule 37):</strong> Measures like locked cockpit doors, communication systems between flight and cabin crew, and responsibility assignment for cockpit access control enhance cockpit security.</p>
+<p style="text-align: justify;"><strong>Deployment of In-Flight Security Officers (Rule 38):</strong> A specified number of in-flight security officers must be carried on passenger aircraft as per the Director General&#8217;s order. This adds an extra layer of security during flight.</p>
+<p style="text-align: justify;"><strong>Security Control for Hold Baggage (Rule 39):</strong> Baggage must undergo screening and protection from unauthorized interference from acceptance until departure. Identification and reconciliation of hold baggage are required.</p>
+<p style="text-align: justify;"><strong>Carriage of Prisoners in Aircraft (Rule 40):</strong> Aircraft operators must follow specific procedures for carrying prisoners, ensuring both security and humane treatment.</p>
+<p style="text-align: justify;"><strong>Carriage of Cargo, Mail, and Supplies (Rule 41):</strong> Security controls must be applied to cargo, mail, and supplies to prevent unauthorized interference. The security program of catering establishments must be approved.</p>
+<p style="text-align: justify;"><strong>Detection of Cyber-Attack and Cyber Security Response (Rules 49-50):</strong> Entities must protect critical information systems from unauthorized access. They should have mechanisms in place to detect cyber-attacks and respond effectively.</p>
+<p style="text-align: justify;"><strong>Reporting and Investigation of Security Occurrences (Rules 51-52):</strong> Entities must report security occurrences and incidents as specified. The Director General can order security investigations to assess and respond to incidents.</p>
+<p style="text-align: justify;"><strong>Protection of Information and Records (Rules 54-57):</strong> Sensitive aviation security information must be protected against unauthorized access, amendment, and disclosure. Records must be retained as specified.</p>
+<p style="text-align: justify;"><strong>Appeals, Compounding of Offences, and Penalties (Rules 64-66):</strong> There are provisions for appeals, compounding of offences, and penalties for non-compliance. The penalties vary depending on the nature of the contravention.</p>
+      </pre>
+    </div>
+  </div>
+
+</body>
+</html>
