@@ -10,7 +10,6 @@
 <body class="bg-gray-100 text-gray-800">
 
   <div class="max-w-4xl mx-auto p-4">
-    <!-- Header -->
     <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
       <h1 class="text-2xl sm:text-3xl font-bold text-blue-700 text-center"> Avsec Basic Quiz</h1>
       <select id="sheetSelector" class="border rounded px-3 py-2 text-gray-700">
@@ -31,8 +30,7 @@
 
 
 
-<!-- Add more quiz links here -->
-      </select>
+</select>
     </div>
 
     <div id="quiz-container" class="space-y-6"></div>
@@ -80,65 +78,71 @@
         console.error(error);
       }
     }
+    
+    function scrollToNextQuestion(currentCard) {
+      const nextCard = currentCard.nextElementSibling;
+      if (nextCard && nextCard.classList.contains('question-card')) {
+        nextCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
 
     function renderQuestions(questions) {
-  const container = document.getElementById("quiz-container");
-  container.innerHTML = "";
+      const container = document.getElementById("quiz-container");
+      container.innerHTML = "";
 
-  questions.forEach((q, qIndex) => {
-    const card = document.createElement("div");
-    card.className = "bg-white rounded-xl shadow-md p-5";
+      questions.forEach((q, qIndex) => {
+        const card = document.createElement("div");
+        card.className = "bg-white rounded-xl shadow-md p-5 question-card";
 
-    const questionEl = document.createElement("div");
-    questionEl.className = "font-semibold text-lg mb-4";
-    questionEl.textContent = `${qIndex + 1}. ${q.question}`;
-    card.appendChild(questionEl);
+        const questionEl = document.createElement("div");
+        questionEl.className = "font-semibold text-lg mb-4";
+        questionEl.textContent = `${qIndex + 1}. ${q.question}`;
+        card.appendChild(questionEl);
 
-    const optionsDiv = document.createElement("div");
-    optionsDiv.className = "grid gap-3";
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "grid gap-3";
 
-    const feedbackEl = document.createElement("div");
-    feedbackEl.className = "mt-3 text-md font-medium hidden";
+        const feedbackEl = document.createElement("div");
+        feedbackEl.className = "mt-3 text-md font-medium hidden";
 
-    q.options.forEach((opt, idx) => {
-      const btn = document.createElement("button");
-      btn.className =
-        "option-button w-full text-left px-4 py-2 rounded-md border border-gray-300 bg-gray-100 hover:bg-blue-100 transition-colors";
-      btn.textContent = opt;
+        q.options.forEach((opt, idx) => {
+          const btn = document.createElement("button");
+          btn.className =
+            "option-button w-full text-left px-4 py-2 rounded-md border border-gray-300 bg-gray-100 hover:bg-blue-100 transition-colors";
+          btn.textContent = opt;
 
-      btn.onclick = () => {
-        // Disable all buttons after one selection
-        Array.from(optionsDiv.children).forEach((child, childIdx) => {
-          child.disabled = true;
-          child.classList.remove("bg-green-100", "text-green-700", "border-green-400");
-          child.classList.remove("bg-red-100", "text-red-700", "border-red-400");
+          btn.onclick = () => {
+            // Disable all buttons after one selection
+            Array.from(optionsDiv.children).forEach((child, childIdx) => {
+              child.disabled = true;
+              child.classList.remove("bg-green-100", "text-green-700", "border-green-400");
+              child.classList.remove("bg-red-100", "text-red-700", "border-red-400");
 
-          if (childIdx === q.correct) {
-            child.classList.add("bg-green-100", "text-green-700", "border-green-400");
-          }
+              if (childIdx === q.correct) {
+                child.classList.add("bg-green-100", "text-green-700", "border-green-400");
+              }
+            });
+
+            if (idx === q.correct) {
+              btn.classList.add("bg-green-100", "text-green-700", "border-green-400");
+              feedbackEl.textContent = "Correct!";
+              feedbackEl.className = "mt-3 text-green-700 font-semibold";
+              scrollToNextQuestion(card);
+            } else {
+              btn.classList.add("bg-red-100", "text-red-700", "border-red-400");
+              feedbackEl.textContent = "Incorrect!";
+              feedbackEl.className = "mt-3 text-red-700 font-semibold";
+            }
+          };
+
+          optionsDiv.appendChild(btn);
         });
 
-        if (idx === q.correct) {
-          btn.classList.add("bg-green-100", "text-green-700", "border-green-400");
-          feedbackEl.textContent = "Correct!";
-          feedbackEl.className = "mt-3 text-green-700 font-semibold";
-        } else {
-          btn.classList.add("bg-red-100", "text-red-700", "border-red-400");
-          feedbackEl.textContent = "Incorrect!";
-          feedbackEl.className = "mt-3 text-red-700 font-semibold";
-        }
-      };
-
-      optionsDiv.appendChild(btn);
-    });
-
-    card.appendChild(optionsDiv);
-    card.appendChild(feedbackEl);
-    container.appendChild(card);
-  });
-}
-
-
+        card.appendChild(optionsDiv);
+        card.appendChild(feedbackEl);
+        container.appendChild(card);
+      });
+    }
   </script>
 </body>
 </html>
