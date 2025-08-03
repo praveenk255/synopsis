@@ -63,6 +63,13 @@
       }
     }
 
+    function scrollToNextQuestion(currentQuestionElement) {
+        const nextQuestion = currentQuestionElement.nextElementSibling;
+        if (nextQuestion) {
+            nextQuestion.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
     function loadQuiz() {
       const quizContainer = document.getElementById("quiz");
       shuffle(rules);
@@ -73,7 +80,7 @@
         shuffle(options);
 
         const qBlock = document.createElement("div");
-        qBlock.className = "bg-white p-4 rounded-xl shadow mb-5";
+        qBlock.className = "bg-white p-4 rounded-xl shadow mb-5 question-block";
 
         const q = document.createElement("p");
         q.className = "font-semibold mb-3";
@@ -94,6 +101,7 @@
               btn.innerText += " ✓ Correct";
               answeredCorrectly = true;
               [...btn.parentElement.querySelectorAll("button")].forEach(b => b.disabled = true);
+              scrollToNextQuestion(qBlock);
             } else {
               btn.classList.add("bg-red-200");
               btn.disabled = true;
@@ -112,7 +120,6 @@
 </head>
 <body class="bg-gray-100">
 
-  <!-- Header with Rules & Tricks Buttons -->
   <div class="sticky top-0 bg-white p-4 shadow flex justify-between items-center z-50">
     <h1 class="text-base font-bold">Aircraft Security Rules, 2023 Quiz</h1>
     <div class="flex gap-2">
@@ -121,10 +128,8 @@
     </div>
   </div>
 
-  <!-- Quiz Content -->
   <div id="quiz" class="p-4 text-sm"></div>
 
-  <!-- Rules Modal -->
   <div id="rulesModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center z-50">
     <div class="bg-white w-11/12 h-5/6 p-4 overflow-y-auto rounded-xl relative">
       <button onclick="document.getElementById('rulesModal').classList.add('hidden')" class="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded">Close</button>
@@ -179,7 +184,6 @@
     </div>
   </div>
 
-  <!-- Tricks Modal -->
   <div id="trickModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center z-50">
     <div class="bg-white w-11/12 h-5/6 p-4 overflow-y-auto rounded-xl relative">
       <button onclick="document.getElementById('trickModal').classList.add('hidden')" class="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded">Close</button>
