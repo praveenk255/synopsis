@@ -87,7 +87,7 @@
           btn.innerText = opt.rule;
           btn.className = "w-full text-left border rounded p-2 mb-2 hover:bg-gray-100";
           btn.onclick = () => {
-            if (answeredCorrectly) return; // already correct, ignore further clicks
+            if (answeredCorrectly) return;
 
             if (opt.rule === correctItem.rule) {
               btn.classList.add("bg-green-200");
@@ -112,16 +112,19 @@
 </head>
 <body class="bg-gray-100">
 
-  <!-- Top Header with Rules Button -->
+  <!-- Header with Rules & Tricks Buttons -->
   <div class="sticky top-0 bg-white p-4 shadow flex justify-between items-center z-50">
     <h1 class="text-base font-bold">Aircraft Security Rules, 2023 Quiz</h1>
-    <button onclick="document.getElementById('rulesModal').classList.remove('hidden')" class="bg-blue-500 text-white px-3 py-1 rounded">Rules</button>
+    <div class="flex gap-2">
+      <button onclick="document.getElementById('rulesModal').classList.remove('hidden')" class="bg-blue-500 text-white px-3 py-1 rounded">Rules</button>
+      <button onclick="document.getElementById('trickModal').classList.remove('hidden')" class="bg-green-600 text-white px-3 py-1 rounded">Tricks</button>
+    </div>
   </div>
 
   <!-- Quiz Content -->
   <div id="quiz" class="p-4 text-sm"></div>
 
-  <!-- Modal with Rules -->
+  <!-- Rules Modal -->
   <div id="rulesModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center z-50">
     <div class="bg-white w-11/12 h-5/6 p-4 overflow-y-auto rounded-xl relative">
       <button onclick="document.getElementById('rulesModal').classList.add('hidden')" class="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded">Close</button>
@@ -171,7 +174,137 @@
 <p style="text-align: justify;"><strong>Reporting and Investigation of Security Occurrences (Rules 51-52):</strong> Entities must report security occurrences and incidents as specified. The Director General can order security investigations to assess and respond to incidents.</p>
 <p style="text-align: justify;"><strong>Protection of Information and Records (Rules 54-57):</strong> Sensitive aviation security information must be protected against unauthorized access, amendment, and disclosure. Records must be retained as specified.</p>
 <p style="text-align: justify;"><strong>Appeals, Compounding of Offences, and Penalties (Rules 64-66):</strong> There are provisions for appeals, compounding of offences, and penalties for non-compliance. The penalties vary depending on the nature of the contravention.</p>
+      
       </pre>
+    </div>
+  </div>
+
+  <!-- Tricks Modal -->
+  <div id="trickModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center z-50">
+    <div class="bg-white w-11/12 h-5/6 p-4 overflow-y-auto rounded-xl relative">
+      <button onclick="document.getElementById('trickModal').classList.add('hidden')" class="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded">Close</button>
+      <h2 class="text-lg font-semibold mb-2">Easy Memory Tricks Based on Rule Names</h2>
+      <div class="text-sm leading-relaxed space-y-3">
+        <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; background-color: #f9f9f9;">
+  <thead style="background-color: #dceefb;">
+    <tr>
+      <th colspan="3">🟦 FOUNDATIONAL RULES</th>
+    </tr>
+    <tr>
+      <th>Rule Name</th><th>Memory Trick</th><th>Rule #</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Short title and commencement</td><td>Always Rule 1 in any act</td><td>1</td></tr>
+    <tr><td>Role of DG</td><td>DG = 2 letters → Rule 2</td><td>2</td></tr>
+    <tr><td>National Committee</td><td>National = 🇮🇳 = 3 layers of govt</td><td>3</td></tr>
+    <tr><td>Airport Security Committee</td><td>Airport next → Rule 4</td><td>4</td></tr>
+  </tbody>
+
+  <thead style="background-color: #fefcbf;">
+    <tr><th colspan="3">🟨 STAFF / PERSONNEL</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>AVSEC group</td><td>AVSEC has 6 letters → Rule 6</td><td>6</td></tr>
+    <tr><td>Chief Aerodrome Security Officer</td><td>1 man (solo) → 7 → Rule 7</td><td>7</td></tr>
+    <tr><td>Unruly passengers</td><td>Chaos = ∞ = 8 → Rule 8</td><td>8</td></tr>
+    <tr><td>Private Security Agency</td><td>End of this group → Rule 9</td><td>9</td></tr>
+  </tbody>
+
+  <thead style="background-color: #ffe5b4;">
+    <tr><th colspan="3">🟧 SECURITY PROGRAMME & OPERATION</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Security Programme submission</td><td>Start of doc → Rule 10</td><td>10</td></tr>
+    <tr><td>Start of security operation</td><td>Follows programme → Rule 11</td><td>11</td></tr>
+    <tr><td>Suspension of operation</td><td>Noon = pause → Rule 12</td><td>12</td></tr>
+    <tr><td>Renewal of approval</td><td>Unlucky 13 → recheck → Rule 13</td><td>13</td></tr>
+    <tr><td>Appointing CSO</td><td>CSO → 1 + 4 letters = 14</td><td>14</td></tr>
+    <tr><td>Entity operation</td><td>Entity → E = 5th letter → Rule 15</td><td>15</td></tr>
+  </tbody>
+
+  <thead style="background-color: #fca5a5;">
+    <tr><th colspan="3">🟥 AIRPORT INFRASTRUCTURE</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Airport design/layout</td><td>Planning = sweet 16 → Rule 16</td><td>16</td></tr>
+    <tr><td>Perimeter wall</td><td>Edge = Rule 17</td><td>17</td></tr>
+    <tr><td>Lighting and surveillance</td><td>18 hrs of light → Rule 18</td><td>18</td></tr>
+    <tr><td>Security of facilities</td><td>1 base + 9 guards = 19</td><td>19</td></tr>
+    <tr><td>Handling unidentified object</td><td>Detecting = 20/20 → Rule 20</td><td>20</td></tr>
+  </tbody>
+
+  <thead style="background-color: #bbf7d0;">
+    <tr><th colspan="3">🟩 ENTRY, EXIT, IDENTITY</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Entry into aerodrome</td><td>2 ways in = 2x2 → Rule 22</td><td>22</td></tr>
+    <tr><td>Vehicle screening</td><td>V = Roman 5 → Rule 23</td><td>23</td></tr>
+    <tr><td>Entry permit</td><td>Permit = 2 pages → 2x2 = 24</td><td>24</td></tr>
+    <tr><td>Background check</td><td>Job = age 25 → Rule 25</td><td>25</td></tr>
+    <tr><td>Display permit</td><td>2 eyes → see → Rule 26</td><td>26</td></tr>
+    <tr><td>Surrender permit</td><td>Resign age = 27 → Rule 27</td><td>27</td></tr>
+    <tr><td>Stop list</td><td>28 days → month end = Rule 28</td><td>28</td></tr>
+    <tr><td>Right of admission</td><td>2 & 9 control → Rule 29</td><td>29</td></tr>
+    <tr><td>Weapon restriction</td><td>Max threat → Rule 30</td><td>30</td></tr>
+  </tbody>
+
+  <thead style="background-color: #c7d2fe;">
+    <tr><th colspan="3">🟦 AIRCRAFT & FLIGHT SECURITY</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Entry into SRA & SHA</td><td>SRA = 31, SHA = 32 → 31 & 32</td><td>31, 32</td></tr>
+    <tr><td>Prohibited article</td><td>3-3 = double lock → Rule 33</td><td>33</td></tr>
+    <tr><td>Security personnel deployment</td><td>3–4 shifts per day → Rule 34</td><td>34</td></tr>
+    <tr><td>Aircraft security check</td><td>35mm scan → Rule 35</td><td>35</td></tr>
+    <tr><td>Cabin security</td><td>Crew 3–6 → Rule 36</td><td>36</td></tr>
+    <tr><td>Securing cockpit door</td><td>Cockpit = 737 aircraft → Rule 37</td><td>37</td></tr>
+    <tr><td>Inflight security officers</td><td>Up in air = above → Rule 38</td><td>38</td></tr>
+    <tr><td>Hold baggage security</td><td>3-9 = heavy bag → Rule 39</td><td>39</td></tr>
+    <tr><td>Carriage of prisoners</td><td>Locked room = Rule 40</td><td>40</td></tr>
+  </tbody>
+
+  <thead style="background-color: #e0e7ff;">
+    <tr><th colspan="3">🟫 CARGO, POST & CYBER</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Cargo/mail security</td><td>Starts with 'C' → Rule 41</td><td>41</td></tr>
+    <tr><td>Cybersecurity</td><td>Tech end → Rule 49–50</td><td>49–50</td></tr>
+  </tbody>
+
+  <thead style="background-color: #f5d0fe;">
+    <tr><th colspan="3">🟪 REPORTING & RECORDS</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Incident reporting</td><td>5-1 = 1st step → Rule 51</td><td>51</td></tr>
+    <tr><td>Security incident investigation</td><td>Next step → Rule 52</td><td>52</td></tr>
+    <tr><td>Protection of info/records</td><td>Final data → Rule 54–57</td><td>54–57</td></tr>
+  </tbody>
+
+  <thead style="background-color: #fecaca;">
+    <tr><th colspan="3">⛔ PENALTIES</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Appeals</td><td>Decision reversal → Rule 64</td><td>64</td></tr>
+    <tr><td>Compounding of offense</td><td>Mixing → Rule 65</td><td>65</td></tr>
+    <tr><td>Penalties</td><td>Double punishment = 66</td><td>66</td></tr>
+  </tbody>
+
+  <thead style="background-color: #dcfce7;">
+    <tr><th colspan="3">✅ QUICK LOOK TABLE</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Entry into SHA/SRA</td><td>31–32</td><td>Zones in order</td></tr>
+    <tr><td>Prohibited article</td><td>33</td><td>Double danger</td></tr>
+    <tr><td>Cockpit door</td><td>37</td><td>Boeing 737</td></tr>
+    <tr><td>Weapon restriction</td><td>30</td><td>Max threat</td></tr>
+    <tr><td>Cargo/mail security</td><td>41</td><td>C for Cargo</td></tr>
+    <tr><td>Cybersecurity</td><td>49–50</td><td>Tech at end</td></tr>
+    <tr><td>Data/record protection</td><td>54–57</td><td>Final records</td></tr>
+    <tr><td>Penalty rules</td><td>64–66</td><td>Last block</td></tr>
+  </tbody>
+</table>
+</div>
     </div>
   </div>
 
