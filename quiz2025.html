@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Multi Quiz App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+  <div class="max-w-4xl mx-auto p-4">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+      <h1 class="text-2xl sm:text-3xl font-bold text-blue-700 text-center">📘 Quiz Bank</h1>
+      <select id="sheetSelector" class="border rounded px-3 py-2 text-gray-700">
+        <option value="">-- Select Quiz --</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSkl3zFBB8s5jFoh3mNbRUbETM6k0FPkBwRmu9sRO-SSTFb5O-HaxPNACCjqOLgXEdzpVJxRYetJ4aO/pub?output=csv">Basic 1</option>
+        <!-- Add more quiz links here -->
+      </select>
+    </div>
+
+    <div id="quiz-container" class="space-y-6"></div>
+  </div>
+
+  <script>
+    const clean = (text) =>
+      (text || "").toString().replace(/\r?\n|\r/g, " ").replace(/\s+/g, " ").trim();
+
+    document.getElementById("sheetSelector").addEventListener("change", function () {
+      const url = this.value;
+      if (url) loadQuestions(url);
+    });
+
+    async function loadQuestions(sheetUrl) {
+      try {
+        const res = await fetch(sheetUrl);
+        const csv = await res.text();
+
+        const parsed = Papa.parse(csv.trim(), {
+          header: true,
+          skipEmptyLines: true
+        });
+
+        const rows = parsed.data;
+
+        const questions = rows
+          .filter(row => row["English Question"] && row["Correct"])
+          .map((row, i) => ({
+            sno: clean(row["S.NO"]),
+            question: clean(row["English Question"]),
+            options: [
+              clean(row["Option 1"]),
+              clean(row["Option 2"]),
+              clean(row["Option 3"]),
+              clean(row["Option 4"]),
+            ],
+            correct: parseInt(clean(row["Correct"])) - 1,
+          }));
+
+        renderQuestions(questions);
+      } catch (error) {
+        document.getElementById("quiz-container").innerHTML =
+          `<p class="text-red-600">Error loading quiz. Please check the sheet format.</p>`;
+        console.error(error);
+      }
+    }
+
+    function renderQuestions(questions) {
+      const container = document.getElementById("quiz-container");
+      container.innerHTML = "";
+
+      questions.forEach((q, qIndex) => {
+        const card = document.createElement("div");
+        card.className = "bg-white rounded-xl shadow-md p-5";
+
+        const questionEl = document.createElement("div");
+        questionEl.className = "font-semibold text-lg mb-4";
+        questionEl.textContent = `${qIndex + 1}. ${q.question}`;
+        card.appendChild(questionEl);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "grid gap-3";
+
+        q.options.forEach((opt, idx) => {
+          const btn = document.createElement("button");
+          btn.className =
+            "option-button w-full text-left px-4 py-2 rounded-md border border-gray-300 bg-gray-100 hover:bg-blue-100 transition-colors";
+          btn.textContent = opt;
+
+          btn.onclick = () => {
+            Array.from(optionsDiv.children).forEach((child) => {
+              child.classList.remove("bg-green-100", "text-green-700", "border-green-400");
+              child.classList.remove("bg-red-100", "text-red-700", "border-red-400");
+            });
+
+            if (idx === q.correct) {
+              btn.classList.add("bg-green-100", "text-green-700", "border-green-400");
+            } else {
+              btn.classList.add("bg-red-100", "text-red-700", "border-red-400");
+            }
+          };
+
+          optionsDiv.appendChild(btn);
+        });
+
+        card.appendChild(optionsDiv);
+        container.appendChild(card);
+      });
+    }
+  </script>
+</body>
+</html>
