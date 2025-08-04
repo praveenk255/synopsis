@@ -7,10 +7,74 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
+    /* Crafty Metaverse Inspired Theme */
+    :root {
+      --bg-color: #0b0f19;
+      --text-color: #f0f2f5;
+      --primary-color: #6366f1; /* Indigo */
+      --secondary-color: #06b6d4; /* Cyan */
+      --accent-color: #a855f7; /* Violet */
+      --card-bg: #111827;
+      --border-color: #1f2937;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    }
+
+    .holographic-text {
+      background: linear-gradient(45deg, var(--primary-color), var(--accent-color), var(--secondary-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 5px rgba(99, 102, 241, 0.5);
+    }
+
+    .holographic-border {
+      border: 2px solid;
+      border-image-slice: 1;
+      border-image-source: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+    }
+
+    .holographic-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .holographic-btn {
+      background-color: var(--card-bg);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    .holographic-btn:hover {
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+      transform: translateY(-2px);
+    }
+
+    /* Quiz specific styles */
+    .correct-answer {
+      background-color: #10b981 !important; /* Green 500 */
+      color: #fff !important;
+      border-color: #059669 !important; /* Green 600 */
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    .incorrect-answer {
+      background-color: #ef4444 !important; /* Red 500 */
+      color: #fff !important;
+      border-color: #dc2626 !important; /* Red 600 */
+      box-shadow: 0 0 8px #ef4444;
+    }
+
+    /* Loader styles */
     .loader {
-      border: 4px solid #f3f3f3;
+      border: 4px solid rgba(255, 255, 255, 0.2);
       border-radius: 50%;
-      border-top: 4px solid #3498db;
+      border-top: 4px solid var(--secondary-color);
       width: 40px;
       height: 40px;
       -webkit-animation: spin 1s linear infinite;
@@ -28,34 +92,28 @@
     }
   </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-gray-950 text-gray-100">
 
   <div class="max-w-4xl mx-auto p-4">
     <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-      <h1 class="text-2xl sm:text-3xl font-bold text-blue-700 text-center"> Avsec Basic Quiz</h1>
-      <select id="sheetSelector" class="border rounded px-3 py-2 text-gray-700">
+      <h1 class="text-2xl sm:text-3xl font-bold text-center holographic-text">Avsec Basic Quiz</h1>
+      <select id="sheetSelector" class="border rounded px-3 py-2 text-white holographic-card focus:outline-none focus:ring-2 focus:ring-indigo-500">
         <option value="">-- Select Quiz --</option>
         <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSkl3zFBB8s5jFoh3mNbRUbETM6k0FPkBwRmu9sRO-SSTFb5O-HaxPNACCjqOLgXEdzpVJxRYetJ4aO/pub?output=csv">Basic 1</option>
         <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSIpr6CpRW3F9kae8F3_cqqiXOtEL6CqCJlgsiJ79_l348bEsa2UWI93i4_chElLeG4JDNGSudflxf9/pub?output=csv">Basic 2</option>
         <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQXg2KZDq8TtDq8xjVMNaveQXkhBrTIuxC-39EK1htO68FMKfEeLUfhqCNsacxSm6Vk5rg7eusQP_au/pub?output=csv">Basic 3</option>
-<option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTepTt61Dhntqokek0QH1fQK0Oo3lOI9qHbwHNGIbe2hk8vU3XHH2OiN1HyvoEwpY81Vi0ISOrqzYae/pub?output=csv">Basic 4</option>
-  <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRSnPYhv-vMmKL77c5XoirZGaqMjVyEppgq9Wp9S6GfDUvP1IiZRY2kZ6K2pT5LDPMXto1D1R3f2-Vu/pub?output=csv">Basic 5</option>
-  <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSJUr0Br78XjprIIUkZhN94udUK9YhODYRLmLiKSkhz6ifqhh1PIshqv_ZaM6kpDumwy6V_oCmjNt9E/pub?output=csv">Basic 6</option>
-  <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRejjJTEmWGWXlrnOoUDSkAMm7P9GXRMd3wEpl2U3zk4Aua3NJLVhnFRAh8quK3-8FV-KbDr_RDz5-4/pub?output=csv">Basic 7</option>
-  <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQAEQfNB9GxnTAXPPhYQd4aN3Mjizk3WauJ-IoUGlSCG6MmQdZmtB896hFOPdDxWgkgJf739RWSCS0_/pub?output=csv">Basic 8</option>
-  <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRj1KcGeC1ZYQsmzEp3zOeDv4MgSAqSwkp7vjQh0b-R1o58gfScF25zz4K9UByc5PhYA4qZDSCA7OKw/pub?output=csv">Basic 9</option>
-  <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSKKmIAXa0qs-dFO4njh3DmZGu5JoDTpfaZWOWXNtO5_DFz42YSATMwHCQ7v56MRJLIjp9QPZMOgM6X/pub?output=csv">Basic 10</option>
-  <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTZEpBXKF8Rn67md2PhNTH4w-a0EG4ytYOuGdsjYSzSugSv3i3Q9SszT1OXeCYAt7HR4e2nAsO3bWp8/pub?output=csv">Basic 11</option>
-<option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vStq66g33WI6VxWrVx-l_eheqjxuOW2dYZTGDwQcxC4GrZpgUflUdUwuNqSiNTnyU4g8DklR2Cy7rOi/pub?output=csv">Terminologies</option>
-<option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRZDZq92XW_asvWanWZz0qqsB32f8XfJhxOR62bcfZDcGbvtX0LUbgRART2aiFdq59gIkT2A8Yu3zIS/pub?output=csv">Abbreviations</option>
-<option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vT8WHfGycBq4rjzcjbtNrQUV6H4oU-YdfYO9Ci8V_xsEuguPQXYXODCau-If4U_82BqLrliYKErXGkV/pub?output=csv">Incidents</option>
-
-
-
-
-
-
-</select>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTepTt61Dhntqokek0QH1fQK0Oo3lOI9qHbwHNGIbe2hk8vU3XHH2OiN1HyvoEwpY81Vi0ISOrqzYae/pub?output=csv">Basic 4</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRSnPYhv-vMmKL77c5XoirZGaqMjVyEppgq9Wp9S6GfDUvP1IiZRY2kZ6K2pT5LDPMXto1D1R3f2-Vu/pub?output=csv">Basic 5</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSJUr0Br78XjprIIUkZhN94udUK9YhODYRLmLiKSkhz6ifqhh1PIshqv_ZaM6kpDumwy6V_oCmjNt9E/pub?output=csv">Basic 6</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRejjJTEmWGWXlrnOoUDSkAMm7P9GXRMd3wEpl2U3zk4Aua3NJLVhnFRAh8quK3-8FV-KbDr_RDz5-4/pub?output=csv">Basic 7</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQAEQfNB9GxnTAXPPhYQd4aN3Mjizk3WauJ-IoUGlSCG6MmQdZmtB896hFOPdDxWgkgJf739RWSCS0_/pub?output=csv">Basic 8</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRj1KcGeC1ZYQsmzEp3zOeDv4MgSAqSwkp7vjQh0b-R1o58gfScF25zz4K9UByc5PhYA4qZDSCA7OKw/pub?output=csv">Basic 9</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSKKmIAXa0qs-dFO4njh3DmZGu5JoDTpfaZWOWXNtO5_DFz42YSATMwHCQ7v56MRJLIjp9QPZMOgM6X/pub?output=csv">Basic 10</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTZEpBXKF8Rn67md2PhNTH4w-a0EG4ytYOuGdsjYSzSugSv3i3Q9SszT1OXeCYAt7HR4e2nAsO3bWp8/pub?output=csv">Basic 11</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vStq66g33WI6VxWrVx-l_eheqjxuOW2dYZTGDwQcxC4GrZpgUflUdUwuNqSiNTnyU4g8DklR2Cy7rOi/pub?output=csv">Terminologies</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRZDZq92XW_asvWanWZz0qqsB32f8XfJhxOR62bcfZDcGbvtX0LUbgRART2aiFdq59gIkT2A8Yu3zIS/pub?output=csv">Abbreviations</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vT8WHfGycBq4rjzcjbtNrQUV6H4oU-YdfYO9Ci8V_xsEuguPQXYXODCau-If4U_82BqLrliYKErXGkV/pub?output=csv">Incidents</option>
+      </select>
     </div>
 
     <div id="loading-spinner" class="hidden flex justify-center items-center h-64">
@@ -106,7 +164,7 @@
         renderQuestions(questions);
       } catch (error) {
         document.getElementById("quiz-container").innerHTML =
-          `<p class="text-red-600">Error loading quiz. Please check the sheet format.</p>`;
+          `<p class="text-red-500">Error loading quiz. Please check the sheet format.</p>`;
         console.error(error);
       } finally {
         document.getElementById("loading-spinner").classList.add("hidden"); // Hide spinner
@@ -126,10 +184,10 @@
 
       questions.forEach((q, qIndex) => {
         const card = document.createElement("div");
-        card.className = "bg-white rounded-xl shadow-md p-5 question-card";
+        card.className = "holographic-card rounded-xl p-5 question-card transform transition-transform duration-300 hover:scale-[1.01]";
 
         const questionEl = document.createElement("div");
-        questionEl.className = "font-semibold text-lg mb-4";
+        questionEl.className = "font-semibold text-lg mb-4 text-white";
         questionEl.textContent = `${qIndex + 1}. ${q.question}`;
         card.appendChild(questionEl);
 
@@ -142,30 +200,27 @@
         q.options.forEach((opt, idx) => {
           const btn = document.createElement("button");
           btn.className =
-            "option-button w-full text-left px-4 py-2 rounded-md border border-gray-300 bg-gray-100 hover:bg-blue-100 transition-colors";
+            "option-button holographic-btn w-full text-left px-4 py-2 rounded-md transition-colors";
           btn.textContent = opt;
 
           btn.onclick = () => {
-            // Disable all buttons after one selection
-            Array.from(optionsDiv.children).forEach((child, childIdx) => {
+            Array.from(optionsDiv.children).forEach((child) => {
               child.disabled = true;
-              child.classList.remove("bg-green-100", "text-green-700", "border-green-400");
-              child.classList.remove("bg-red-100", "text-red-700", "border-red-400");
-
-              if (childIdx === q.correct) {
-                child.classList.add("bg-green-100", "text-green-700", "border-green-400");
-              }
+              child.classList.add("cursor-not-allowed");
+              child.classList.remove("holographic-btn");
+              child.classList.remove("hover:bg-gray-700");
             });
 
             if (idx === q.correct) {
-              btn.classList.add("bg-green-100", "text-green-700", "border-green-400");
+              btn.classList.add("correct-answer");
               feedbackEl.textContent = "Correct!";
-              feedbackEl.className = "mt-3 text-green-700 font-semibold";
+              feedbackEl.className = "mt-3 text-green-400 font-semibold";
               scrollToNextQuestion(card);
             } else {
-              btn.classList.add("bg-red-100", "text-red-700", "border-red-400");
+              btn.classList.add("incorrect-answer");
+              optionsDiv.children[q.correct].classList.add("correct-answer");
               feedbackEl.textContent = "Incorrect!";
-              feedbackEl.className = "mt-3 text-red-700 font-semibold";
+              feedbackEl.className = "mt-3 text-red-400 font-semibold";
             }
           };
 
