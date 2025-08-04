@@ -6,8 +6,82 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    /* Crafty Metaverse Inspired Theme */
+    :root {
+      --bg-color: #0b0f19;
+      --text-color: #f0f2f5;
+      --primary-color: #6366f1; /* Indigo */
+      --secondary-color: #06b6d4; /* Cyan */
+      --accent-color: #a855f7; /* Violet */
+      --card-bg: #111827;
+      --border-color: #1f2937;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    }
+
     ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 8px; }
+    ::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 8px; }
+    
+    .holographic-text {
+      background: linear-gradient(45deg, var(--primary-color), var(--accent-color), var(--secondary-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 5px rgba(99, 102, 241, 0.5);
+    }
+
+    .holographic-border {
+      border: 2px solid;
+      border-image-slice: 1;
+      border-image-source: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+    }
+
+    .holographic-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .holographic-btn {
+      background-color: var(--card-bg);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    .holographic-btn:hover {
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+      transform: translateY(-2px);
+    }
+    
+    .holographic-text-small {
+      color: var(--primary-color);
+      text-shadow: 0 0 2px rgba(99, 102, 241, 0.5);
+    }
+
+    /* Quiz specific styles */
+    .correct-answer {
+      background-color: #10b981 !important; /* Green 500 */
+      color: #fff !important;
+      border-color: #059669 !important; /* Green 600 */
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    .incorrect-answer {
+      background-color: #ef4444 !important; /* Red 500 */
+      color: #fff !important;
+      border-color: #dc2626 !important; /* Red 600 */
+      box-shadow: 0 0 8px #ef4444;
+    }
+
+    /* Modal specific styles */
+    .modal-content {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+    }
   </style>
   <script defer>
     const rules = [
@@ -80,10 +154,10 @@
         shuffle(options);
 
         const qBlock = document.createElement("div");
-        qBlock.className = "bg-white p-4 rounded-xl shadow mb-5 question-block";
+        qBlock.className = "holographic-card p-4 rounded-xl shadow mb-5 question-block";
 
         const q = document.createElement("p");
-        q.className = "font-semibold mb-3";
+        q.className = "font-semibold mb-3 text-white";
         q.innerText = `Q${index + 1}. Which Rule deals with "${correctItem.title}"?`;
         qBlock.appendChild(q);
 
@@ -92,18 +166,18 @@
         options.forEach(opt => {
           const btn = document.createElement("button");
           btn.innerText = opt.rule;
-          btn.className = "w-full text-left border rounded p-2 mb-2 hover:bg-gray-100";
+          btn.className = "w-full text-left rounded p-2 mb-2 holographic-btn";
           btn.onclick = () => {
             if (answeredCorrectly) return;
 
             if (opt.rule === correctItem.rule) {
-              btn.classList.add("bg-green-200");
+              btn.classList.add("correct-answer");
               btn.innerText += " ✓ Correct";
               answeredCorrectly = true;
               [...btn.parentElement.querySelectorAll("button")].forEach(b => b.disabled = true);
               scrollToNextQuestion(qBlock);
             } else {
-              btn.classList.add("bg-red-200");
+              btn.classList.add("incorrect-answer");
               btn.disabled = true;
               btn.innerText += " ✗ Incorrect";
             }
@@ -118,22 +192,22 @@
     window.onload = loadQuiz;
   </script>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-950">
 
-  <div class="sticky top-0 bg-white p-4 shadow flex justify-between items-center z-50">
-    <h1 class="text-base font-bold">Aircraft Security Rules, 2023 Quiz</h1>
+  <div class="sticky top-0 holographic-card p-4 shadow flex justify-between items-center z-50">
+    <h1 class="text-base font-bold holographic-text">Aircraft Security Rules, 2023 Quiz</h1>
     <div class="flex gap-2">
-      <button onclick="document.getElementById('rulesModal').classList.remove('hidden')" class="bg-blue-500 text-white px-3 py-1 rounded">Rules</button>
-      <button onclick="document.getElementById('trickModal').classList.remove('hidden')" class="bg-green-600 text-white px-3 py-1 rounded">Tricks</button>
+      <button onclick="document.getElementById('rulesModal').classList.remove('hidden')" class="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition-colors">Rules</button>
+      <button onclick="document.getElementById('trickModal').classList.remove('hidden')" class="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition-colors">Tricks</button>
     </div>
   </div>
 
   <div id="quiz" class="p-4 text-sm"></div>
 
   <div id="rulesModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center z-50">
-    <div class="bg-white w-11/12 h-5/6 p-4 overflow-y-auto rounded-xl relative">
-      <button onclick="document.getElementById('rulesModal').classList.add('hidden')" class="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded">Close</button>
-      <h2 class="text-lg font-semibold mb-2">Aircraft (Security) Rules, 2023</h2>
+    <div class="modal-content w-11/12 h-5/6 p-4 overflow-y-auto rounded-xl relative">
+      <button onclick="document.getElementById('rulesModal').classList.add('hidden')" class="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Close</button>
+      <h2 class="text-lg font-semibold mb-2 holographic-text-small">Aircraft (Security) Rules, 2023</h2>
       <pre class="whitespace-pre-wrap text-xs leading-relaxed">
 <p style="text-align: justify;"><strong>Rule 1: Short title and commencement &#8211; </strong> These rules are referred to as the Aircraft (Security) Rules, 2023. They become effective from the date of publication in the Official Gazette.</p>
 <p style="text-align: justify;"><strong>Rule 2: Role and responsibilities of Director General &#8211; </strong>The Director General holds the responsibility of regulatory and oversight functions related to civil aviation security. This includes developing and implementing the National Civil Aviation Security Programme, coordinating activities, ensuring security training, risk assessment, and providing guidelines.</p>
@@ -185,14 +259,14 @@
   </div>
 
   <div id="trickModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center z-50">
-    <div class="bg-white w-11/12 h-5/6 p-4 overflow-y-auto rounded-xl relative">
-      <button onclick="document.getElementById('trickModal').classList.add('hidden')" class="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded">Close</button>
-      <h2 class="text-lg font-semibold mb-2">Easy Memory Tricks Based on Rule Names</h2>
+    <div class="modal-content w-11/12 h-5/6 p-4 overflow-y-auto rounded-xl relative">
+      <button onclick="document.getElementById('trickModal').classList.add('hidden')" class="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Close</button>
+      <h2 class="text-lg font-semibold mb-2 holographic-text-small">Easy Memory Tricks Based on Rule Names</h2>
       <div class="text-sm leading-relaxed space-y-3">
-        <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; background-color: #f9f9f9;">
-  <thead style="background-color: #dceefb;">
+        <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; background-color: var(--card-bg);">
+  <thead style="background-color: #2c313d;">
     <tr>
-      <th colspan="3">🟦 FOUNDATIONAL RULES</th>
+      <th colspan="3" class="holographic-text">🟦 FOUNDATIONAL RULES</th>
     </tr>
     <tr>
       <th>Rule Name</th><th>Memory Trick</th><th>Rule #</th>
@@ -205,8 +279,8 @@
     <tr><td>Airport Security Committee</td><td>Airport next → Rule 4</td><td>4</td></tr>
   </tbody>
 
-  <thead style="background-color: #fefcbf;">
-    <tr><th colspan="3">🟨 STAFF / PERSONNEL</th></tr>
+  <thead style="background-color: #2c313d;">
+    <tr><th colspan="3" class="holographic-text">🟨 STAFF / PERSONNEL</th></tr>
   </thead>
   <tbody>
     <tr><td>AVSEC group</td><td>AVSEC has 6 letters → Rule 6</td><td>6</td></tr>
@@ -215,8 +289,8 @@
     <tr><td>Private Security Agency</td><td>End of this group → Rule 9</td><td>9</td></tr>
   </tbody>
 
-  <thead style="background-color: #ffe5b4;">
-    <tr><th colspan="3">🟧 SECURITY PROGRAMME & OPERATION</th></tr>
+  <thead style="background-color: #2c313d;">
+    <tr><th colspan="3" class="holographic-text">🟧 SECURITY PROGRAMME & OPERATION</th></tr>
   </thead>
   <tbody>
     <tr><td>Security Programme submission</td><td>Start of doc → Rule 10</td><td>10</td></tr>
@@ -227,8 +301,8 @@
     <tr><td>Entity operation</td><td>Entity → E = 5th letter → Rule 15</td><td>15</td></tr>
   </tbody>
 
-  <thead style="background-color: #fca5a5;">
-    <tr><th colspan="3">🟥 AIRPORT INFRASTRUCTURE</th></tr>
+  <thead style="background-color: #2c313d;">
+    <tr><th colspan="3" class="holographic-text">🟥 AIRPORT INFRASTRUCTURE</th></tr>
   </thead>
   <tbody>
     <tr><td>Airport design/layout</td><td>Planning = sweet 16 → Rule 16</td><td>16</td></tr>
@@ -238,8 +312,8 @@
     <tr><td>Handling unidentified object</td><td>Detecting = 20/20 → Rule 20</td><td>20</td></tr>
   </tbody>
 
-  <thead style="background-color: #bbf7d0;">
-    <tr><th colspan="3">🟩 ENTRY, EXIT, IDENTITY</th></tr>
+  <thead style="background-color: #2c313d;">
+    <tr><th colspan="3" class="holographic-text">🟩 ENTRY, EXIT, IDENTITY</th></tr>
   </thead>
   <tbody>
     <tr><td>Entry into aerodrome</td><td>2 ways in = 2x2 → Rule 22</td><td>22</td></tr>
@@ -253,8 +327,8 @@
     <tr><td>Weapon restriction</td><td>Max threat → Rule 30</td><td>30</td></tr>
   </tbody>
 
-  <thead style="background-color: #c7d2fe;">
-    <tr><th colspan="3">🟦 AIRCRAFT & FLIGHT SECURITY</th></tr>
+  <thead style="background-color: #2c313d;">
+    <tr><th colspan="3" class="holographic-text">🟦 AIRCRAFT & FLIGHT SECURITY</th></tr>
   </thead>
   <tbody>
     <tr><td>Entry into SRA & SHA</td><td>SRA = 31, SHA = 32 → 31 & 32</td><td>31, 32</td></tr>
@@ -268,16 +342,16 @@
     <tr><td>Carriage of prisoners</td><td>Locked room = Rule 40</td><td>40</td></tr>
   </tbody>
 
-  <thead style="background-color: #e0e7ff;">
-    <tr><th colspan="3">🟫 CARGO, POST & CYBER</th></tr>
+  <thead style="background-color: #2c313d;">
+    <tr><th colspan="3" class="holographic-text">🟫 CARGO, POST & CYBER</th></tr>
   </thead>
   <tbody>
     <tr><td>Cargo/mail security</td><td>Starts with 'C' → Rule 41</td><td>41</td></tr>
     <tr><td>Cybersecurity</td><td>Tech end → Rule 49–50</td><td>49–50</td></tr>
   </tbody>
 
-  <thead style="background-color: #f5d0fe;">
-    <tr><th colspan="3">🟪 REPORTING & RECORDS</th></tr>
+  <thead style="background-color: #2c313d;">
+    <tr><th colspan="3" class="holographic-text">🟪 REPORTING & RECORDS</th></tr>
   </thead>
   <tbody>
     <tr><td>Incident reporting</td><td>5-1 = 1st step → Rule 51</td><td>51</td></tr>
@@ -285,8 +359,8 @@
     <tr><td>Protection of info/records</td><td>Final data → Rule 54–57</td><td>54–57</td></tr>
   </tbody>
 
-  <thead style="background-color: #fecaca;">
-    <tr><th colspan="3">⛔ PENALTIES</th></tr>
+  <thead style="background-color: #2c313d;">
+    <tr><th colspan="3" class="holographic-text">⛔ PENALTIES</th></tr>
   </thead>
   <tbody>
     <tr><td>Appeals</td><td>Decision reversal → Rule 64</td><td>64</td></tr>
@@ -294,8 +368,8 @@
     <tr><td>Penalties</td><td>Double punishment = 66</td><td>66</td></tr>
   </tbody>
 
-  <thead style="background-color: #dcfce7;">
-    <tr><th colspan="3">✅ QUICK LOOK TABLE</th></tr>
+  <thead style="background-color: #2c313d;">
+    <tr><th colspan="3" class="holographic-text">✅ QUICK LOOK TABLE</th></tr>
   </thead>
   <tbody>
     <tr><td>Entry into SHA/SRA</td><td>31–32</td><td>Zones in order</td></tr>
