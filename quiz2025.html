@@ -41,6 +41,7 @@
       background-color: var(--card-bg);
       border: 1px solid var(--border-color);
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
     }
 
     .holographic-btn {
@@ -91,11 +92,36 @@
       100% { transform: rotate(360deg); }
     }
     
-    /* New styles for the sticky stats bar */
+    /* Sticky stats bar styles */
     .sticky-stats-bar {
       position: sticky;
       top: 0;
       z-index: 10;
+    }
+
+    /* New transparent styles */
+    .transparent-card {
+        background-color: rgba(17, 24, 39, 0.7); /* Semi-transparent background */
+        border-color: rgba(31, 41, 55, 0.7); /* Semi-transparent border */
+        backdrop-filter: blur(5px);
+    }
+    
+    /* Media query for mobile screens */
+    @media (max-width: 640px) {
+      .sticky-stats-bar {
+        padding: 0.5rem; /* Adjust padding for mobile */
+      }
+      #stats-container .flex {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 0.5rem;
+        font-size: 0.75rem; /* text-xs */
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+      #stats-container .flex > span {
+        flex-shrink: 0; /* Prevent items from shrinking */
+      }
     }
   </style>
 </head>
@@ -308,6 +334,16 @@
         container.appendChild(card);
       });
     }
+
+    // New JavaScript for transparent header on scroll
+    window.addEventListener("scroll", () => {
+      const statsBar = document.getElementById('stats-container');
+      if (window.scrollY > 50) {
+        statsBar.classList.add('transparent-card');
+      } else {
+        statsBar.classList.remove('transparent-card');
+      }
+    });
   </script>
 </body>
 </html>
