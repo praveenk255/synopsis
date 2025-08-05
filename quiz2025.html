@@ -126,24 +126,19 @@
 <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQfaFlkYOGovauithx2HGcg0R1vyK0hJsXu86Cjz2KMKcN0-GjGvUAb9ZVrBDaTIONmvGiIUnx_sP8a/pub?output=csv">Mod 6</option>
 <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSkLEy6tGtzBHABNmdmc9-ZFBjhNObkVlNqZWXnG1SyPq19bYFJQI5gdJlgfppZyaV3uHlEKHpFqDG4/pub?output=csv">Mod 7</option>
 <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRuTWEVJRYr-NsIrjKxdPsTaUblf7ZoLUL7CmGjEj9cvqaXopbzoszaOwW-Envs0vVjB563155wwREP/pub?output=csv">contingencyandrest</option>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      </select>
+     <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRTsL8D-BXxylajwusK-O6afuasruhr04wmy-RpqDdVTDKYFRRShi9UR7GYk0pk2Z2yC_IfFDCUYwMF/pub?output=csv">contingencyandrest</option>
+  </select>
     </div>
 
+    <div id="stats-container" class="holographic-card rounded-xl p-4 mb-6">
+      <div class="flex flex-col sm:flex-row justify-between text-sm font-medium">
+        <span>Questions Attempted: <span id="stats-attempted" class="text-indigo-400">0</span></span>
+        <span>Correct: <span id="stats-correct" class="text-green-400">0</span></span>
+        <span>Incorrect: <span id="stats-incorrect" class="text-red-400">0</span></span>
+        <span>Accuracy: <span id="stats-accuracy" class="text-cyan-400">0%</span></span>
+      </div>
+    </div>
+    
     <div id="loading-spinner" class="hidden flex justify-center items-center h-64">
       <div class="loader"></div>
     </div>
@@ -154,14 +149,37 @@
     const clean = (text) =>
       (text || "").toString().replace(/\r?\n|\r/g, " ").replace(/\s+/g, " ").trim();
 
+    // Stats variables
+    let questionsAttempted = 0;
+    let correctAnswers = 0;
+    let incorrectAnswers = 0;
+
     document.getElementById("sheetSelector").addEventListener("change", function () {
       const url = this.value;
       if (url) {
         document.getElementById("quiz-container").innerHTML = ""; // Clear previous questions
         document.getElementById("loading-spinner").classList.remove("hidden"); // Show spinner
+        
+        // Reset stats when a new quiz is loaded
+        questionsAttempted = 0;
+        correctAnswers = 0;
+        incorrectAnswers = 0;
+        updateStats();
+
         loadQuestions(url);
       }
     });
+
+    /**
+     * Shuffles an array in place using the Fisher-Yates (Knuth) algorithm.
+     * @param {Array} array The array to shuffle.
+     */
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
 
     async function loadQuestions(sheetUrl) {
       try {
@@ -175,7 +193,7 @@
 
         const rows = parsed.data;
 
-        const questions = rows
+        let questions = rows
           .filter(row => row["English Question"] && row["Correct"])
           .map((row, i) => ({
             sno: clean(row["S.NO"]),
@@ -188,6 +206,9 @@
             ],
             correct: parseInt(clean(row["Correct"])) - 1,
           }));
+        
+        // Randomize the order of questions
+        shuffleArray(questions);
 
         renderQuestions(questions);
       } catch (error) {
@@ -204,6 +225,17 @@
       if (nextCard && nextCard.classList.contains('question-card')) {
         nextCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
+    }
+
+    function updateStats() {
+        const accuracy = questionsAttempted > 0 
+            ? ((correctAnswers / questionsAttempted) * 100).toFixed(0)
+            : 0;
+
+        document.getElementById('stats-attempted').textContent = questionsAttempted;
+        document.getElementById('stats-correct').textContent = correctAnswers;
+        document.getElementById('stats-incorrect').textContent = incorrectAnswers;
+        document.getElementById('stats-accuracy').textContent = `${accuracy}%`;
     }
 
     function renderQuestions(questions) {
@@ -232,6 +264,12 @@
           btn.textContent = opt;
 
           btn.onclick = () => {
+            // Check if question has already been answered
+            if (card.dataset.answered) return;
+            card.dataset.answered = true;
+
+            questionsAttempted++;
+            
             Array.from(optionsDiv.children).forEach((child) => {
               child.disabled = true;
               child.classList.add("cursor-not-allowed");
@@ -243,13 +281,16 @@
               btn.classList.add("correct-answer");
               feedbackEl.textContent = "Correct!";
               feedbackEl.className = "mt-3 text-green-400 font-semibold";
+              correctAnswers++;
               scrollToNextQuestion(card);
             } else {
               btn.classList.add("incorrect-answer");
               optionsDiv.children[q.correct].classList.add("correct-answer");
               feedbackEl.textContent = "Incorrect!";
               feedbackEl.className = "mt-3 text-red-400 font-semibold";
+              incorrectAnswers++;
             }
+            updateStats();
           };
 
           optionsDiv.appendChild(btn);
