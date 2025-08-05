@@ -90,6 +90,13 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    
+    /* New styles for the sticky stats bar */
+    .sticky-stats-bar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
   </style>
 </head>
 <body class="bg-gray-950 text-gray-100">
@@ -130,7 +137,7 @@
   </select>
     </div>
 
-    <div id="stats-container" class="holographic-card rounded-xl p-4 mb-6">
+    <div id="stats-container" class="sticky-stats-bar holographic-card rounded-xl p-4 mb-6">
       <div class="flex flex-col sm:flex-row justify-between text-sm font-medium">
         <span>Questions Attempted: <span id="stats-attempted" class="text-indigo-400">0</span></span>
         <span>Correct: <span id="stats-correct" class="text-green-400">0</span></span>
