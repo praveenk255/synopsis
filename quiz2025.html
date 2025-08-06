@@ -325,7 +325,7 @@
           Reset Quiz
         </button>
         <button id="reattempt-wrong-btn" class="holographic-btn px-6 py-3 font-bold rounded-md flex-1">
-          Reattempt Wrong Ones
+          Reattempt Wrong/Unattempted
         </button>
       </div>
     </div>
@@ -341,21 +341,21 @@
     let incorrectAnswers = 0;
     let totalQuestionsCount = 0; // New variable to track total questions
     let allQuestions = []; // Store all questions
-    let wrongQuestions = []; // Store only the incorrect ones
+    let wrongAndUnattemptedQuestions = []; // Store incorrect and unattempted questions
 
     document.getElementById("sheetSelector").addEventListener("change", function () {
       const url = this.value;
       if (url) {
         document.getElementById("quiz-container").innerHTML = ""; // Clear previous questions
         document.getElementById("loading-spinner").classList.remove("hidden"); // Show spinner
-        
+
         // Reset stats and hide submit button when a new quiz is loaded
         questionsAttempted = 0;
         correctAnswers = 0;
         incorrectAnswers = 0;
         totalQuestionsCount = 0;
         allQuestions = [];
-        wrongQuestions = [];
+        wrongAndUnattemptedQuestions = [];
         updateStats();
         document.getElementById('submit-btn-container').classList.add('hidden');
 
@@ -398,13 +398,13 @@
               clean(row["Option 4"]),
             ],
             correct: parseInt(clean(row["Correct"])) - 1,
-            answeredCorrectly: null, // Track if question was answered correctly
+            answeredCorrectly: null, // Track if question was answered correctly, null if not attempted
           }));
-        
+
         // Store all questions and total count
         allQuestions = questions;
         totalQuestionsCount = questions.length;
-        
+
         // Randomize the order of questions
         shuffleArray(questions);
 
@@ -418,23 +418,26 @@
         document.getElementById("loading-spinner").classList.add("hidden"); // Hide spinner
       }
     }
-    
+
     function scrollToNextQuestion(currentCard) {
       const nextCard = currentCard.nextElementSibling;
       if (nextCard && nextCard.classList.contains('question-card')) {
-        nextCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        nextCard.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
       }
     }
 
     function updateStats() {
-        const accuracy = questionsAttempted > 0 
-            ? ((correctAnswers / questionsAttempted) * 100).toFixed(0)
-            : 0;
+      const accuracy = questionsAttempted > 0 ?
+        ((correctAnswers / questionsAttempted) * 100).toFixed(0) :
+        0;
 
-        document.getElementById('stats-attempted').textContent = questionsAttempted;
-        document.getElementById('stats-correct').textContent = correctAnswers;
-        document.getElementById('stats-incorrect').textContent = incorrectAnswers;
-        document.getElementById('stats-accuracy').textContent = `${accuracy}%`;
+      document.getElementById('stats-attempted').textContent = questionsAttempted;
+      document.getElementById('stats-correct').textContent = correctAnswers;
+      document.getElementById('stats-incorrect').textContent = incorrectAnswers;
+      document.getElementById('stats-accuracy').textContent = `${accuracy}%`;
     }
 
     function renderQuestions(questions) {
@@ -469,7 +472,7 @@
             card.dataset.answered = true;
 
             questionsAttempted++;
-            
+
             Array.from(optionsDiv.children).forEach((child) => {
               child.disabled = true;
               child.classList.add("cursor-not-allowed");
@@ -523,17 +526,17 @@
       const modalCorrectEl = document.getElementById('modal-correct');
       const modalIncorrectEl = document.getElementById('modal-incorrect');
       const modalUnattemptedEl = document.getElementById('modal-unattempted');
-      
+
       const unattempted = totalQuestionsCount - questionsAttempted;
       const finalPercentage = totalQuestionsCount > 0 ? ((correctAnswers / totalQuestionsCount) * 100).toFixed(0) : 0;
-      
+
       // Update modal content
       modalScoreEl.textContent = `${correctAnswers}/${totalQuestionsCount}`;
       modalCorrectEl.textContent = correctAnswers;
       modalIncorrectEl.textContent = incorrectAnswers;
       modalUnattemptedEl.textContent = unattempted;
       finalPercentageEl.textContent = `${finalPercentage}%`;
-      
+
       // Update the progress circle
       const circumference = 2 * Math.PI * 70; // 2 * pi * r
       const offset = circumference - (finalPercentage / 100) * circumference;
@@ -541,8 +544,8 @@
       progressBar.style.stroke = finalPercentage >= 50 ? '#10b981' : '#ef4444'; // Green for pass, red for fail
       finalPercentageEl.style.color = finalPercentage >= 50 ? '#10b981' : '#ef4444';
 
-      // Collect wrong questions for reattempt
-      wrongQuestions = allQuestions.filter(q => q.answeredCorrectly === false);
+      // Collect wrong and unattempted questions for reattempt
+      wrongAndUnattemptedQuestions = allQuestions.filter(q => q.answeredCorrectly === false || q.answeredCorrectly === null);
       
       modal.classList.add('show');
       modal.style.display = 'block';
@@ -567,28 +570,32 @@
       setTimeout(() => {
         modal.style.display = 'none';
       }, 300);
-      
-      if (wrongQuestions.length > 0) {
+
+      if (wrongAndUnattemptedQuestions.length > 0) {
         // Reset stats for the reattempt
         questionsAttempted = 0;
         correctAnswers = 0;
         incorrectAnswers = 0;
         updateStats();
+
         // Hide the submit button and show loading spinner while re-rendering
         document.getElementById('submit-btn-container').classList.add('hidden');
         document.getElementById("loading-spinner").classList.remove("hidden");
 
-        // Filter and re-render only the wrong questions
+        // Filter and re-render only the wrong and unattempted questions
         // Shuffle them for a fresh attempt
-        shuffleArray(wrongQuestions);
-        renderQuestions(wrongQuestions);
+        shuffleArray(wrongAndUnattemptedQuestions);
+        renderQuestions(wrongAndUnattemptedQuestions);
         
+        // Update the total question count for the new set
+        totalQuestionsCount = wrongAndUnattemptedQuestions.length;
+
         // Show the submit button again after re-rendering
         document.getElementById('submit-btn-container').classList.remove('hidden');
         document.getElementById("loading-spinner").classList.add("hidden");
         
       } else {
-        alert("Great job! You got all the questions right. No wrong questions to reattempt.");
+        alert("Great job! You got all the questions right. No wrong or unattempted questions to reattempt.");
       }
     });
   </script>
