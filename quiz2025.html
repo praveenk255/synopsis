@@ -123,6 +123,111 @@
         flex-shrink: 0; /* Prevent items from shrinking */
       }
     }
+
+    /* Modal styles */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 100; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+        background-color: var(--bg-color); /* Use a darker background */
+        border: 1px solid var(--border-color);
+        margin: 10% auto; /* Centered */
+        padding: 2rem;
+        border-radius: 1rem;
+        width: 90%; /* Responsive width */
+        max-width: 600px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        text-align: left; /* Align text to the left */
+        transform: scale(0.9);
+        opacity: 0;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .modal.show .modal-content {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    .close-btn {
+        color: var(--text-color);
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close-btn:hover,
+    .close-btn:focus {
+        color: #ddd;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    
+    /* Circular Progress Bar styles */
+    .progress-circle {
+      position: relative;
+      width: 150px;
+      height: 150px;
+    }
+    .progress-circle svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+    .progress-circle circle {
+      fill: none;
+      stroke-width: 10;
+      stroke-dasharray: 440; /* 2 * pi * r, where r is 70 */
+      transition: stroke-dashoffset 0.5s ease-in-out;
+    }
+    .progress-circle .bg-circle {
+      stroke: var(--card-bg);
+    }
+    .progress-circle .progress-bar {
+      stroke: #10b981; /* Green color for the progress */
+      stroke-linecap: round;
+      stroke-dashoffset: 440;
+    }
+    .progress-circle .percentage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #10b981; /* Green color for the percentage text */
+    }
+    
+    /* New styling for results badges */
+    .result-badge {
+      padding: 0.5rem 1rem;
+      border-radius: 9999px; /* rounded-full */
+      font-weight: 600; /* font-semibold */
+      color: white;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .result-badge.correct {
+      background-color: #10b981;
+    }
+    .result-badge.incorrect {
+      background-color: #ef4444;
+    }
+    .result-badge:hover {
+        transform: scale(1.05);
+    }
   </style>
 </head>
 <body class="bg-gray-950 text-gray-100">
@@ -163,8 +268,6 @@
   <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRJo0G6_xDZUSnjhzYlli9lYlEgRXyeJ0uJTdORBWlzSDPBou2vfIKzVnRhFCk7FQttF99TjdtESGyk/pub?output=csv">MiscGeminiQuestions</option>
 <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSRvvLKsdFtaXwjxXuq1cFnacBC6KVUz_jZXlzXKjXXwbOJkyGUHlcMyPzHxEBjMn963Y8MWv0ga21a/pub?output=csv">MiscGeminiQuestions2</option>
 <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRc2vqEgsOS08H2kzmD_hzcUUzLtvd8OGk4LOFrQfGt9i0XN3oy2QhJDB5ASbEGIbOgDIk3yljqMGhU/pub?output=csv">MiscGeminiQuestions3</option>
-
-
  </select>
     </div>
 
@@ -181,6 +284,49 @@
       <div class="loader"></div>
     </div>
     <div id="quiz-container" class="space-y-6"></div>
+
+    <div id="submit-btn-container" class="mt-6 hidden">
+      <button id="submit-quiz-btn" class="holographic-btn w-full text-center px-6 py-3 text-lg font-bold rounded-md">
+        Submit Quiz
+      </button>
+    </div>
+  </div>
+
+  <div id="results-modal" class="modal">
+    <div class="modal-content relative">
+      <span class="close-btn" id="close-modal-btn">&times;</span>
+      
+      <div class="flex flex-col sm:flex-row items-center sm:items-start justify-between mb-8">
+        <div class="text-left w-full sm:w-1/2 mb-6 sm:mb-0">
+          <h2 class="text-2xl font-bold text-gray-50 mb-2">Quiz Summary</h2>
+          <div class="space-y-2 text-lg">
+            <p>Score: <span id="modal-score" class="text-green-400">0/0</span></p>
+            <p>Correct: <span id="modal-correct" class="text-green-400">0</span></p>
+            <p>Incorrect: <span id="modal-incorrect" class="text-red-400">0</span></p>
+            <p>Unattempted: <span id="modal-unattempted" class="text-gray-400">0</span></p>
+          </div>
+        </div>
+        
+        <div class="flex-shrink-0 relative progress-circle">
+          <svg>
+            <circle class="bg-circle" cx="75" cy="75" r="70"></circle>
+            <circle id="progress-bar" class="progress-bar" cx="75" cy="75" r="70"></circle>
+          </svg>
+          <div id="final-percentage" class="percentage">0%</div>
+        </div>
+      </div>
+      
+      <hr class="border-gray-700 my-6">
+
+      <div class="flex flex-col sm:flex-row gap-4">
+        <button id="reset-btn" class="holographic-btn px-6 py-3 font-bold rounded-md flex-1">
+          Reset Quiz
+        </button>
+        <button id="reattempt-wrong-btn" class="holographic-btn px-6 py-3 font-bold rounded-md flex-1">
+          Reattempt Wrong Ones
+        </button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -191,6 +337,9 @@
     let questionsAttempted = 0;
     let correctAnswers = 0;
     let incorrectAnswers = 0;
+    let totalQuestionsCount = 0; // New variable to track total questions
+    let allQuestions = []; // Store all questions
+    let wrongQuestions = []; // Store only the incorrect ones
 
     document.getElementById("sheetSelector").addEventListener("change", function () {
       const url = this.value;
@@ -198,11 +347,15 @@
         document.getElementById("quiz-container").innerHTML = ""; // Clear previous questions
         document.getElementById("loading-spinner").classList.remove("hidden"); // Show spinner
         
-        // Reset stats when a new quiz is loaded
+        // Reset stats and hide submit button when a new quiz is loaded
         questionsAttempted = 0;
         correctAnswers = 0;
         incorrectAnswers = 0;
+        totalQuestionsCount = 0;
+        allQuestions = [];
+        wrongQuestions = [];
         updateStats();
+        document.getElementById('submit-btn-container').classList.add('hidden');
 
         loadQuestions(url);
       }
@@ -243,12 +396,18 @@
               clean(row["Option 4"]),
             ],
             correct: parseInt(clean(row["Correct"])) - 1,
+            answeredCorrectly: null, // Track if question was answered correctly
           }));
+        
+        // Store all questions and total count
+        allQuestions = questions;
+        totalQuestionsCount = questions.length;
         
         // Randomize the order of questions
         shuffleArray(questions);
 
         renderQuestions(questions);
+        document.getElementById('submit-btn-container').classList.remove('hidden');
       } catch (error) {
         document.getElementById("quiz-container").innerHTML =
           `<p class="text-red-500">Error loading quiz. Please check the sheet format.</p>`;
@@ -283,6 +442,7 @@
       questions.forEach((q, qIndex) => {
         const card = document.createElement("div");
         card.className = "holographic-card rounded-xl p-5 question-card transform transition-transform duration-300 hover:scale-[1.01]";
+        card.dataset.questionIndex = allQuestions.indexOf(q); // Store the original index
 
         const questionEl = document.createElement("div");
         questionEl.className = "font-semibold text-lg mb-4 text-white";
@@ -320,6 +480,7 @@
               feedbackEl.textContent = "Correct!";
               feedbackEl.className = "mt-3 text-green-400 font-semibold";
               correctAnswers++;
+              q.answeredCorrectly = true; // Mark question as correct
               scrollToNextQuestion(card);
             } else {
               btn.classList.add("incorrect-answer");
@@ -327,6 +488,7 @@
               feedbackEl.textContent = "Incorrect!";
               feedbackEl.className = "mt-3 text-red-400 font-semibold";
               incorrectAnswers++;
+              q.answeredCorrectly = false; // Mark question as incorrect
             }
             updateStats();
           };
@@ -347,6 +509,84 @@
         statsBar.classList.add('transparent-card');
       } else {
         statsBar.classList.remove('transparent-card');
+      }
+    });
+
+    // Handle quiz submission
+    document.getElementById('submit-quiz-btn').addEventListener('click', () => {
+      const modal = document.getElementById('results-modal');
+      const progressBar = document.getElementById('progress-bar');
+      const finalPercentageEl = document.getElementById('final-percentage');
+      const modalScoreEl = document.getElementById('modal-score');
+      const modalCorrectEl = document.getElementById('modal-correct');
+      const modalIncorrectEl = document.getElementById('modal-incorrect');
+      const modalUnattemptedEl = document.getElementById('modal-unattempted');
+      
+      const unattempted = totalQuestionsCount - questionsAttempted;
+      const finalPercentage = totalQuestionsCount > 0 ? ((correctAnswers / totalQuestionsCount) * 100).toFixed(0) : 0;
+      
+      // Update modal content
+      modalScoreEl.textContent = `${correctAnswers}/${totalQuestionsCount}`;
+      modalCorrectEl.textContent = correctAnswers;
+      modalIncorrectEl.textContent = incorrectAnswers;
+      modalUnattemptedEl.textContent = unattempted;
+      finalPercentageEl.textContent = `${finalPercentage}%`;
+      
+      // Update the progress circle
+      const circumference = 2 * Math.PI * 70; // 2 * pi * r
+      const offset = circumference - (finalPercentage / 100) * circumference;
+      progressBar.style.strokeDashoffset = offset;
+      progressBar.style.stroke = finalPercentage >= 50 ? '#10b981' : '#ef4444'; // Green for pass, red for fail
+      finalPercentageEl.style.color = finalPercentage >= 50 ? '#10b981' : '#ef4444';
+
+      // Collect wrong questions for reattempt
+      wrongQuestions = allQuestions.filter(q => q.answeredCorrectly === false);
+      
+      modal.classList.add('show');
+      modal.style.display = 'block';
+    });
+
+    // Handle dialog buttons
+    document.getElementById('close-modal-btn').addEventListener('click', () => {
+      const modal = document.getElementById('results-modal');
+      modal.classList.remove('show');
+      setTimeout(() => {
+        modal.style.display = 'none';
+      }, 300); // Wait for the transition to finish
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      window.location.reload(); // Reload the page to start over
+    });
+
+    document.getElementById('reattempt-wrong-btn').addEventListener('click', () => {
+      const modal = document.getElementById('results-modal');
+      modal.classList.remove('show');
+      setTimeout(() => {
+        modal.style.display = 'none';
+      }, 300);
+      
+      if (wrongQuestions.length > 0) {
+        // Reset stats for the reattempt
+        questionsAttempted = 0;
+        correctAnswers = 0;
+        incorrectAnswers = 0;
+        updateStats();
+        // Hide the submit button and show loading spinner while re-rendering
+        document.getElementById('submit-btn-container').classList.add('hidden');
+        document.getElementById("loading-spinner").classList.remove("hidden");
+
+        // Filter and re-render only the wrong questions
+        // Shuffle them for a fresh attempt
+        shuffleArray(wrongQuestions);
+        renderQuestions(wrongQuestions);
+        
+        // Show the submit button again after re-rendering
+        document.getElementById('submit-btn-container').classList.remove('hidden');
+        document.getElementById("loading-spinner").classList.add("hidden");
+        
+      } else {
+        alert("Great job! You got all the questions right. No wrong questions to reattempt.");
       }
     });
   </script>
