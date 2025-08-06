@@ -593,6 +593,9 @@
         // Show the submit button again after re-rendering
         document.getElementById('submit-btn-container').classList.remove('hidden');
         document.getElementById("loading-spinner").classList.add("hidden");
+
+        // Scroll to the top of the page
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         
       } else {
         alert("Great job! You got all the questions right. No wrong or unattempted questions to reattempt.");
