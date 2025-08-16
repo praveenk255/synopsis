@@ -88,6 +88,9 @@
             <button id="insightsBtn" class="bg-indigo-600 text-sm px-4 py-2 rounded-full hover:bg-indigo-700 transition-colors duration-200 flex items-center gap-1">
                 <i data-lucide="bar-chart-3" class="h-4 w-4"></i> Insights
             </button>
+            <button id="quizBtn" class="hidden bg-indigo-600 text-sm px-4 py-2 rounded-full hover:bg-indigo-700 transition-colors duration-200 flex items-center gap-1">
+                <i data-lucide="layout-dashboard" class="h-4 w-4"></i> Quiz
+            </button>
         </div>
     </div>
     
@@ -129,13 +132,13 @@
                 </div>
             </div>
             
-            <div id="dashboardStats" class="grid grid-cols-2 gap-4 w-full md:w-auto">
+            <div id="dashboardStats" class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full md:w-auto">
             </div>
         </div>
 
         <div class="bg-gray-800 p-6 rounded-2xl shadow-xl space-y-4">
             <h3 class="text-xl font-bold flex items-center gap-2">
-                <i data-lucide="line-chart" class="h-5 w-5 text-indigo-400"></i> Quiz Accuracy
+                <i data-lucide="line-chart" class="h-5 w-5 text-indigo-400"></i> Quiz Accuracy (Per Quiz)
             </h3>
             <div id="quizBarChart" class="flex items-end justify-around h-40 space-x-2 w-full text-xs">
             </div>
@@ -221,7 +224,7 @@
         <div class="space-y-2 text-left mb-6">
             <p class="text-xl font-bold">Score: <span id="summaryScore" class="font-bold text-indigo-400">0/0</span></p>
             <p class="text-xl font-bold">Correct: <span id="summaryCorrect" class="font-bold text-green-400">0</span></p>
-            <p class="text-xl font-bold">Incorrect: <span id="summaryIncorrect" class="font-bold text-red-400">0</span></p>
+            <p class="text-xl font-bold">Incorrect: <span class="font-bold text-red-400">0</span></p>
             <p class="text-xl font-bold">Unattempted: <span class="font-bold text-yellow-400">0</span></p>
         </div>
         <div class="flex flex-col md:flex-row justify-center gap-4 mt-6">
@@ -263,17 +266,16 @@
             { "name": "Contingency and Rest", "url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRuTWEVJRYr-NsIrjKxdPsTaUblf7ZoLUL7CmGjEj9cvqaXopbzoszaOwW-Envs0vVjB563155wwREP/pub?output=csv" },
             { "name": "Screening And Profiling Plus Rest", "url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRTsL8D-BXxylajwusK-O6afuasruhr04wmy-RpqDdVTDKYFRRShi9UR7GYk0pk2Z2yC_IfFDCUYwMF/pub?output=csv" },
             { "name": "MiscGeminiQuestions", "url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRJo0G6_xDZUSnjhzYlli9lYlEgRXyeJ0uJTdORBWlzSDPBou2vfIKzVnRhFCk7FQttF99TjdtESGyk/pub?output=csv" },
-            { "name": "MiscGeminiQuestions2", "url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSRvvLKsdFtaXwjxXu1cFnacBC6KVUz_jZXlzXKjXXwbOJkyGUHlcMyPzHxEBjMn963YMWv0ga21a/pub?output=csv" },
             { "name": "MiscGeminiQuestions3", "url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRc2vqEgsOS08H2kzmD_hzcUUzLtvd8OGk4LOFrQfGt9i0XN3oy2QhJDB5ASbEGIbOgDIk3yljqMGhU/pub?output=csv" },
             { "name": "Rules2023", "url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcla7Z19956dwDbDC5DBaAUEjkZ86AnZI5d8hh75bBYBZi8Wywpn4Sz4O6OBCyk7rDWxdr8eyqi0_R/pub?output=csv" },
             { "name": "ContingencyNew", "url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR-Wqco1ZH8FLR8iEjWH7PrWFQ-LQ2kLEzjZdDNMthVDJsqSJ8yuivLXX8qp8EetzqTElSuB1k7X5z_/pub?output=csv" }
         ];
-
         // Get DOM elements
         const navbar = document.getElementById("navbar");
         const mainSection = document.getElementById("mainSection");
         const insightsSection = document.getElementById("insightsSection");
         const insightsBtn = document.getElementById("insightsBtn");
+        const quizBtn = document.getElementById("quizBtn");
         const mixQuizBtn = document.getElementById("mixQuizBtn");
         const backBtn = document.getElementById("backBtn");
         const dashboardStats = document.getElementById("dashboardStats");
@@ -322,7 +324,7 @@
         let mistakes = [];
         let attemptedCount = 0;
         let totalQuestions = 0;
-        let originalQuizData = null; // Store the initial quiz data for reattempts
+        let allQuizzesData = {}; // Stores all fetched quiz data
 
         // Utility function to shuffle an array
         function shuffleArray(array) {
@@ -333,10 +335,29 @@
         }
 
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchAllQuizData();
             renderQuizCards();
+            populateMistakesSelector();
             lucide.createIcons();
         });
+
+        async function fetchAllQuizData() {
+            loadingOverlay.style.display = 'flex';
+            const fetchPromises = quizzes.map(async q => {
+                const data = await fetchQuizData(q.url);
+                return { name: q.name, data };
+            });
+
+            const results = await Promise.all(fetchPromises);
+            results.forEach(result => {
+                if (result.data) {
+                    allQuizzesData[result.name] = result.data;
+                }
+            });
+            loadingOverlay.style.display = 'none';
+        }
+
         // Function to show custom message box
         function showMessageBox(message) {
             messageText.textContent = message;
@@ -351,50 +372,53 @@
         function renderQuizCards() {
             mainSection.innerHTML = "";
             const allQuizzes = [...quizzes, { name: "Mixed Quiz", url: "" }];
-            allQuizzes.forEach(q => {
-                const stats = JSON.parse(localStorage.getItem(q.name + "_stats")) || { attempted: 0, correct: 0, total: 0 };
-                let progress = null;
-                try {
-                    progress = JSON.parse(localStorage.getItem(q.name + "_progress"));
-                } catch (e) {
-                    console.error("Failed to parse progress data. Starting new quiz.", e);
-                    localStorage.removeItem(q.name + "_progress");
-                }
-                const accuracy = stats.attempted ? Math.round((stats.correct / stats.attempted) * 100) : 0;
-                
-                let cardClass = "bg-gray-800";
-                let buttonText = "Start";
-                let buttonAction;
 
-                if (progress) {
-                    // Incomplete quiz with saved progress
-                    buttonText = "Resume";
-                    buttonAction = () => startQuiz(q.name, q.url);
-                } else if (stats.attempted === stats.total && stats.total > 0) {
-                    // All questions attempted
-                    cardClass = "bg-green-700";
-                    buttonText = "Restart";
-                    buttonAction = () => startQuiz(q.name, q.url, true);
-                } else if (q.name === "Mixed Quiz") {
-                    // Mixed quiz has no dedicated start button
-                    buttonText = "";
-                    buttonAction = () => {};
+            allQuizzes.forEach(q => {
+                let total, attempted, correct, progress;
+
+                if (q.name === "Mixed Quiz") {
+                    const mixedStats = JSON.parse(localStorage.getItem("Mixed Quiz" + "_stats"));
+                    total = mixedStats ? mixedStats.total : 0;
+                    attempted = mixedStats ? mixedStats.attempted : 0;
+                    correct = mixedStats ? mixedStats.correct : 0;
+                    progress = JSON.parse(localStorage.getItem("Mixed Quiz" + "_progress"));
                 } else {
-                    // New quiz, no progress saved
-                    buttonAction = () => startQuiz(q.name, q.url, true);
+                    const data = allQuizzesData[q.name];
+                    const progressData = JSON.parse(localStorage.getItem(q.name + "_progress"));
+
+                    if (data) {
+                         const stats = { attempted: progressData ? progressData.attemptedCount : 0, correct: progressData ? progressData.score : 0, total: data.length };
+                         localStorage.setItem(q.name + "_stats", JSON.stringify(stats));
+                    }
+                    const stats = JSON.parse(localStorage.getItem(q.name + "_stats"));
+                    total = stats ? stats.total : 0;
+                    attempted = stats ? stats.attempted : 0;
+                    correct = stats ? stats.correct : 0;
+                    progress = progressData;
                 }
+
+                const accuracy = attempted ? Math.round((correct / attempted) * 100) : 0;
                 
                 const card = document.createElement("div");
-                card.className = `${cardClass} p-4 rounded-xl shadow-lg flex flex-col justify-between transform transition-transform hover:scale-105`;
+                card.className = "bg-gray-800 p-4 rounded-xl shadow-lg flex flex-col justify-between transform transition-transform hover:scale-105";
+                let buttonHtml;
+                let buttonAction;
                 
-                const buttonHtml = buttonText ?
-                `
-                    <button class="flex-1 bg-indigo-600 py-1 rounded-full hover:bg-indigo-700 transition-colors duration-200">${buttonText}</button>
-                ` : `<span class="text-xs text-gray-400">Use "Mix Quiz" button above</span>`;
+                if (progress && progress.attemptedCount > 0 && progress.attemptedCount < progress.totalQuestions) {
+                    buttonHtml = `<button class="resumeBtn flex-1 bg-indigo-600 py-1 rounded-full hover:bg-indigo-700 transition-colors duration-200">Resume</button>`;
+                    buttonAction = () => startQuiz(q.name);
+                } else if (q.name === "Mixed Quiz") {
+                    buttonHtml = `<span class="text-xs text-gray-400">Use "Mix Quiz" button above</span>`;
+                    buttonAction = () => {};
+                } else {
+                    buttonHtml = `<button class="startBtn flex-1 bg-indigo-600 py-1 rounded-full hover:bg-indigo-700 transition-colors duration-200">Start</button>`;
+                    buttonAction = () => startQuiz(q.name, true);
+                }
+
                 card.innerHTML = `
                     <h2 class="text-sm md:text-md font-bold mb-2 truncate"><i data-lucide="file-text" class="inline-block mr-1 h-4 w-4 text-purple-400"></i> ${q.name}</h2>
                     <div class="text-xs text-gray-400 mb-4">
-                        <p>Progress: <span class="font-semibold">${stats.attempted}/${stats.total}</span></p>
+                        <p>Progress: <span class="font-semibold">${attempted}/${total}</span></p>
                         <p>Accuracy: <span class="font-semibold">${accuracy}%</span></p>
                     </div>
                     <div class="flex gap-2 mt-auto text-sm">
@@ -402,7 +426,7 @@
                     </div>
                 `;
                 mainSection.appendChild(card);
-                if (buttonText && q.name !== "Mixed Quiz") {
+                if (q.name !== "Mixed Quiz") {
                     card.querySelector("button").onclick = buttonAction;
                 }
             });
@@ -424,88 +448,58 @@
         }
 
         function parseCSV(text) {
-            // Normalize newlines and split into lines, filtering out empty ones
-            const lines = text.replace(/\r\n/g, '\n').split('\n').filter(line => line.trim() !== '');
-            if (lines.length <= 1) return []; // Only header row
-
-            const questions = [];
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            if (lines.length <= 1) return [];
             
-            // Start from the second line to skip the header
+            const questions = [];
             for (let i = 1; i < lines.length; i++) {
-                let line = lines[i];
-                if (line.trim() === '') continue;
-
+                const line = lines[i];
                 const fields = [];
                 let inQuote = false;
-                let field = '';
-
+                let currentField = '';
                 for (let j = 0; j < line.length; j++) {
                     const char = line[j];
-                    const nextChar = line[j + 1];
-
-                    // Handle escaped quotes `""` inside a quoted field
-                    if (char === '"' && inQuote && nextChar === '"') {
-                        field += '"';
-                        j++; // Skip the next character
-                    } else if (char === '"') {
-                        // Toggle quote state
+                    if (char === '"') {
                         inQuote = !inQuote;
                     } else if (char === ',' && !inQuote) {
-                        // End of a field
-                        fields.push(field.trim());
-                        field = '';
+                        fields.push(currentField.trim());
+                        currentField = '';
                     } else {
-                        field += char;
+                        currentField += char;
                     }
                 }
-                // Push the last field
-                fields.push(field.trim());
+                fields.push(currentField.trim());
 
-                // Assuming a question has at least 7 columns (index 0 to 6)
-                // Check for the minimum required fields
-                if (fields.length >= 7) {
-                    const questionText = fields[1];
-                    // Ensure the question text is not empty
-                    if (questionText.trim() !== '') {
-                        questions.push({
-                            question: questionText,
-                            options: [fields[2], fields[3], fields[4], fields[5]].filter(o => o.trim() !== ''),
-                            answer: fields[6],
-                            userAnswer: null,
-                            isCorrect: null
-                        });
-                    }
+                if (fields.length >= 7) { 
+                    questions.push({
+                        question: fields[1], 
+                        options: [fields[2], fields[3], fields[4], fields[5]].filter(o => o !== ''),
+                        answer: fields[6],
+                        userAnswer: null, // Add a property to store the user's answer
+                        isCorrect: null   // Add a property to store if the answer was correct
+                    });
                 }
             }
             return questions;
         }
 
-        async function startQuiz(name, url, isNewStart = false) {
+        async function startQuiz(name, isNewStart = false) {
             currentQuizName = name;
             
-            let savedProgress = null;
-            try {
-                savedProgress = JSON.parse(localStorage.getItem(currentQuizName + "_progress"));
-            } catch (e) {
-                console.error("Failed to parse progress data. Starting new quiz.", e);
-                localStorage.removeItem(currentQuizName + "_progress");
-            }
-            
-            let lastQuestionIndex = 0;
+            const savedProgress = JSON.parse(localStorage.getItem(currentQuizName + "_progress"));
+            let lastQuestionIndex = 0; // Default to first question
             
             if (isNewStart || !savedProgress) {
-                loadingOverlay.style.display = 'flex';
-                const data = await fetchQuizData(url);
-                loadingOverlay.style.display = 'none';
+                const data = allQuizzesData[name];
 
                 if (!data || data.length === 0) {
                     showMessageBox("No questions found for this quiz.");
                     return;
                 }
 
+                // Randomize the order of questions
                 shuffleArray(data);
                 quizQuestions = data;
-                originalQuizData = JSON.parse(JSON.stringify(data));
                 totalQuestions = quizQuestions.length;
                 score = 0;
                 mistakes = [];
@@ -513,13 +507,11 @@
                 localStorage.removeItem(currentQuizName + "_progress");
             } else {
                 quizQuestions = savedProgress.quizQuestions;
-                // Use the loaded quizQuestions as the source of truth
-                originalQuizData = quizQuestions; 
                 totalQuestions = savedProgress.totalQuestions;
                 score = savedProgress.score;
                 mistakes = savedProgress.mistakes;
                 attemptedCount = savedProgress.attemptedCount;
-                lastQuestionIndex = attemptedCount;
+                lastQuestionIndex = attemptedCount; // Set scroll position to the last attempted question
             }
             
             mainSection.classList.add('hidden');
@@ -530,7 +522,8 @@
             
             renderQuestions();
             updateStatusBar();
-
+            
+            // Auto-scroll to the last attempted question on resume
             if (!isNewStart && lastQuestionIndex > 0) {
                 setTimeout(() => {
                     const lastQuestionCard = document.getElementById(`question-card-${lastQuestionIndex - 1}`);
@@ -539,13 +532,11 @@
                     }
                 }, 100);
             } else {
-                window.scrollTo(0, 0);
+                window.scrollTo(0, 0); // Scroll to top for new quiz
             }
         }
 
         function saveProgress() {
-            // Save only the essential data to prevent exceeding local storage limits.
-            // originalQuizData is no longer needed as a separate object.
             const progress = {
                 quizQuestions: quizQuestions,
                 score: score,
@@ -570,7 +561,7 @@
                 const questionCard = document.createElement('div');
                 questionCard.id = `question-card-${index}`;
                 questionCard.className = "question-card bg-gray-800 p-6 rounded-2xl shadow-xl w-full space-y-4";
-                
+
                 const questionNumber = document.createElement('div');
                 questionNumber.className = "text-sm text-gray-400 mb-2";
                 questionNumber.textContent = `Question ${index + 1} of ${quizQuestions.length}`;
@@ -578,15 +569,15 @@
                 const questionText = document.createElement('div');
                 questionText.className = "text-xl font-semibold mb-4";
                 questionText.textContent = q.question;
-
+                
                 const optionsContainer = document.createElement('div');
                 optionsContainer.className = "grid grid-cols-1 md:grid-cols-2 gap-4";
-                
+
                 q.options.forEach(option => {
                     const button = document.createElement('button');
                     button.className = "option-btn bg-gray-700 p-4 rounded-xl text-left w-full hover:bg-gray-600 transition-colors duration-200";
                     button.textContent = option;
-                    button.onclick = () => checkAnswer(q.question, button, option);
+                    button.onclick = () => checkAnswer(index, button, option);
                     optionsContainer.appendChild(button);
                 });
 
@@ -599,47 +590,98 @@
                 questionCard.appendChild(optionsContainer);
                 questionCard.appendChild(feedback);
                 questionsContainer.appendChild(questionCard);
+
+                // If a question was previously answered, re-render its state
                 if (q.userAnswer) {
                     const selectedBtn = Array.from(optionsContainer.querySelectorAll('.option-btn')).find(btn => btn.textContent === q.userAnswer);
                     if (selectedBtn) {
-                        checkAnswer(q.question, selectedBtn, q.userAnswer, true);
+                        checkAnswer(index, selectedBtn, q.userAnswer, true);
                     }
                 }
             });
         }
-        
-        function checkAnswer(questionText, selectedBtn, userAnswer, isResume = false) {
-            const originalQ = originalQuizData.find(q => q.question === questionText);
-            if (!originalQ) return;
 
-            const questionCard = selectedBtn.closest('.question-card');
+        function checkAnswer(questionIndex, selectedBtn, userAnswer, isResume = false) {
+            const questionCard = document.getElementById(`question-card-${questionIndex}`);
             const optionButtons = questionCard.querySelectorAll('.option-btn');
-            const feedbackEl = questionCard.querySelector('[id^="feedback-"]');
-            const alreadyAnswered = originalQ.userAnswer !== null;
-            if (alreadyAnswered && !isResume) {
+            const feedbackEl = document.getElementById(`feedback-${questionIndex}`);
+
+            // If question is already answered, do nothing
+            if (questionCard.classList.contains('answered') && !isResume) {
                 return;
             }
 
+            const currentQ = quizQuestions[questionIndex];
+            
             let actualCorrectAnswer;
-            if (!isNaN(originalQ.answer) && parseInt(originalQ.answer) >= 1 && parseInt(originalQ.answer) <= 4) {
-                actualCorrectAnswer = originalQ.options[parseInt(originalQ.answer) - 1];
+            if (!isNaN(currentQ.answer) && parseInt(currentQ.answer) >= 1 && parseInt(currentQ.answer) <= 4) {
+                actualCorrectAnswer = currentQ.options[parseInt(currentQ.answer) - 1];
             } else {
-                actualCorrectAnswer = originalQ.answer;
+                actualCorrectAnswer = currentQ.answer;
             }
             
-            const isCorrect = (userAnswer === actualCorrectAnswer);
-            originalQ.userAnswer = userAnswer;
-            originalQ.isCorrect = isCorrect;
+            // Mark question as answered
+            currentQ.userAnswer = userAnswer;
+            currentQ.correctAnswer = actualCorrectAnswer;
+            questionCard.classList.add('answered');
+
+            const isCorrect = (currentQ.userAnswer === actualCorrectAnswer);
+            currentQ.isCorrect = isCorrect;
             
-            score = originalQuizData.filter(q => q.isCorrect).length;
-            mistakes = originalQuizData.filter(q => q.userAnswer && !q.isCorrect).map(q => ({
-                question: q.question,
-                userAnswer: q.userAnswer,
-                correctAnswer: q.correctAnswer
-            }));
-            attemptedCount = originalQuizData.filter(q => q.userAnswer).length;
+            // Re-calculate stats based on the full, original question set
+            const fullStats = JSON.parse(localStorage.getItem(currentQuizName + "_stats")) || {
+                correct: 0,
+                incorrect: 0,
+                total: totalQuestions,
+                attempted: 0
+            };
+
+            // If we are in reattempt mode, update original stats
+            if (quizQuestions.length < totalQuestions) {
+                // Find the original question in the full list and update its state
+                const originalQuizQuestions = JSON.parse(localStorage.getItem(currentQuizName + "_progress")).quizQuestions;
+                const originalQ = originalQuizQuestions.find(q => q.question === currentQ.question);
+                if (originalQ) {
+                    originalQ.userAnswer = userAnswer;
+                    originalQ.isCorrect = isCorrect;
+                }
+                
+                // Recalculate full stats
+                fullStats.correct = originalQuizQuestions.filter(q => q.isCorrect).length;
+                fullStats.incorrect = originalQuizQuestions.filter(q => q.userAnswer && !q.isCorrect).length;
+                fullStats.unattempted = originalQuizQuestions.filter(q => q.userAnswer === null).length;
+                fullStats.attempted = originalQuizQuestions.filter(q => q.userAnswer).length;
+
+                // Save updated full progress
+                localStorage.setItem(currentQuizName + "_progress", JSON.stringify({
+                    quizQuestions: originalQuizQuestions,
+                    score: fullStats.correct,
+                    mistakes: originalQuizQuestions.filter(q => q.userAnswer && !q.isCorrect).map(q => ({ question: q.question, userAnswer: q.userAnswer, correctAnswer: q.correctAnswer })),
+                    attemptedCount: fullStats.attempted,
+                    totalQuestions: totalQuestions
+                }));
+
+                // Update mistakes
+                mistakes = originalQuizQuestions.filter(q => q.userAnswer && !q.isCorrect).map(q => ({
+                    question: q.question,
+                    userAnswer: q.userAnswer,
+                    correctAnswer: q.correctAnswer
+                }));
+
+            } else {
+                // If not in reattempt mode, update current stats
+                attemptedCount = quizQuestions.filter(q => q.userAnswer).length;
+                score = quizQuestions.filter(q => q.isCorrect).length;
+                mistakes = quizQuestions.filter(q => q.userAnswer && !q.isCorrect).map(q => ({
+                    question: q.question,
+                    userAnswer: q.userAnswer,
+                    correctAnswer: q.correctAnswer
+                }));
+            }
             
+            // Visually update UI
             optionButtons.forEach(btn => {
+                btn.disabled = true;
                 if (btn.textContent === actualCorrectAnswer) {
                     btn.classList.add('bg-green-600');
                     btn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
@@ -647,322 +689,142 @@
                     btn.classList.add('bg-red-600');
                     btn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
                 }
-                btn.disabled = true;
             });
-            feedbackEl.classList.remove('hidden');
+
             if (isCorrect) {
                 feedbackEl.textContent = 'Correct!';
-                feedbackEl.classList.remove('text-red-400');
                 feedbackEl.classList.add('text-green-400');
             } else {
-                feedbackEl.textContent = 'Incorrect!';
-                feedbackEl.classList.remove('text-green-400');
+                feedbackEl.textContent = `Incorrect. The correct answer was: ${actualCorrectAnswer}`;
                 feedbackEl.classList.add('text-red-400');
             }
+            feedbackEl.classList.remove('hidden');
 
-            updateStatusBar();
-            updateInsightsData(currentQuizName, {
-                attempted: attemptedCount,
-                correct: score,
-                incorrect: mistakes.length,
-                total: totalQuestions
-            });
+            // Save progress and update status bar
             saveProgress();
+            updateStatusBar();
 
-            if (!isResume) {
-                const questionIndex = quizQuestions.findIndex(q => q.question === questionText);
-                scrollToNextQuestion(questionIndex);
-            }
-        }
-
-        function updateStatusBarDisplay(attempted, correct, incorrect) {
-            qsAttemptedEl.textContent = attempted;
-            qsCorrectEl.textContent = correct;
-            qsIncorrectEl.textContent = incorrect;
-            const accuracy = attempted ? Math.round((correct / attempted) * 100) : 0;
-            qsAccuracyEl.textContent = `${accuracy}%`;
-        }
-        function updateStatusBar() {
-            qsAttemptedEl.textContent = attemptedCount;
-            qsCorrectEl.textContent = score;
-            qsIncorrectEl.textContent = mistakes.length;
-            const accuracy = attemptedCount ? Math.round((score / attemptedCount) * 100) : 0;
-            qsAccuracyEl.textContent = `${accuracy}%`;
-        }
-
-        function scrollToNextQuestion(currentIndex) {
-            const nextIndex = currentIndex + 1;
-            const nextQuestionCard = document.getElementById(`question-card-${nextIndex}`);
-            if (nextQuestionCard) {
+            // Auto-scroll to the next question, if not the last one
+            if (questionIndex < quizQuestions.length - 1) {
                 setTimeout(() => {
-                    nextQuestionCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 100);
+                    const nextQuestionCard = document.getElementById(`question-card-${questionIndex + 1}`);
+                    if (nextQuestionCard) {
+                        nextQuestionCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 500); // Wait for a moment before scrolling
             }
         }
 
-        function updateInsightsData(name, stats) {
-            const fullStats = JSON.parse(localStorage.getItem(name + "_stats")) || { total: stats.total, attempted: 0, correct: 0, incorrect: 0, unattempted: stats.total };
-            
-            fullStats.attempted = stats.attempted;
-            fullStats.correct = stats.correct;
-            fullStats.incorrect = stats.incorrect;
-            fullStats.unattempted = stats.unattempted;
-            
-            localStorage.setItem(name + "_stats", JSON.stringify(fullStats));
-            fullStats.mistakes = mistakes.length;
-            if (name !== 'Mixed Quiz') {
-                localStorage.setItem(name + "_mistakes", JSON.stringify(mistakes));
-            }
-            
-            renderQuizCards();
-        }
-
-        function endQuiz() {
-            const finalStats = {
-                correct: originalQuizData.filter(q => q.isCorrect).length,
-                incorrect: originalQuizData.filter(q => q.userAnswer && !q.isCorrect).length,
-                unattempted: originalQuizData.filter(q => q.userAnswer === null).length,
-                total: totalQuestions,
-                attempted: originalQuizData.filter(q => q.userAnswer).length
-            };
-            updateInsightsData(currentQuizName, finalStats);
-            
-            summaryScoreEl.textContent = `${finalStats.correct}/${finalStats.total}`;
-            summaryCorrectEl.textContent = finalStats.correct;
-            summaryIncorrectEl.textContent = finalStats.incorrect;
-            summaryUnattemptedEl.textContent = finalStats.unattempted;
-            const accuracy = finalStats.attempted > 0 ? Math.round((finalStats.correct / finalStats.attempted) * 100) : 0;
-            summaryAccuracyEl.textContent = `${accuracy}%`;
-
-            const radius = 45;
-            const circumference = 2 * Math.PI * radius;
-            const offset = circumference - (accuracy / 100) * circumference;
-            summaryProgressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
-            summaryProgressCircle.style.strokeDashoffset = offset;
-
-            quizSummaryModal.classList.remove('hidden');
-            quizSection.classList.add('hidden');
-            navbar.classList.remove('hidden');
-            quizStatusBar.classList.add('hidden');
-
-            localStorage.removeItem(currentQuizName + "_progress");
-            renderQuizCards();
-        }
-
-        function renderDashboard() {
-            let totalQuizzes = quizzes.length;
-            let attemptedQuizzes = 0;
-            let totalQ = 0, totalA = 0, totalC = 0;
-
-            const quizAccuracies = [];
-            const allQuizData = [...quizzes, { name: "Mixed Quiz", url: "" }];
-            allQuizData.forEach(q => {
-                const s = JSON.parse(localStorage.getItem(q.name + "_stats")) || {};
-                if (s.total > 0) {
-                    attemptedQuizzes++;
-                    const quizAccuracy = s.attempted > 0 ? Math.round((s.correct / s.attempted) * 100) : 0;
-                    quizAccuracies.push({ name: q.name, accuracy: quizAccuracy });
-                }
-                totalQ += s.total || 0;
-                totalA += s.attempted || 0;
-                totalC += s.correct || 0;
-            });
-            
-            quizBarChart.innerHTML = '';
-            if (quizAccuracies.length === 0) {
-                chartMessage.classList.remove('hidden');
-            } else {
-                chartMessage.classList.add('hidden');
-                quizAccuracies.forEach(quiz => {
-                    const barHeight = quiz.accuracy > 0 ? quiz.accuracy : 5;
-                    const bar = document.createElement('div');
-                    bar.className = 'flex flex-col items-center justify-end h-full';
-                    bar.innerHTML = `
-                        <div class="text-xs font-bold mb-1">${quiz.accuracy}%</div>
-                        <div class="bar w-8" style="height: ${barHeight}%;"></div>
-                        <div class="mt-2 text-center text-gray-400 text-[10px] w-12 truncate">${quiz.name}</div>
-                    `;
-                    quizBarChart.appendChild(bar);
-                });
-            }
-
-            const overallAccuracy = totalA > 0 ? Math.round((totalC / totalA) * 100) : 0;
-
-            const radius = 45;
-            const circumference = 2 * Math.PI * radius;
-            const offset = circumference - (overallAccuracy / 100) * circumference;
-            progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
-            progressCircle.style.strokeDashoffset = offset;
-            overallAccuracySpan.textContent = `${overallAccuracy}%`;
-            const stats = [
-                { title: 'Quizzes', value: attemptedQuizzes, icon: 'check-circle', color: 'text-green-400' },
-                { title: 'Questions', value: totalA, icon: 'help-circle', color: 'text-yellow-400' },
-                { title: 'Correct', value: totalC, icon: 'award', color: 'text-indigo-400' },
-                { title: 'Incorrect', value: totalA - totalC, icon: 'x-circle', color: 'text-red-400' }
-            ];
-            dashboardStats.innerHTML = stats.map(s => `
-                <div class="bg-gray-700 p-4 rounded-xl shadow-md flex flex-col items-start justify-center text-left space-y-1">
-                    <i data-lucide="${s.icon}" class="h-6 w-6 ${s.color}"></i>
-                    <h3 class="text-lg font-bold">${s.value}</h3>
-                    <p class="text-gray-400 text-sm">${s.title}</p>
-                </div>
-            `).join('');
-            lucide.createIcons();
-        }
-
-        function populateMistakesSelector() {
-            mistakesQuizSelector.innerHTML = '<option value="">-- Select Quiz --</option>';
-            quizzes.forEach(q => {
-                const s = JSON.parse(localStorage.getItem(q.name + "_stats")) || {};
-                if (s.total > 0 && q.name !== 'Mixed Quiz') {
-                    mistakesQuizSelector.innerHTML += `<option value="${q.name}">${q.name}</option>`;
-                }
-            });
-        }
-
-        mistakesQuizSelector.addEventListener("change", () => {
-            mistakesContainer.innerHTML = "";
-            const qid = mistakesQuizSelector.value;
-            if (!qid) return;
-
-            const mistakes = JSON.parse(localStorage.getItem(qid + "_mistakes")) || [];
-            if (mistakes.length === 0) {
-                mistakesContainer.innerHTML = "<p class='text-gray-400 text-center'>No mistakes recorded for this quiz.</p>";
-                return;
-            }
-
-            mistakes.forEach((m, i) => {
-                const box = document.createElement("div");
-                box.className = "bg-gray-700 p-4 rounded-lg shadow-md";
-                box.innerHTML = `
-                    <p class="font-semibold mb-2 text-sm text-gray-200">Q${i + 1}: ${m.question}</p>
-                    <p class="text-red-400 text-xs">Your Answer: ${m.userAnswer}</p>
-                    <p class="text-green-400 text-xs">Correct Answer: ${m.correctAnswer}</p>
-                `;
-                mistakesContainer.appendChild(box);
-            });
-        });
-        insightsBtn.onclick = () => {
-            const showingInsights = !insightsSection.classList.contains("hidden");
-            if (showingInsights) {
-                insightsSection.classList.add("hidden");
-                mainSection.classList.remove("hidden");
-                insightsBtn.innerHTML = `<i data-lucide="bar-chart-3" class="h-4 w-4"></i> Insights`;
-                lucide.createIcons();
-            } else {
-                renderDashboard();
-                populateMistakesSelector();
-                insightsSection.classList.remove("hidden");
-                mainSection.classList.add("hidden");
-                insightsBtn.innerHTML = `<i data-lucide="grid" class="h-4 w-4"></i> Quizzes`;
-                lucide.createIcons();
-            }
-        };
-        backBtn.onclick = () => {
-            saveProgress();
-            quizSection.classList.add('hidden');
-            insightsSection.classList.add('hidden');
-            mainSection.classList.remove('hidden');
-            navbar.classList.remove('hidden');
-            quizStatusBar.classList.add('hidden');
-            window.scrollTo(0, 0);
-            renderQuizCards();
-        };
-
-        startNewQuizBtn.onclick = () => {
-            mainSection.classList.remove("hidden");
-            insightsSection.classList.add("hidden");
-            navbar.classList.remove('hidden');
-            insightsBtn.innerHTML = `<i data-lucide="bar-chart-3" class="h-4 w-4"></i> Insights`;
-            lucide.createIcons();
-        };
-        submitQuizBtn.onclick = () => {
-            endQuiz();
-        };
-        closeSummaryModalBtn.onclick = () => {
-            quizSummaryModal.classList.add('hidden');
-        };
-        resetQuizBtn.onclick = () => {
-            quizSummaryModal.classList.add('hidden');
-            startQuiz(currentQuizName, quizzes.find(q => q.name === currentQuizName).url, true);
-        };
-
-        reattemptWrongBtn.onclick = () => {
-            quizSummaryModal.classList.add('hidden');
-            reattemptModal.classList.remove('hidden');
-        };
-
-        confirmReattemptBtn.onclick = () => {
-            reattemptModal.classList.add('hidden');
-            const fullProgress = JSON.parse(localStorage.getItem(currentQuizName + "_progress"));
-            const originalQuizQuestions = fullProgress.originalQuizData;
-            
-            const wrongAndUnattempted = originalQuizQuestions.filter(q => q.userAnswer === null || !q.isCorrect);
-            shuffleArray(wrongAndUnattempted);
-
-            quizQuestions = wrongAndUnattempted;
-            score = fullProgress.score;
-            mistakes = fullProgress.mistakes;
-            attemptedCount = fullProgress.attemptedCount;
-            totalQuestions = fullProgress.totalQuestions;
-            
+        // Event Listeners
+        insightsBtn.addEventListener('click', () => {
             mainSection.classList.add('hidden');
-            insightsSection.classList.add('hidden');
-            navbar.classList.add('hidden');
-            quizSection.classList.remove('hidden');
-            quizStatusBar.classList.remove('hidden');
-            
-            renderQuestions();
-            updateStatusBar();
-            window.scrollTo(0, 0);
-        };
-        cancelReattemptBtn.onclick = () => {
-            reattemptModal.classList.add('hidden');
-            quizSummaryModal.classList.remove('hidden');
-        };
-        quitQuizBtnSummary.onclick = () => {
-            saveProgress();
             quizSection.classList.add('hidden');
-            quizSummaryModal.classList.add('hidden');
-            mainSection.classList.remove('hidden');
-            navbar.classList.remove('hidden');
             quizStatusBar.classList.add('hidden');
-            window.scrollTo(0, 0);
+            insightsSection.classList.remove('hidden');
+            insightsBtn.classList.add('hidden');
+            quizBtn.classList.remove('hidden');
+            renderDashboard();
+            populateMistakesSelector();
+        });
+
+        quizBtn.addEventListener('click', () => {
+            insightsSection.classList.add('hidden');
+            mainSection.classList.remove('hidden');
+            quizBtn.classList.add('hidden');
+            insightsBtn.classList.remove('hidden');
             renderQuizCards();
-        };
+        });
 
-        mixQuizBtn.onclick = () => {
-            quizList.innerHTML = '';
-            quizzes.forEach((q, index) => {
-                const item = document.createElement('div');
-                item.className = 'flex items-center gap-2';
-                item.innerHTML = `
-                    <input type="checkbox" id="quiz-${index}" name="quiz-select" value="${q.name}" data-url="${q.url}" class="form-checkbox text-indigo-600 rounded-sm bg-gray-600 border-gray-500">
-                    <label for="quiz-${index}" class="text-sm font-medium text-white">${q.name}</label>
-                `;
-                quizList.appendChild(item);
-            });
-            mixQuizModal.classList.remove('hidden');
-        };
+        backBtn.addEventListener('click', () => {
+            quizSection.classList.add('hidden');
+            quizStatusBar.classList.add('hidden');
+            insightsSection.classList.add('hidden');
+            navbar.classList.remove('hidden');
+            mainSection.classList.remove('hidden');
+            insightsBtn.classList.remove('hidden');
+            quizBtn.classList.add('hidden');
+            renderQuizCards();
+        });
 
-        cancelMixQuizBtn.onclick = () => {
+        submitQuizBtn.addEventListener('click', () => {
+            showQuizSummary();
+        });
+
+        startNewQuizBtn.addEventListener('click', () => {
+            insightsSection.classList.add('hidden');
+            mainSection.classList.remove('hidden');
+            renderQuizCards();
+        });
+
+        closeSummaryModalBtn.addEventListener('click', () => {
+            quizSummaryModal.classList.add('hidden');
+        });
+
+        resetQuizBtn.addEventListener('click', () => {
+            localStorage.removeItem(currentQuizName + "_progress");
+            localStorage.removeItem(currentQuizName + "_stats");
+            quizSummaryModal.classList.add('hidden');
+            startQuiz(currentQuizName, true);
+        });
+
+        reattemptWrongBtn.addEventListener('click', () => {
+            reattemptModal.classList.remove('hidden');
+            quizSummaryModal.classList.add('hidden');
+        });
+
+        confirmReattemptBtn.addEventListener('click', () => {
+            reattemptModal.classList.add('hidden');
+            const wrongAndUnattempted = quizQuestions.filter(q => q.userAnswer === null || !q.isCorrect);
+            quizQuestions = wrongAndUnattempted;
+            renderQuestions();
+        });
+
+        cancelReattemptBtn.addEventListener('click', () => {
+            reattemptModal.classList.add('hidden');
+            showQuizSummary(); // Go back to the summary modal
+        });
+
+        quitQuizBtnSummary.addEventListener('click', () => {
+            quizSummaryModal.classList.add('hidden');
+            quizSection.classList.add('hidden');
+            quizStatusBar.classList.add('hidden');
+            navbar.classList.remove('hidden');
+            mainSection.classList.remove('hidden');
+            renderQuizCards();
+        });
+
+        mistakesQuizSelector.addEventListener('change', (e) => {
+            const quizName = e.target.value;
+            displayMistakes(quizName);
+        });
+
+        mixQuizBtn.addEventListener('click', () => {
+            openMixQuizModal();
+        });
+
+        cancelMixQuizBtn.addEventListener('click', () => {
             mixQuizModal.classList.add('hidden');
-        };
-        startMixQuizBtn.onclick = async () => {
-            const selectedQuizzes = Array.from(document.querySelectorAll('input[name="quiz-select"]:checked'));
-            if (selectedQuizzes.length === 0) {
-                showMessageBox("Please select at least one quiz to mix.");
-                return;
-            }
+        });
 
+        startMixQuizBtn.addEventListener('click', async () => {
             mixQuizModal.classList.add('hidden');
             loadingOverlay.style.display = 'flex';
+            
+            const selectedQuizzes = Array.from(quizList.querySelectorAll('input[type="checkbox"]:checked'));
             const allQuestions = [];
+            
+            if (selectedQuizzes.length === 0) {
+                showMessageBox("Please select at least one quiz to mix.");
+                loadingOverlay.style.display = 'none';
+                return;
+            }
+
             const questionsPerQuiz = Math.floor(100 / selectedQuizzes.length);
             let remainingQuestions = 100 % selectedQuizzes.length;
+            
             for (const checkbox of selectedQuizzes) {
-                const quizUrl = checkbox.dataset.url;
-                const questions = await fetchQuizData(quizUrl);
+                const quizName = checkbox.dataset.name;
+                const questions = allQuizzesData[quizName];
 
                 if (questions) {
                     shuffleArray(questions);
@@ -976,11 +838,11 @@
             }
 
             shuffleArray(allQuestions);
+
             loadingOverlay.style.display = 'none';
 
             currentQuizName = 'Mixed Quiz';
             quizQuestions = allQuestions;
-            originalQuizData = allQuestions;
             totalQuestions = quizQuestions.length;
             score = 0;
             mistakes = [];
@@ -996,7 +858,163 @@
             renderQuestions();
             updateStatusBar();
             window.scrollTo(0, 0);
-        };
+        });
+
+        function openMixQuizModal() {
+            quizList.innerHTML = '';
+            quizzes.forEach(q => {
+                const quizItem = document.createElement('div');
+                quizItem.className = 'flex items-center gap-2 text-white';
+                quizItem.innerHTML = `
+                    <input type="checkbox" id="mix-${q.name}" data-name="${q.name}" class="form-checkbox text-indigo-600 bg-gray-600 border-gray-500 rounded focus:ring-indigo-500">
+                    <label for="mix-${q.name}" class="text-sm font-medium">${q.name}</label>
+                `;
+                quizList.appendChild(quizItem);
+            });
+            mixQuizModal.classList.remove('hidden');
+        }
+
+        function showQuizSummary() {
+            const unattemptedCount = totalQuestions - attemptedCount;
+            const accuracy = attemptedCount ? Math.round((score / attemptedCount) * 100) : 0;
+            const percentage = (score / totalQuestions) * 100;
+            
+            summaryScoreEl.textContent = `${score}/${totalQuestions}`;
+            summaryCorrectEl.textContent = score;
+            summaryIncorrectEl.textContent = mistakes.length;
+            summaryUnattemptedEl.textContent = unattemptedCount;
+            summaryAccuracyEl.textContent = `${accuracy}%`;
+            
+            // Animate progress circle
+            const radius = summaryProgressCircle.r.baseVal.value;
+            const circumference = 2 * Math.PI * radius;
+            const offset = circumference - (percentage / 100) * circumference;
+            summaryProgressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+            summaryProgressCircle.style.strokeDashoffset = offset;
+
+            quizSummaryModal.classList.remove('hidden');
+        }
+
+        function renderDashboard() {
+            renderOverallStats();
+            renderQuizBarChart();
+        }
+        
+        function renderOverallStats() {
+            let totalCorrect = 0;
+            let totalAttempted = 0;
+            let totalWrong = 0;
+
+            const quizNames = quizzes.map(q => q.name);
+            quizNames.push("Mixed Quiz");
+
+            quizNames.forEach(name => {
+                const stats = JSON.parse(localStorage.getItem(name + "_stats"));
+                if (stats) {
+                    totalCorrect += stats.correct;
+                    totalAttempted += stats.attempted;
+                    totalWrong += (stats.attempted - stats.correct);
+                }
+            });
+
+            // Update overall accuracy
+            const overallAccuracy = totalAttempted ? Math.round((totalCorrect / totalAttempted) * 100) : 0;
+            overallAccuracySpan.textContent = `${overallAccuracy}%`;
+
+            // Animate overall progress circle
+            const radius = progressCircle.r.baseVal.value;
+            const circumference = 2 * Math.PI * radius;
+            const offset = circumference - (overallAccuracy / 100) * circumference;
+            progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+            progressCircle.style.strokeDashoffset = offset;
+
+            // Update the new dashboard stats cards
+            dashboardStats.innerHTML = `
+                <div class="bg-gray-700 p-4 rounded-xl shadow-md flex flex-col items-center justify-center">
+                    <i data-lucide="circle-help" class="h-6 w-6 text-indigo-400 mb-2"></i>
+                    <p class="text-sm text-gray-400">Attempted</p>
+                    <p class="text-xl font-bold">${totalAttempted}</p>
+                </div>
+                <div class="bg-gray-700 p-4 rounded-xl shadow-md flex flex-col items-center justify-center">
+                    <i data-lucide="circle-check" class="h-6 w-6 text-green-400 mb-2"></i>
+                    <p class="text-sm text-gray-400">Correct</p>
+                    <p class="text-xl font-bold text-green-400">${totalCorrect}</p>
+                </div>
+                <div class="bg-gray-700 p-4 rounded-xl shadow-md flex flex-col items-center justify-center">
+                    <i data-lucide="circle-x" class="h-6 w-6 text-red-400 mb-2"></i>
+                    <p class="text-sm text-gray-400">Wrong</p>
+                    <p class="text-xl font-bold text-red-400">${totalWrong}</p>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function renderQuizBarChart() {
+            let hasData = false;
+            quizBarChart.innerHTML = '';
+            quizzes.forEach(q => {
+                const stats = JSON.parse(localStorage.getItem(q.name + "_stats"));
+                if (stats && stats.attempted > 0) {
+                    hasData = true;
+                    const accuracy = Math.round((stats.correct / stats.attempted) * 100);
+                    const barContainer = document.createElement('div');
+                    barContainer.className = 'flex flex-col items-center h-full justify-end';
+                    barContainer.innerHTML = `
+                        <div class="bar w-8 relative" style="height: ${accuracy}%;">
+                            <span class="absolute -top-6 text-white text-xs font-bold w-full text-center">${accuracy}%</span>
+                        </div>
+                        <span class="mt-2 text-center w-12 truncate">${q.name}</span>
+                    `;
+                    quizBarChart.appendChild(barContainer);
+                }
+            });
+            if (hasData) {
+                chartMessage.classList.add('hidden');
+            } else {
+                chartMessage.classList.remove('hidden');
+            }
+        }
+
+        function populateMistakesSelector() {
+            mistakesQuizSelector.innerHTML = '<option value="">-- Select Quiz --</option>';
+            const quizNames = quizzes.map(q => q.name);
+            quizNames.forEach(name => {
+                const progress = localStorage.getItem(name + "_progress");
+                if (progress) {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    mistakesQuizSelector.appendChild(option);
+                }
+            });
+        }
+
+        function displayMistakes(quizName) {
+            mistakesContainer.innerHTML = '';
+            if (!quizName) {
+                return;
+            }
+            const progress = JSON.parse(localStorage.getItem(quizName + "_progress"));
+            if (progress && progress.mistakes) {
+                if (progress.mistakes.length === 0) {
+                    mistakesContainer.innerHTML = `<p class="text-gray-400 text-center">No mistakes found for this quiz.</p>`;
+                } else {
+                    progress.mistakes.forEach(mistake => {
+                        const mistakeCard = document.createElement('div');
+                        mistakeCard.className = "bg-gray-700 p-4 rounded-xl shadow-md space-y-2";
+                        mistakeCard.innerHTML = `
+                            <p class="font-bold">Question:</p>
+                            <p class="text-sm text-gray-300">${mistake.question}</p>
+                            <p class="font-bold text-red-400">Your Answer: <span class="text-red-300">${mistake.userAnswer}</span></p>
+                            <p class="font-bold text-green-400">Correct Answer: <span class="text-green-300">${mistake.correctAnswer}</span></p>
+                        `;
+                        mistakesContainer.appendChild(mistakeCard);
+                    });
+                }
+            } else {
+                mistakesContainer.innerHTML = `<p class="text-gray-400 text-center">No mistakes found for this quiz.</p>`;
+            }
+        }
     </script>
 </body>
 </html>
