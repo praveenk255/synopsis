@@ -322,6 +322,7 @@
         let mistakes = [];
         let attemptedCount = 0;
         let totalQuestions = 0;
+        let originalQuizData = null; // Store the initial quiz data for reattempts
 
         // Utility function to shuffle an array
         function shuffleArray(array) {
@@ -356,24 +357,34 @@
                 const progress = JSON.parse(localStorage.getItem(q.name + "_progress"));
                 const accuracy = stats.attempted ? Math.round((stats.correct / stats.attempted) * 100) : 0;
                 
-                const card = document.createElement("div");
-                card.className = "bg-gray-800 p-4 rounded-xl shadow-lg flex flex-col justify-between transform transition-transform hover:scale-105";
-                
-                let buttonHtml;
+                let cardClass = "bg-gray-800";
+                let buttonText = "Start";
                 let buttonAction;
-                
-                // Determine if quiz is in progress or not
-                if (progress && progress.attemptedCount > 0 && progress.attemptedCount < progress.totalQuestions) {
-                    buttonHtml = `<button class="resumeBtn flex-1 bg-indigo-600 py-1 rounded-full hover:bg-indigo-700 transition-colors duration-200">Resume</button>`;
+
+                if (progress) {
+                    // Incomplete quiz with saved progress
+                    buttonText = "Resume";
                     buttonAction = () => startQuiz(q.name, q.url);
+                } else if (stats.attempted === stats.total && stats.total > 0) {
+                    // All questions attempted
+                    cardClass = "bg-green-700";
+                    buttonText = "Restart";
+                    buttonAction = () => startQuiz(q.name, q.url, true);
                 } else if (q.name === "Mixed Quiz") {
-                    // Don't show a start button for Mixed Quiz card
-                    buttonHtml = `<span class="text-xs text-gray-400">Use "Mix Quiz" button above</span>`;
+                    // Mixed quiz has no dedicated start button
+                    buttonText = "";
                     buttonAction = () => {};
                 } else {
-                    buttonHtml = `<button class="startBtn flex-1 bg-indigo-600 py-1 rounded-full hover:bg-indigo-700 transition-colors duration-200">Start</button>`;
+                    // New quiz, no progress saved
                     buttonAction = () => startQuiz(q.name, q.url, true);
                 }
+                
+                const card = document.createElement("div");
+                card.className = `${cardClass} p-4 rounded-xl shadow-lg flex flex-col justify-between transform transition-transform hover:scale-105`;
+                
+                const buttonHtml = buttonText ? `
+                    <button class="flex-1 bg-indigo-600 py-1 rounded-full hover:bg-indigo-700 transition-colors duration-200">${buttonText}</button>
+                ` : `<span class="text-xs text-gray-400">Use "Mix Quiz" button above</span>`;
 
                 card.innerHTML = `
                     <h2 class="text-sm md:text-md font-bold mb-2 truncate"><i data-lucide="file-text" class="inline-block mr-1 h-4 w-4 text-purple-400"></i> ${q.name}</h2>
@@ -386,7 +397,7 @@
                     </div>
                 `;
                 mainSection.appendChild(card);
-                if (q.name !== "Mixed Quiz") {
+                if (buttonText && q.name !== "Mixed Quiz") {
                     card.querySelector("button").onclick = buttonAction;
                 }
             });
@@ -463,6 +474,7 @@
                 shuffleArray(data);
                 
                 quizQuestions = data;
+                originalQuizData = JSON.parse(JSON.stringify(data)); // Deep copy for reattempts
                 totalQuestions = quizQuestions.length;
                 score = 0;
                 mistakes = [];
@@ -470,6 +482,7 @@
                 localStorage.removeItem(currentQuizName + "_progress");
             } else {
                 quizQuestions = savedProgress.quizQuestions;
+                originalQuizData = savedProgress.originalQuizData;
                 totalQuestions = savedProgress.totalQuestions;
                 score = savedProgress.score;
                 mistakes = savedProgress.mistakes;
@@ -502,6 +515,7 @@
         function saveProgress() {
             const progress = {
                 quizQuestions: quizQuestions,
+                originalQuizData: originalQuizData,
                 score: score,
                 mistakes: mistakes,
                 attemptedCount: attemptedCount,
@@ -540,7 +554,7 @@
                     const button = document.createElement('button');
                     button.className = "option-btn bg-gray-700 p-4 rounded-xl text-left w-full hover:bg-gray-600 transition-colors duration-200";
                     button.textContent = option;
-                    button.onclick = () => checkAnswer(index, button, option);
+                    button.onclick = () => checkAnswer(q.question, button, option);
                     optionsContainer.appendChild(button);
                 });
 
@@ -558,86 +572,46 @@
                 if (q.userAnswer) {
                     const selectedBtn = Array.from(optionsContainer.querySelectorAll('.option-btn')).find(btn => btn.textContent === q.userAnswer);
                     if (selectedBtn) {
-                        checkAnswer(index, selectedBtn, q.userAnswer, true);
+                        checkAnswer(q.question, selectedBtn, q.userAnswer, true);
                     }
                 }
             });
         }
         
-        function checkAnswer(questionIndex, selectedBtn, userAnswer, isResume = false) {
-            const questionCard = document.getElementById(`question-card-${questionIndex}`);
-            const optionButtons = questionCard.querySelectorAll('.option-btn');
-            const feedbackEl = document.getElementById(`feedback-${questionIndex}`);
+        function checkAnswer(questionText, selectedBtn, userAnswer, isResume = false) {
+            const originalQ = originalQuizData.find(q => q.question === questionText);
+            if (!originalQ) return;
 
+            const questionCard = selectedBtn.closest('.question-card');
+            const optionButtons = questionCard.querySelectorAll('.option-btn');
+            const feedbackEl = questionCard.querySelector('[id^="feedback-"]');
+            
             // If question is already answered, do nothing
-            if (questionCard.classList.contains('answered') && !isResume) {
+            const alreadyAnswered = originalQ.userAnswer !== null;
+            if (alreadyAnswered && !isResume) {
                 return;
             }
 
-            const currentQ = quizQuestions[questionIndex];
             let actualCorrectAnswer;
-            if (!isNaN(currentQ.answer) && parseInt(currentQ.answer) >= 1 && parseInt(currentQ.answer) <= 4) {
-                actualCorrectAnswer = currentQ.options[parseInt(currentQ.answer) - 1];
+            if (!isNaN(originalQ.answer) && parseInt(originalQ.answer) >= 1 && parseInt(originalQ.answer) <= 4) {
+                actualCorrectAnswer = originalQ.options[parseInt(originalQ.answer) - 1];
             } else {
-                actualCorrectAnswer = currentQ.answer;
+                actualCorrectAnswer = originalQ.answer;
             }
             
-            // Mark question as answered
-            currentQ.userAnswer = userAnswer;
-            currentQ.correctAnswer = actualCorrectAnswer;
-            questionCard.classList.add('answered');
-
-            const isCorrect = (currentQ.userAnswer === actualCorrectAnswer);
-            currentQ.isCorrect = isCorrect;
+            const isCorrect = (userAnswer === actualCorrectAnswer);
             
-            // Re-calculate stats based on the full, original question set
-            const fullStats = JSON.parse(localStorage.getItem(currentQuizName + "_stats")) || { correct: 0, incorrect: 0, total: totalQuestions, attempted: 0 };
+            originalQ.userAnswer = userAnswer;
+            originalQ.isCorrect = isCorrect;
             
-            // If we are in reattempt mode, update original stats
-            if (quizQuestions.length < totalQuestions) {
-                // Find the original question in the full list and update its state
-                const originalQuizQuestions = JSON.parse(localStorage.getItem(currentQuizName + "_progress")).quizQuestions;
-                const originalQ = originalQuizQuestions.find(q => q.question === currentQ.question);
-                if (originalQ) {
-                    originalQ.userAnswer = userAnswer;
-                    originalQ.isCorrect = isCorrect;
-                }
-                
-                // Recalculate full stats
-                fullStats.correct = originalQuizQuestions.filter(q => q.isCorrect).length;
-                fullStats.incorrect = originalQuizQuestions.filter(q => q.userAnswer && !q.isCorrect).length;
-                fullStats.unattempted = originalQuizQuestions.filter(q => q.userAnswer === null).length;
-                fullStats.attempted = originalQuizQuestions.filter(q => q.userAnswer).length;
-
-                // Save updated full progress
-                localStorage.setItem(currentQuizName + "_progress", JSON.stringify({
-                    quizQuestions: originalQuizQuestions,
-                    score: fullStats.correct,
-                    mistakes: originalQuizQuestions.filter(q => !q.isCorrect).map(q => ({
-                        question: q.question,
-                        userAnswer: q.userAnswer,
-                        correctAnswer: q.correctAnswer
-                    })),
-                    attemptedCount: fullStats.attempted,
-                    totalQuestions: totalQuestions
-                }));
-
-                // Update mistakes
-                mistakes = originalQuizQuestions.filter(q => !q.isCorrect).map(q => ({
-                    question: q.question,
-                    userAnswer: q.userAnswer,
-                    correctAnswer: q.correctAnswer
-                }));
-            } else {
-                // If not in reattempt mode, update current stats
-                attemptedCount = quizQuestions.filter(q => q.userAnswer).length;
-                score = quizQuestions.filter(q => q.isCorrect).length;
-                mistakes = quizQuestions.filter(q => q.userAnswer && !q.isCorrect).map(q => ({
-                    question: q.question,
-                    userAnswer: q.userAnswer,
-                    correctAnswer: q.correctAnswer
-                }));
-            }
+            // Recalculate stats based on the ORIGINAL quiz data
+            score = originalQuizData.filter(q => q.isCorrect).length;
+            mistakes = originalQuizData.filter(q => q.userAnswer && !q.isCorrect).map(q => ({
+                question: q.question,
+                userAnswer: q.userAnswer,
+                correctAnswer: q.correctAnswer
+            }));
+            attemptedCount = originalQuizData.filter(q => q.userAnswer).length;
             
             // Visually update UI
             optionButtons.forEach(btn => {
@@ -656,17 +630,26 @@
                 feedbackEl.textContent = 'Correct!';
                 feedbackEl.classList.remove('text-red-400');
                 feedbackEl.classList.add('text-green-400');
-                scrollToNextQuestion(questionIndex);
             } else {
                 feedbackEl.textContent = 'Incorrect!';
                 feedbackEl.classList.remove('text-green-400');
                 feedbackEl.classList.add('text-red-400');
             }
 
-            // Update status bar based on the full quiz stats
-            updateStatusBarDisplay(fullStats.attempted, fullStats.correct, fullStats.incorrect);
-            updateInsightsData(currentQuizName, fullStats);
+            // Update status bar based on the original data
+            updateStatusBar();
+            updateInsightsData(currentQuizName, {
+                attempted: attemptedCount,
+                correct: score,
+                incorrect: mistakes.length,
+                total: totalQuestions
+            });
             saveProgress();
+
+            if (!isResume) {
+                const questionIndex = quizQuestions.findIndex(q => q.question === questionText);
+                scrollToNextQuestion(questionIndex);
+            }
         }
 
         function updateStatusBarDisplay(attempted, correct, incorrect) {
@@ -674,6 +657,13 @@
             qsCorrectEl.textContent = correct;
             qsIncorrectEl.textContent = incorrect;
             const accuracy = attempted ? Math.round((correct / attempted) * 100) : 0;
+            qsAccuracyEl.textContent = `${accuracy}%`;
+        }
+        function updateStatusBar() {
+            qsAttemptedEl.textContent = attemptedCount;
+            qsCorrectEl.textContent = score;
+            qsIncorrectEl.textContent = mistakes.length;
+            const accuracy = attemptedCount ? Math.round((score / attemptedCount) * 100) : 0;
             qsAccuracyEl.textContent = `${accuracy}%`;
         }
 
@@ -697,9 +687,11 @@
             
             localStorage.setItem(name + "_stats", JSON.stringify(fullStats));
             
+            // Update mistake count in stats
+            fullStats.mistakes = mistakes.length;
+
             if (name !== 'Mixed Quiz') {
-                const mistakesList = JSON.parse(localStorage.getItem(name + "_mistakes")) || [];
-                localStorage.setItem(name + "_mistakes", JSON.stringify(mistakesList));
+                localStorage.setItem(name + "_mistakes", JSON.stringify(mistakes));
             }
             
             renderQuizCards();
@@ -707,13 +699,13 @@
 
         function endQuiz() {
             const finalStats = {
-                correct: quizQuestions.filter(q => q.isCorrect).length,
-                incorrect: quizQuestions.filter(q => !q.isCorrect).length,
-                unattempted: quizQuestions.filter(q => q.userAnswer === null).length,
-                total: quizQuestions.length,
-                attempted: quizQuestions.filter(q => q.userAnswer).length
+                correct: originalQuizData.filter(q => q.isCorrect).length,
+                incorrect: originalQuizData.filter(q => q.userAnswer && !q.isCorrect).length,
+                unattempted: originalQuizData.filter(q => q.userAnswer === null).length,
+                total: totalQuestions,
+                attempted: originalQuizData.filter(q => q.userAnswer).length
             };
-            
+
             updateInsightsData(currentQuizName, finalStats);
             
             // Populate summary modal
@@ -896,27 +888,22 @@
         confirmReattemptBtn.onclick = () => {
             reattemptModal.classList.add('hidden');
             
-            const originalQuizQuestions = JSON.parse(localStorage.getItem(currentQuizName + "_progress")).quizQuestions;
+            // Get the latest progress from local storage
+            const fullProgress = JSON.parse(localStorage.getItem(currentQuizName + "_progress"));
+            const originalQuizQuestions = fullProgress.originalQuizData;
             
-            // Filter for only wrong and unattempted questions from the ORIGINAL list
+            // Filter for only wrong and unattempted questions from the ORIGINAL set
             const wrongAndUnattempted = originalQuizQuestions.filter(q => q.userAnswer === null || !q.isCorrect);
+            shuffleArray(wrongAndUnattempted);
 
-            // Reset the state of these questions for reattempt
-            wrongAndUnattempted.forEach(q => {
-                q.userAnswer = null;
-                q.isCorrect = null;
-            });
-            
-            // Update the current quiz session with these new questions
+            // Set the current quiz session to these questions
             quizQuestions = wrongAndUnattempted;
-
-            // Recalculate stats based on the new, smaller set of questions for the status bar
-            score = 0;
-            mistakes = [];
-            attemptedCount = 0;
             
-            // The total number of questions for the status bar will now be the length of the reattempt list
-            totalQuestions = quizQuestions.length;
+            // Update stats based on the full progress
+            score = fullProgress.score;
+            mistakes = fullProgress.mistakes;
+            attemptedCount = fullProgress.attemptedCount;
+            totalQuestions = fullProgress.totalQuestions;
             
             mainSection.classList.add('hidden');
             insightsSection.classList.add('hidden');
@@ -998,6 +985,7 @@
 
             currentQuizName = 'Mixed Quiz';
             quizQuestions = allQuestions;
+            originalQuizData = allQuestions;
             totalQuestions = quizQuestions.length;
             score = 0;
             mistakes = [];
