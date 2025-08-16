@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Multi Quiz App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    /* Crafty Metaverse Inspired Theme */
+    :root {
+      --bg-color: #0b0f19;
+      --text-color: #f0f2f5;
+      --primary-color: #6366f1; /* Indigo */
+      --secondary-color: #06b6d4; /* Cyan */
+      --accent-color: #a855f7; /* Violet */
+      --card-bg: #111827;
+      --border-color: #1f2937;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    }
+
+    .holographic-text {
+      background: linear-gradient(45deg, var(--primary-color), var(--accent-color), var(--secondary-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 5px rgba(99, 102, 241, 0.5);
+    }
+
+    .holographic-border {
+      border: 2px solid;
+      border-image-slice: 1;
+      border-image-source: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+    }
+
+    .holographic-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+    }
+
+    .holographic-btn {
+      background-color: var(--card-bg);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    .holographic-btn:hover {
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+      transform: translateY(-2px);
+    }
+
+    /* Quiz specific styles */
+    .correct-answer {
+      background-color: #10b981 !important; /* Green 500 */
+      color: #fff !important;
+      border-color: #059669 !important; /* Green 600 */
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    .incorrect-answer {
+      background-color: #ef4444 !important; /* Red 500 */
+      color: #fff !important;
+      border-color: #dc2626 !important; /* Red 600 */
+      box-shadow: 0 0 8px #ef4444;
+    }
+
+    /* Loader styles */
+    .loader {
+      border: 4px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      border-top: 4px solid var(--secondary-color);
+      width: 40px;
+      height: 40px;
+      -webkit-animation: spin 1s linear infinite;
+      animation: spin 1s linear infinite;
+    }
+
+    @-webkit-keyframes spin {
+      0% { -webkit-transform: rotate(0deg); }
+      100% { -webkit-transform: rotate(360deg); }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Sticky stats bar styles */
+    .sticky-stats-bar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    /* New transparent styles */
+    .transparent-card {
+        background-color: rgba(17, 24, 39, 0.7); /* Semi-transparent background */
+        border-color: rgba(31, 41, 55, 0.7); /* Semi-transparent border */
+        backdrop-filter: blur(5px);
+    }
+    
+    /* Media query for mobile screens */
+    @media (max-width: 640px) {
+      .sticky-stats-bar {
+        padding: 0.5rem; /* Adjust padding for mobile */
+      }
+      #stats-container .flex {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 0.5rem;
+        font-size: 0.75rem; /* text-xs */
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+      #stats-container .flex > span {
+        flex-shrink: 0; /* Prevent items from shrinking */
+      }
+    }
+
+    /* Modal styles */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 100; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+        background-color: var(--bg-color); /* Use a darker background */
+        border: 1px solid var(--border-color);
+        margin: 10% auto; /* Centered */
+        padding: 2rem;
+        border-radius: 1rem;
+        width: 90%; /* Responsive width */
+        max-width: 600px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        text-align: left; /* Align text to the left */
+        transform: scale(0.9);
+        opacity: 0;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .modal.show .modal-content {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    .close-btn {
+        color: var(--text-color);
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close-btn:hover,
+    .close-btn:focus {
+        color: #ddd;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    
+    /* Circular Progress Bar styles */
+    .progress-circle {
+      position: relative;
+      width: 150px;
+      height: 150px;
+    }
+    .progress-circle svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+    .progress-circle circle {
+      fill: none;
+      stroke-width: 10;
+      stroke-dasharray: 440; /* 2 * pi * r, where r is 70 */
+      transition: stroke-dashoffset 0.5s ease-in-out;
+    }
+    .progress-circle .bg-circle {
+      stroke: var(--card-bg);
+    }
+    .progress-circle .progress-bar {
+      stroke: #10b981; /* Green color for the progress */
+      stroke-linecap: round;
+      stroke-dashoffset: 440;
+    }
+    .progress-circle .percentage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #10b981; /* Green color for the percentage text */
+    }
+    
+    /* New styling for results badges */
+    .result-badge {
+      padding: 0.5rem 1rem;
+      border-radius: 9999px; /* rounded-full */
+      font-weight: 600; /* font-semibold */
+      color: white;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .result-badge.correct {
+      background-color: #10b981;
+    }
+    .result-badge.incorrect {
+      background-color: #ef4444;
+    }
+    .result-badge:hover {
+        transform: scale(1.05);
+    }
+  </style>
+</head>
+<body class="bg-gray-950 text-gray-100">
+
+  <div class="max-w-4xl mx-auto p-4">
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+      <h1 class="text-2xl sm:text-3xl font-bold text-center holographic-text">Avsec Basic Quiz</h1>
+      <select id="sheetSelector" class="border rounded px-3 py-2 text-white holographic-card focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <option value="">-- Select Quiz --</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSkl3zFBB8s5jFoh3mNbRUbETM6k0FPkBwRmu9sRO-SSTFb5O-HaxPNACCjqOLgXEdzpVJxRYetJ4aO/pub?output=csv">Basic 1</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSIpr6CpRW3F9kae8F3_cqqiXOtEL6CqCJlgsiJ79_l348bEsa2UWI93i4_chElLeG4JDNGSudflxf9/pub?output=csv">Basic 2</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQXg2KZDq8TtDq8xjVMNaveQXkhBrTIuxC-39EK1htO68FMKfEeLUfhqCNsacxSm6Vk5rg7eusQP_au/pub?output=csv">Basic 3</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTepTt61Dhntqokek0QH1fQK0Oo3lOI9qHbwHNGIbe2hk8vU3XHH2OiN1HyvoEwpY81Vi0ISOrqzYae/pub?output=csv">Basic 4</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRSnPYhv-vMmKL77c5XoirZGaqMjVyEppgq9Wp9S6GfDUvP1IiZRY2kZ6K2pT5LDPMXto1D1R3f2-Vu/pub?output=csv">Basic 5</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSJUr0Br78XjprIIUkZhN94udUK9YhODYRLmLiKSkhz6ifqhh1PIshqv_ZaM6kpDumwy6V_oCmjNt9E/pub?output=csv">Basic 6</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRejjJTEmWGWXlrnOoUDSkAMm7P9GXRMd3wEpl2U3zk4Aua3NJLVhnFRAh8quK3-8FV-KbDr_RDz5-4/pub?output=csv">Basic 7</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQAEQfNB9GxnTAXPPhYQd4aN3Mjizk3WauJ-IoUGlSCG6MmQdZmtB896hFOPdDxWgkgJf739RWSCS0_/pub?output=csv">Basic 8</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRj1KcGeC1ZYQsmzEp3zOeDv4MgSAqSwkp7vjQh0b-R1o58gfScF25zz4K9UByc5PhYA4qZDSCA7OKw/pub?output=csv">Basic 9</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSKKmIAXa0qs-dFO4njh3DmZGu5JoDTpfaZWOWXNtO5_DFz42YSATMwHCQ7v56MRJLIjp9QPZMOgM6X/pub?output=csv">Basic 10</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTZEpBXKF8Rn67md2PhNTH4w-a0EG4ytYOuGdsjYSzSugSv3i3Q9SszT1OXeCYAt7HR4e2nAsO3bWp8/pub?output=csv">Basic 11</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vStq66g33WI6VxWrVx-l_eheqjxuOW2dYZTGDwQcxC4GrZpgUflUdUwuNqSiNTnyU4g8DklR2Cy7rOi/pub?output=csv">Terminologies</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRZDZq92XW_asvWanWZz0qqsB32f8XfJhxOR62bcfZDcGbvtX0LUbgRART2aiFdq59gIkT2A8Yu3zIS/pub?output=csv">Abbreviations</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vT8WHfGycBq4rjzcjbtNrQUV6H4oU-YdfYO9Ci8V_xsEuguPQXYXODCau-If4U_82BqLrliYKErXGkV/pub?output=csv">Incidents</option>
+<option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTXOLrIsbQ58dWOI6RDPQiJN27OCOvU_oeXFuH4wAHWHjo_oHQ-YKvepdJdZrABK6dlWA_tfT6l5CNN/pub?output=csv">conventions</option>
+<option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vT2pcMHMF2YXQ91J9XVEtX7jOiZxf28oQ3jA7RqOc6qTsrZsJsYLwhkVW1X1wKWoB5MygkrdWpfXVmA/pub?output=csv">Rules1937andAct1934</option>
+<option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQaql9xRL5KFtTQmEG9r0UfmsnZne1zqMpLKn8quvJXFs-1De9vcwo741Z-be4trXcOHp_NaP5YVGJ2/pub?output=csv">Circulars</option>
+<option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTPwf4tOTuIDTAJVDg6w7OL5T_y4RfWxdCy687Wqd0ZnsqTMmVcYqV-D6hLCmpQTiKBPKrNAyjCjQLR/pub?output=csv">Explosives</option>
+<option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQHAZU2pIQg0EM5wkypV6PiwbagA2-LweljvkfjW5SRhwHdR4eVYkIB19-d-rv3WXF3S9KpSyOykYv3/pub?output=csv">Module of 30 Q</option>
+<option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTCpUs74l9QITASGdd7wO9mIW5ifcYvA8OV-2UNTW2N0_vI3tWGpGjbj6TXQhNdbi9yccnQnI2-2yEK/pub?output=csv">Mod 1</option>
+<option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRstO_Vbz7RSytJgBKaTVNHi4Dp8bXsKR58Z3vpWJY_weK6wFqw88YqmLOFwRCbodAQXEOYtt_fkqjE/pub?output=csv">Mod 2</option>
+<option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRrJ0UfD-CvjdntSEm7TKHssI4Ui2Rylq-8R6E76iOgDm8M9AQgDhNo5EGsPmOzod7-HV7nW_4_e8gq/pub?output=csv">Mod 3</option>
+<option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTOAo2lp97mPkU63oD5nNxPbka4g2cJzTYcvN6bG6P535wrGs3UbXu5bbfeSdh0A5vny5Xq-qVtLot_/pub?output=csv">Mod 4</option>
+<option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vT6EbXzABp32AS4Ku7wbadAvjRPNa-Vwr_D1PrSZvVSDTQjW4IISoyKI5zkNiQggxcL5XDN6mOqJJ1k/pub?output=csv">Mod 5</option>
+<option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQfaFlkYOGovauithx2HGcg0R1vyK0hJsXu86Cjz2KMKcN0-GjGvUAb9ZVrBDaTIONmvGiIUnx_sP8a/pub?output=csv">Mod 6</option>
+<option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSkLEy6tGtzBHABNmdmc9-ZFBjhNObkVlNqZWXnG1SyPq19bYFJQI5gdJlgfppZyaV3uHlEKHpFqDG4/pub?output=csv">Mod 7</option>
+<option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRuTWEVJRYr-NsIrjKxdPsTaUblf7ZoLUL7CmGjEj9cvqaXopbzoszaOwW-Envs0vVjB563155wwREP/pub?output=csv">contingencyandrest</option>
+     <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRTsL8D-BXxylajwusK-O6afuasruhr04wmy-RpqDdVTDKYFRRShi9UR7GYk0pk2Z2yC_IfFDCUYwMF/pub?output=csv">ScreeingAndProfilingPlusRest</option>
+  <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRJo0G6_xDZUSnjhzYlli9lYlEgRXyeJ0uJTdORBWlzSDPBou2vfIKzVnRhFCk7FQttF99TjdtESGyk/pub?output=csv">MiscGeminiQuestions</option>
+<option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vSRvvLKsdFtaXwjxXuq1cFnacBC6KVUz_jZXlzXKjXXwbOJkyGUHlcMyPzHxEBjMn963Y8MWv0ga21a/pub?output=csv">MiscGeminiQuestions2</option>
+<option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRc2vqEgsOS08H2kzmD_hzcUUzLtvd8OGk4LOFrQfGt9i0XN3oy2QhJDB5ASbEGIbOgDIk3yljqMGhU/pub?output=csv">MiscGeminiQuestions3</option>
+<option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTcla7Z19956dwDbDC5DBaAUEjkZ86AnZI5d8hh75bBYBZi8Wywpn4Sz4O6OBCyk7rDWxdr8eyqi0_R/pub?output=csv">Rules2023</option>
+        <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vR-Wqco1ZH8FLR8iEjWH7PrWFQ-LQ2kLEzjZdDNMthVDJsqSJ8yuivLXX8qp8EetzqTElSuB1k7X5z_/pub?output=csv">ContigencyNew</option>
+
+ </select>
+    </div>
+
+    <div id="stats-container" class="sticky-stats-bar holographic-card rounded-xl p-4 mb-6">
+      <div class="flex flex-col sm:flex-row justify-between text-sm font-medium">
+        <span>Qs Attempted: <span id="stats-attempted" class="text-indigo-400">0</span></span>
+        <span>Correct: <span id="stats-correct" class="text-green-400">0</span></span>
+        <span>Incorrect: <span id="stats-incorrect" class="text-red-400">0</span></span>
+        <span>Accuracy: <span id="stats-accuracy" class="text-cyan-400">0%</span></span>
+      </div>
+    </div>
+    
+    <div id="loading-spinner" class="hidden flex justify-center items-center h-64">
+      <div class="loader"></div>
+    </div>
+    <div id="quiz-container" class="space-y-6"></div>
+
+    <div id="submit-btn-container" class="mt-6 hidden">
+      <button id="submit-quiz-btn" class="holographic-btn w-full text-center px-6 py-3 text-lg font-bold rounded-md">
+        Submit Quiz
+      </button>
+    </div>
+  </div>
+
+  <div id="results-modal" class="modal">
+    <div class="modal-content relative">
+      <span class="close-btn" id="close-modal-btn">&times;</span>
+      
+      <div class="flex flex-col sm:flex-row items-center sm:items-start justify-between mb-8">
+        <div class="text-left w-full sm:w-1/2 mb-6 sm:mb-0">
+          <h2 class="text-2xl font-bold text-gray-50 mb-2">Quiz Summary</h2>
+          <div class="space-y-2 text-lg">
+            <p>Score: <span id="modal-score" class="text-green-400">0/0</span></p>
+            <p>Correct: <span id="modal-correct" class="text-green-400">0</span></p>
+            <p>Incorrect: <span id="modal-incorrect" class="text-red-400">0</span></p>
+            <p>Unattempted: <span id="modal-unattempted" class="text-gray-400">0</span></p>
+          </div>
+        </div>
+        
+        <div class="flex-shrink-0 relative progress-circle">
+          <svg>
+            <circle class="bg-circle" cx="75" cy="75" r="70"></circle>
+            <circle id="progress-bar" class="progress-bar" cx="75" cy="75" r="70"></circle>
+          </svg>
+          <div id="final-percentage" class="percentage">0%</div>
+        </div>
+      </div>
+      
+      <hr class="border-gray-700 my-6">
+
+      <div class="flex flex-col sm:flex-row gap-4">
+        <button id="reset-btn" class="holographic-btn px-6 py-3 font-bold rounded-md flex-1">
+          Reset Quiz
+        </button>
+        <button id="reattempt-wrong-btn" class="holographic-btn px-6 py-3 font-bold rounded-md flex-1">
+          Reattempt Wrong/Unattempted
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const clean = (text) =>
+      (text || "").toString().replace(/\r?\n|\r/g, " ").replace(/\s+/g, " ").trim();
+
+    // Stats variables
+    let questionsAttempted = 0;
+    let correctAnswers = 0;
+    let incorrectAnswers = 0;
+    let totalQuestionsCount = 0; // New variable to track total questions
+    let allQuestions = []; // Store all questions
+    let wrongAndUnattemptedQuestions = []; // Store incorrect and unattempted questions
+
+    document.getElementById("sheetSelector").addEventListener("change", function () {
+      const url = this.value;
+      if (url) {
+        document.getElementById("quiz-container").innerHTML = ""; // Clear previous questions
+        document.getElementById("loading-spinner").classList.remove("hidden"); // Show spinner
+
+        // Reset stats and hide submit button when a new quiz is loaded
+        questionsAttempted = 0;
+        correctAnswers = 0;
+        incorrectAnswers = 0;
+        totalQuestionsCount = 0;
+        allQuestions = [];
+        wrongAndUnattemptedQuestions = [];
+        updateStats();
+        document.getElementById('submit-btn-container').classList.add('hidden');
+
+        loadQuestions(url);
+      }
+    });
+
+    /**
+     * Shuffles an array in place using the Fisher-Yates (Knuth) algorithm.
+     * @param {Array} array The array to shuffle.
+     */
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    async function loadQuestions(sheetUrl) {
+      try {
+        const res = await fetch(sheetUrl);
+        const csv = await res.text();
+
+        const parsed = Papa.parse(csv.trim(), {
+          header: true,
+          skipEmptyLines: true
+        });
+
+        const rows = parsed.data;
+
+        let questions = rows
+          .filter(row => row["English Question"] && row["Correct"])
+          .map((row, i) => ({
+            sno: clean(row["S.NO"]),
+            question: clean(row["English Question"]),
+            options: [
+              clean(row["Option 1"]),
+              clean(row["Option 2"]),
+              clean(row["Option 3"]),
+              clean(row["Option 4"]),
+            ],
+            correct: parseInt(clean(row["Correct"])) - 1,
+            answeredCorrectly: null, // Track if question was answered correctly, null if not attempted
+          }));
+
+        // Store all questions and total count
+        allQuestions = questions;
+        totalQuestionsCount = questions.length;
+
+        // Randomize the order of questions
+        shuffleArray(questions);
+
+        renderQuestions(questions);
+        document.getElementById('submit-btn-container').classList.remove('hidden');
+      } catch (error) {
+        document.getElementById("quiz-container").innerHTML =
+          `<p class="text-red-500">Error loading quiz. Please check the sheet format.</p>`;
+        console.error(error);
+      } finally {
+        document.getElementById("loading-spinner").classList.add("hidden"); // Hide spinner
+      }
+    }
+
+    function scrollToNextQuestion(currentCard) {
+      const nextCard = currentCard.nextElementSibling;
+      if (nextCard && nextCard.classList.contains('question-card')) {
+        nextCard.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
+    }
+
+    function updateStats() {
+      const accuracy = questionsAttempted > 0 ?
+        ((correctAnswers / questionsAttempted) * 100).toFixed(0) :
+        0;
+
+      document.getElementById('stats-attempted').textContent = questionsAttempted;
+      document.getElementById('stats-correct').textContent = correctAnswers;
+      document.getElementById('stats-incorrect').textContent = incorrectAnswers;
+      document.getElementById('stats-accuracy').textContent = `${accuracy}%`;
+    }
+
+    function renderQuestions(questions) {
+      const container = document.getElementById("quiz-container");
+      container.innerHTML = "";
+
+      questions.forEach((q, qIndex) => {
+        const card = document.createElement("div");
+        card.className = "holographic-card rounded-xl p-5 question-card transform transition-transform duration-300 hover:scale-[1.01]";
+        card.dataset.questionIndex = allQuestions.indexOf(q); // Store the original index
+
+        const questionEl = document.createElement("div");
+        questionEl.className = "font-semibold text-lg mb-4 text-white";
+        questionEl.textContent = `${qIndex + 1}. ${q.question}`;
+        card.appendChild(questionEl);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "grid gap-3";
+
+        const feedbackEl = document.createElement("div");
+        feedbackEl.className = "mt-3 text-md font-medium hidden";
+
+        q.options.forEach((opt, idx) => {
+          const btn = document.createElement("button");
+          btn.className =
+            "option-button holographic-btn w-full text-left px-4 py-2 rounded-md transition-colors";
+          btn.textContent = opt;
+
+          btn.onclick = () => {
+            // Check if question has already been answered
+            if (card.dataset.answered) return;
+            card.dataset.answered = true;
+
+            questionsAttempted++;
+
+            Array.from(optionsDiv.children).forEach((child) => {
+              child.disabled = true;
+              child.classList.add("cursor-not-allowed");
+              child.classList.remove("holographic-btn");
+              child.classList.remove("hover:bg-gray-700");
+            });
+
+            if (idx === q.correct) {
+              btn.classList.add("correct-answer");
+              feedbackEl.textContent = "Correct!";
+              feedbackEl.className = "mt-3 text-green-400 font-semibold";
+              correctAnswers++;
+              q.answeredCorrectly = true; // Mark question as correct
+              scrollToNextQuestion(card);
+            } else {
+              btn.classList.add("incorrect-answer");
+              optionsDiv.children[q.correct].classList.add("correct-answer");
+              feedbackEl.textContent = "Incorrect!";
+              feedbackEl.className = "mt-3 text-red-400 font-semibold";
+              incorrectAnswers++;
+              q.answeredCorrectly = false; // Mark question as incorrect
+            }
+            updateStats();
+          };
+
+          optionsDiv.appendChild(btn);
+        });
+
+        card.appendChild(optionsDiv);
+        card.appendChild(feedbackEl);
+        container.appendChild(card);
+      });
+    }
+
+    // New JavaScript for transparent header on scroll
+    window.addEventListener("scroll", () => {
+      const statsBar = document.getElementById('stats-container');
+      if (window.scrollY > 50) {
+        statsBar.classList.add('transparent-card');
+      } else {
+        statsBar.classList.remove('transparent-card');
+      }
+    });
+
+    // Handle quiz submission
+    document.getElementById('submit-quiz-btn').addEventListener('click', () => {
+      const modal = document.getElementById('results-modal');
+      const progressBar = document.getElementById('progress-bar');
+      const finalPercentageEl = document.getElementById('final-percentage');
+      const modalScoreEl = document.getElementById('modal-score');
+      const modalCorrectEl = document.getElementById('modal-correct');
+      const modalIncorrectEl = document.getElementById('modal-incorrect');
+      const modalUnattemptedEl = document.getElementById('modal-unattempted');
+
+      const unattempted = totalQuestionsCount - questionsAttempted;
+      const finalPercentage = totalQuestionsCount > 0 ? ((correctAnswers / totalQuestionsCount) * 100).toFixed(0) : 0;
+
+      // Update modal content
+      modalScoreEl.textContent = `${correctAnswers}/${totalQuestionsCount}`;
+      modalCorrectEl.textContent = correctAnswers;
+      modalIncorrectEl.textContent = incorrectAnswers;
+      modalUnattemptedEl.textContent = unattempted;
+      finalPercentageEl.textContent = `${finalPercentage}%`;
+
+      // Update the progress circle
+      const circumference = 2 * Math.PI * 70; // 2 * pi * r
+      const offset = circumference - (finalPercentage / 100) * circumference;
+      progressBar.style.strokeDashoffset = offset;
+      progressBar.style.stroke = finalPercentage >= 50 ? '#10b981' : '#ef4444'; // Green for pass, red for fail
+      finalPercentageEl.style.color = finalPercentage >= 50 ? '#10b981' : '#ef4444';
+
+      // Collect wrong and unattempted questions for reattempt
+      wrongAndUnattemptedQuestions = allQuestions.filter(q => q.answeredCorrectly === false || q.answeredCorrectly === null);
+      
+      modal.classList.add('show');
+      modal.style.display = 'block';
+    });
+
+    // Handle dialog buttons
+    document.getElementById('close-modal-btn').addEventListener('click', () => {
+      const modal = document.getElementById('results-modal');
+      modal.classList.remove('show');
+      setTimeout(() => {
+        modal.style.display = 'none';
+      }, 300); // Wait for the transition to finish
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      window.location.reload(); // Reload the page to start over
+    });
+
+    document.getElementById('reattempt-wrong-btn').addEventListener('click', () => {
+      const modal = document.getElementById('results-modal');
+      modal.classList.remove('show');
+      setTimeout(() => {
+        modal.style.display = 'none';
+      }, 300);
+
+      if (wrongAndUnattemptedQuestions.length > 0) {
+        // Reset stats for the reattempt
+        questionsAttempted = 0;
+        correctAnswers = 0;
+        incorrectAnswers = 0;
+        updateStats();
+
+        // Hide the submit button and show loading spinner while re-rendering
+        document.getElementById('submit-btn-container').classList.add('hidden');
+        document.getElementById("loading-spinner").classList.remove("hidden");
+
+        // Filter and re-render only the wrong and unattempted questions
+        // Shuffle them for a fresh attempt
+        shuffleArray(wrongAndUnattemptedQuestions);
+        renderQuestions(wrongAndUnattemptedQuestions);
+        
+        // Update the total question count for the new set
+        totalQuestionsCount = wrongAndUnattemptedQuestions.length;
+
+        // Show the submit button again after re-rendering
+        document.getElementById('submit-btn-container').classList.remove('hidden');
+        document.getElementById("loading-spinner").classList.add("hidden");
+
+        // Scroll to the top of the page
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+      } else {
+        alert("Great job! You got all the questions right. No wrong or unattempted questions to reattempt.");
+      }
+    });
+  </script>
+</body>
+</html>
