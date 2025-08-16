@@ -92,7 +92,7 @@
     </div>
     
     <div id="mainSection" class="p-4 grid grid-cols-2 gap-4 flex-grow">
-        </div>
+    </div>
 
     <div id="insightsSection" class="hidden p-4 space-y-6 flex-grow">
         <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
@@ -130,7 +130,7 @@
             </div>
             
             <div id="dashboardStats" class="grid grid-cols-2 gap-4 w-full md:w-auto">
-                </div>
+            </div>
         </div>
 
         <div class="bg-gray-800 p-6 rounded-2xl shadow-xl space-y-4">
@@ -138,7 +138,7 @@
                 <i data-lucide="line-chart" class="h-5 w-5 text-indigo-400"></i> Quiz Accuracy
             </h3>
             <div id="quizBarChart" class="flex items-end justify-around h-40 space-x-2 w-full text-xs">
-                </div>
+            </div>
             <p id="chartMessage" class="text-center text-gray-400 hidden">Start a quiz to see your progress!</p>
         </div>
 
@@ -171,7 +171,7 @@
         </div>
 
         <div id="questionsContainer" class="space-y-8 w-full max-w-2xl">
-            </div>
+        </div>
 
         <button id="submitQuizBtn" class="mt-6 bg-indigo-600 px-8 py-3 rounded-full font-semibold hover:bg-indigo-700 transition-colors duration-200">
             Submit Quiz
@@ -181,7 +181,7 @@
     <div id="mixQuizModal" class="message-box hidden bg-gray-800 p-6 rounded-2xl shadow-xl w-full max-w-lg">
         <h3 class="text-2xl font-bold mb-4 text-center">Select Quizzes to Mix</h3>
         <div id="quizList" class="max-h-80 overflow-y-auto mb-4 p-2 rounded-md bg-gray-700 space-y-2">
-            </div>
+        </div>
         <div class="flex justify-center gap-4 mt-6">
             <button id="startMixQuizBtn" class="bg-indigo-600 px-6 py-2 rounded-full font-semibold hover:bg-indigo-700 transition-colors duration-200">Start Mix Quiz (100 Qs)</button>
             <button id="cancelMixQuizBtn" class="bg-gray-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-700 transition-colors duration-200">Cancel</button>
@@ -222,7 +222,7 @@
             <p class="text-xl font-bold">Score: <span id="summaryScore" class="font-bold text-indigo-400">0/0</span></p>
             <p class="text-xl font-bold">Correct: <span id="summaryCorrect" class="font-bold text-green-400">0</span></p>
             <p class="text-xl font-bold">Incorrect: <span id="summaryIncorrect" class="font-bold text-red-400">0</span></p>
-            <p class="text-xl font-bold">Unattempted: <span id="summaryUnattempted" class="font-bold text-yellow-400">0</span></p>
+            <p class="text-xl font-bold">Unattempted: <span class="font-bold text-yellow-400">0</span></p>
         </div>
         <div class="flex flex-col md:flex-row justify-center gap-4 mt-6">
             <button id="resetQuizBtn" class="bg-gray-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-700 transition-colors duration-200">Reset Quiz</button>
@@ -337,7 +337,6 @@
             renderQuizCards();
             lucide.createIcons();
         });
-
         // Function to show custom message box
         function showMessageBox(message) {
             messageText.textContent = message;
@@ -354,7 +353,13 @@
             const allQuizzes = [...quizzes, { name: "Mixed Quiz", url: "" }];
             allQuizzes.forEach(q => {
                 const stats = JSON.parse(localStorage.getItem(q.name + "_stats")) || { attempted: 0, correct: 0, total: 0 };
-                const progress = JSON.parse(localStorage.getItem(q.name + "_progress"));
+                let progress = null;
+                try {
+                    progress = JSON.parse(localStorage.getItem(q.name + "_progress"));
+                } catch (e) {
+                    console.error("Failed to parse progress data. Starting new quiz.", e);
+                    localStorage.removeItem(q.name + "_progress");
+                }
                 const accuracy = stats.attempted ? Math.round((stats.correct / stats.attempted) * 100) : 0;
                 
                 let cardClass = "bg-gray-800";
@@ -382,10 +387,10 @@
                 const card = document.createElement("div");
                 card.className = `${cardClass} p-4 rounded-xl shadow-lg flex flex-col justify-between transform transition-transform hover:scale-105`;
                 
-                const buttonHtml = buttonText ? `
+                const buttonHtml = buttonText ?
+                `
                     <button class="flex-1 bg-indigo-600 py-1 rounded-full hover:bg-indigo-700 transition-colors duration-200">${buttonText}</button>
                 ` : `<span class="text-xs text-gray-400">Use "Mix Quiz" button above</span>`;
-
                 card.innerHTML = `
                     <h2 class="text-sm md:text-md font-bold mb-2 truncate"><i data-lucide="file-text" class="inline-block mr-1 h-4 w-4 text-purple-400"></i> ${q.name}</h2>
                     <div class="text-xs text-gray-400 mb-4">
@@ -419,36 +424,57 @@
         }
 
         function parseCSV(text) {
-            const lines = text.split('\n').filter(line => line.trim() !== '');
-            if (lines.length <= 1) return [];
-            
+            // Normalize newlines and split into lines, filtering out empty ones
+            const lines = text.replace(/\r\n/g, '\n').split('\n').filter(line => line.trim() !== '');
+            if (lines.length <= 1) return []; // Only header row
+
             const questions = [];
+            
+            // Start from the second line to skip the header
             for (let i = 1; i < lines.length; i++) {
-                const line = lines[i];
+                let line = lines[i];
+                if (line.trim() === '') continue;
+
                 const fields = [];
                 let inQuote = false;
-                let currentField = '';
+                let field = '';
+
                 for (let j = 0; j < line.length; j++) {
                     const char = line[j];
-                    if (char === '"') {
+                    const nextChar = line[j + 1];
+
+                    // Handle escaped quotes `""` inside a quoted field
+                    if (char === '"' && inQuote && nextChar === '"') {
+                        field += '"';
+                        j++; // Skip the next character
+                    } else if (char === '"') {
+                        // Toggle quote state
                         inQuote = !inQuote;
                     } else if (char === ',' && !inQuote) {
-                        fields.push(currentField.trim());
-                        currentField = '';
+                        // End of a field
+                        fields.push(field.trim());
+                        field = '';
                     } else {
-                        currentField += char;
+                        field += char;
                     }
                 }
-                fields.push(currentField.trim());
+                // Push the last field
+                fields.push(field.trim());
 
-                if (fields.length >= 7) { 
-                    questions.push({
-                        question: fields[1], 
-                        options: [fields[2], fields[3], fields[4], fields[5]].filter(o => o !== ''),
-                        answer: fields[6],
-                        userAnswer: null, // Add a property to store the user's answer
-                        isCorrect: null   // Add a property to store if the answer was correct
-                    });
+                // Assuming a question has at least 7 columns (index 0 to 6)
+                // Check for the minimum required fields
+                if (fields.length >= 7) {
+                    const questionText = fields[1];
+                    // Ensure the question text is not empty
+                    if (questionText.trim() !== '') {
+                        questions.push({
+                            question: questionText,
+                            options: [fields[2], fields[3], fields[4], fields[5]].filter(o => o.trim() !== ''),
+                            answer: fields[6],
+                            userAnswer: null,
+                            isCorrect: null
+                        });
+                    }
                 }
             }
             return questions;
@@ -457,8 +483,15 @@
         async function startQuiz(name, url, isNewStart = false) {
             currentQuizName = name;
             
-            const savedProgress = JSON.parse(localStorage.getItem(currentQuizName + "_progress"));
-            let lastQuestionIndex = 0; // Default to first question
+            let savedProgress = null;
+            try {
+                savedProgress = JSON.parse(localStorage.getItem(currentQuizName + "_progress"));
+            } catch (e) {
+                console.error("Failed to parse progress data. Starting new quiz.", e);
+                localStorage.removeItem(currentQuizName + "_progress");
+            }
+            
+            let lastQuestionIndex = 0;
             
             if (isNewStart || !savedProgress) {
                 loadingOverlay.style.display = 'flex';
@@ -470,11 +503,9 @@
                     return;
                 }
 
-                // Randomize the order of questions
                 shuffleArray(data);
-                
                 quizQuestions = data;
-                originalQuizData = JSON.parse(JSON.stringify(data)); // Deep copy for reattempts
+                originalQuizData = JSON.parse(JSON.stringify(data));
                 totalQuestions = quizQuestions.length;
                 score = 0;
                 mistakes = [];
@@ -482,12 +513,13 @@
                 localStorage.removeItem(currentQuizName + "_progress");
             } else {
                 quizQuestions = savedProgress.quizQuestions;
-                originalQuizData = savedProgress.originalQuizData;
+                // Use the loaded quizQuestions as the source of truth
+                originalQuizData = quizQuestions; 
                 totalQuestions = savedProgress.totalQuestions;
                 score = savedProgress.score;
                 mistakes = savedProgress.mistakes;
                 attemptedCount = savedProgress.attemptedCount;
-                lastQuestionIndex = attemptedCount; // Set scroll position to the last attempted question
+                lastQuestionIndex = attemptedCount;
             }
             
             mainSection.classList.add('hidden');
@@ -499,7 +531,6 @@
             renderQuestions();
             updateStatusBar();
 
-            // Auto-scroll to the last attempted question on resume
             if (!isNewStart && lastQuestionIndex > 0) {
                 setTimeout(() => {
                     const lastQuestionCard = document.getElementById(`question-card-${lastQuestionIndex - 1}`);
@@ -508,14 +539,15 @@
                     }
                 }, 100);
             } else {
-                window.scrollTo(0, 0); // Scroll to top for new quiz
+                window.scrollTo(0, 0);
             }
         }
 
         function saveProgress() {
+            // Save only the essential data to prevent exceeding local storage limits.
+            // originalQuizData is no longer needed as a separate object.
             const progress = {
                 quizQuestions: quizQuestions,
-                originalQuizData: originalQuizData,
                 score: score,
                 mistakes: mistakes,
                 attemptedCount: attemptedCount,
@@ -567,8 +599,6 @@
                 questionCard.appendChild(optionsContainer);
                 questionCard.appendChild(feedback);
                 questionsContainer.appendChild(questionCard);
-
-                // If a question was previously answered, re-render its state
                 if (q.userAnswer) {
                     const selectedBtn = Array.from(optionsContainer.querySelectorAll('.option-btn')).find(btn => btn.textContent === q.userAnswer);
                     if (selectedBtn) {
@@ -585,8 +615,6 @@
             const questionCard = selectedBtn.closest('.question-card');
             const optionButtons = questionCard.querySelectorAll('.option-btn');
             const feedbackEl = questionCard.querySelector('[id^="feedback-"]');
-            
-            // If question is already answered, do nothing
             const alreadyAnswered = originalQ.userAnswer !== null;
             if (alreadyAnswered && !isResume) {
                 return;
@@ -600,11 +628,9 @@
             }
             
             const isCorrect = (userAnswer === actualCorrectAnswer);
-            
             originalQ.userAnswer = userAnswer;
             originalQ.isCorrect = isCorrect;
             
-            // Recalculate stats based on the ORIGINAL quiz data
             score = originalQuizData.filter(q => q.isCorrect).length;
             mistakes = originalQuizData.filter(q => q.userAnswer && !q.isCorrect).map(q => ({
                 question: q.question,
@@ -613,7 +639,6 @@
             }));
             attemptedCount = originalQuizData.filter(q => q.userAnswer).length;
             
-            // Visually update UI
             optionButtons.forEach(btn => {
                 if (btn.textContent === actualCorrectAnswer) {
                     btn.classList.add('bg-green-600');
@@ -624,7 +649,6 @@
                 }
                 btn.disabled = true;
             });
-
             feedbackEl.classList.remove('hidden');
             if (isCorrect) {
                 feedbackEl.textContent = 'Correct!';
@@ -636,7 +660,6 @@
                 feedbackEl.classList.add('text-red-400');
             }
 
-            // Update status bar based on the original data
             updateStatusBar();
             updateInsightsData(currentQuizName, {
                 attempted: attemptedCount,
@@ -686,10 +709,7 @@
             fullStats.unattempted = stats.unattempted;
             
             localStorage.setItem(name + "_stats", JSON.stringify(fullStats));
-            
-            // Update mistake count in stats
             fullStats.mistakes = mistakes.length;
-
             if (name !== 'Mixed Quiz') {
                 localStorage.setItem(name + "_mistakes", JSON.stringify(mistakes));
             }
@@ -705,10 +725,8 @@
                 total: totalQuestions,
                 attempted: originalQuizData.filter(q => q.userAnswer).length
             };
-
             updateInsightsData(currentQuizName, finalStats);
             
-            // Populate summary modal
             summaryScoreEl.textContent = `${finalStats.correct}/${finalStats.total}`;
             summaryCorrectEl.textContent = finalStats.correct;
             summaryIncorrectEl.textContent = finalStats.incorrect;
@@ -722,7 +740,6 @@
             summaryProgressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
             summaryProgressCircle.style.strokeDashoffset = offset;
 
-            // Show the modal
             quizSummaryModal.classList.remove('hidden');
             quizSection.classList.add('hidden');
             navbar.classList.remove('hidden');
@@ -738,9 +755,7 @@
             let totalQ = 0, totalA = 0, totalC = 0;
 
             const quizAccuracies = [];
-
             const allQuizData = [...quizzes, { name: "Mixed Quiz", url: "" }];
-
             allQuizData.forEach(q => {
                 const s = JSON.parse(localStorage.getItem(q.name + "_stats")) || {};
                 if (s.total > 0) {
@@ -779,14 +794,12 @@
             progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
             progressCircle.style.strokeDashoffset = offset;
             overallAccuracySpan.textContent = `${overallAccuracy}%`;
-
             const stats = [
                 { title: 'Quizzes', value: attemptedQuizzes, icon: 'check-circle', color: 'text-green-400' },
                 { title: 'Questions', value: totalA, icon: 'help-circle', color: 'text-yellow-400' },
                 { title: 'Correct', value: totalC, icon: 'award', color: 'text-indigo-400' },
                 { title: 'Incorrect', value: totalA - totalC, icon: 'x-circle', color: 'text-red-400' }
             ];
-
             dashboardStats.innerHTML = stats.map(s => `
                 <div class="bg-gray-700 p-4 rounded-xl shadow-md flex flex-col items-start justify-center text-left space-y-1">
                     <i data-lucide="${s.icon}" class="h-6 w-6 ${s.color}"></i>
@@ -794,7 +807,6 @@
                     <p class="text-gray-400 text-sm">${s.title}</p>
                 </div>
             `).join('');
-            
             lucide.createIcons();
         }
 
@@ -830,7 +842,6 @@
                 mistakesContainer.appendChild(box);
             });
         });
-
         insightsBtn.onclick = () => {
             const showingInsights = !insightsSection.classList.contains("hidden");
             if (showingInsights) {
@@ -847,7 +858,6 @@
                 lucide.createIcons();
             }
         };
-
         backBtn.onclick = () => {
             saveProgress();
             quizSection.classList.add('hidden');
@@ -866,15 +876,12 @@
             insightsBtn.innerHTML = `<i data-lucide="bar-chart-3" class="h-4 w-4"></i> Insights`;
             lucide.createIcons();
         };
-        
         submitQuizBtn.onclick = () => {
             endQuiz();
         };
-
         closeSummaryModalBtn.onclick = () => {
             quizSummaryModal.classList.add('hidden');
         };
-
         resetQuizBtn.onclick = () => {
             quizSummaryModal.classList.add('hidden');
             startQuiz(currentQuizName, quizzes.find(q => q.name === currentQuizName).url, true);
@@ -887,19 +894,13 @@
 
         confirmReattemptBtn.onclick = () => {
             reattemptModal.classList.add('hidden');
-            
-            // Get the latest progress from local storage
             const fullProgress = JSON.parse(localStorage.getItem(currentQuizName + "_progress"));
             const originalQuizQuestions = fullProgress.originalQuizData;
             
-            // Filter for only wrong and unattempted questions from the ORIGINAL set
             const wrongAndUnattempted = originalQuizQuestions.filter(q => q.userAnswer === null || !q.isCorrect);
             shuffleArray(wrongAndUnattempted);
 
-            // Set the current quiz session to these questions
             quizQuestions = wrongAndUnattempted;
-            
-            // Update stats based on the full progress
             score = fullProgress.score;
             mistakes = fullProgress.mistakes;
             attemptedCount = fullProgress.attemptedCount;
@@ -915,12 +916,10 @@
             updateStatusBar();
             window.scrollTo(0, 0);
         };
-
         cancelReattemptBtn.onclick = () => {
             reattemptModal.classList.add('hidden');
             quizSummaryModal.classList.remove('hidden');
         };
-
         quitQuizBtnSummary.onclick = () => {
             saveProgress();
             quizSection.classList.add('hidden');
@@ -949,7 +948,6 @@
         cancelMixQuizBtn.onclick = () => {
             mixQuizModal.classList.add('hidden');
         };
-
         startMixQuizBtn.onclick = async () => {
             const selectedQuizzes = Array.from(document.querySelectorAll('input[name="quiz-select"]:checked'));
             if (selectedQuizzes.length === 0) {
@@ -959,11 +957,9 @@
 
             mixQuizModal.classList.add('hidden');
             loadingOverlay.style.display = 'flex';
-
             const allQuestions = [];
             const questionsPerQuiz = Math.floor(100 / selectedQuizzes.length);
             let remainingQuestions = 100 % selectedQuizzes.length;
-            
             for (const checkbox of selectedQuizzes) {
                 const quizUrl = checkbox.dataset.url;
                 const questions = await fetchQuizData(quizUrl);
@@ -980,7 +976,6 @@
             }
 
             shuffleArray(allQuestions);
-
             loadingOverlay.style.display = 'none';
 
             currentQuizName = 'Mixed Quiz';
