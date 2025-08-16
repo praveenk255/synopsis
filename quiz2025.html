@@ -709,7 +709,7 @@
                 setTimeout(() => {
                     const nextQuestionCard = document.getElementById(`question-card-${questionIndex + 1}`);
                     if (nextQuestionCard) {
-                        nextQuestionCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        nextQuestionCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                 }, 500); // Wait for a moment before scrolling
             }
@@ -859,6 +859,20 @@
             updateStatusBar();
             window.scrollTo(0, 0);
         });
+
+        function openMixQuizModal() {
+            quizList.innerHTML = '';
+            quizzes.forEach(q => {
+                const quizItem = document.createElement('div');
+                quizItem.className = 'flex items-center gap-2 text-white';
+                quizItem.innerHTML = `
+                    <input type="checkbox" id="mix-${q.name}" data-name="${q.name}" class="form-checkbox text-indigo-600 bg-gray-600 border-gray-500 rounded focus:ring-indigo-500">
+                    <label for="mix-${q.name}" class="text-sm font-medium">${q.name}</label>
+                `;
+                quizList.appendChild(quizItem);
+            });
+            mixQuizModal.classList.remove('hidden');
+        }
 
         function showQuizSummary() {
             const unattemptedCount = totalQuestions - attemptedCount;
