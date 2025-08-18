@@ -8,20 +8,24 @@
     <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
         body {
             font-family: 'Poppins', sans-serif;
         }
+
         /* Custom styles for the progress ring SVG */
         .progress-ring__circle {
             transition: stroke-dashoffset 0.35s;
             transform: rotate(-90deg);
             transform-origin: 50% 50%;
         }
+
         /* Style for the answer buttons */
         .option-btn.selected {
             background-color: #4a5568;
             border: 2px solid #6366f1;
         }
+
         /* Style for the message box and modals */
         .message-box {
             position: fixed;
@@ -30,12 +34,14 @@
             transform: translate(-50%, -50%);
             z-index: 50;
         }
+
         /* Sticky header */
         #quizStatusBar.sticky-top {
             position: sticky;
             top: 0;
             z-index: 20;
         }
+
         /* Style for the bar chart */
         .bar {
             background-color: #4f46e5;
@@ -43,6 +49,7 @@
             min-height: 5px;
             border-radius: 4px;
         }
+
         /* Loading spinner */
         .spinner {
             border: 4px solid rgba(255, 255, 255, 0.1);
@@ -52,10 +59,12 @@
             border-left-color: #6366f1;
             animation: spin 1s ease infinite;
         }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
         #loadingOverlay {
             position: fixed;
             top: 0;
@@ -68,6 +77,73 @@
             align-items: center;
             z-index: 60;
             display: none; /* Hidden by default */
+        }
+
+        /* New styles for the scrollable chart container */
+        #barChartContainer {
+            overflow-x: scroll;
+            padding-bottom: 20px;
+        }
+
+        #quizBarChart {
+            display: flex;
+            gap: 1rem;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            min-width: 100%;
+        }
+
+        .bar-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            flex-shrink: 0;
+            width: 20%;
+            position: relative;
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            width: max-content;
+            white-space: nowrap;
+            color: #9ca3af;
+            font-size: 10px;
+        }
+
+        .bar-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 8px;
+            padding: 4px 8px;
+            background-color: #374151;
+            color: #fff;
+            font-size: 12px;
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .bar-container:hover .bar-tooltip {
+            opacity: 1;
+        }
+
+        .btn-red {
+            background-color: #dc2626;
+            color: #fff;
+            transition: background-color 0.2s;
+        }
+
+        .btn-red:hover {
+            background-color: #b91c1c;
         }
     </style>
 </head>
@@ -93,7 +169,7 @@
             </button>
         </div>
     </div>
-    
+
     <div id="mainSection" class="p-4 grid grid-cols-2 gap-4 flex-grow">
     </div>
 
@@ -105,7 +181,7 @@
         <div class="bg-gray-800 p-6 rounded-2xl shadow-xl flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-8">
             <div class="relative w-40 h-40 flex-shrink-0">
                 <svg class="w-full h-full" viewBox="0 0 100 100">
-                    <circle 
+                    <circle
                         class="text-gray-700"
                         stroke-width="10"
                         stroke="currentColor"
@@ -131,8 +207,8 @@
                     <span class="text-sm text-gray-400">Overall Accuracy</span>
                 </div>
             </div>
-            
-            <div id="dashboardStats" class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full md:w-auto">
+
+            <div id="dashboardStats" class="grid grid-cols-1 md:grid-cols-4 gap-4 w-full md:w-auto">
             </div>
         </div>
 
@@ -140,7 +216,9 @@
             <h3 class="text-xl font-bold flex items-center gap-2">
                 <i data-lucide="line-chart" class="h-5 w-5 text-indigo-400"></i> Quiz Accuracy (Per Quiz)
             </h3>
-            <div id="quizBarChart" class="flex items-end justify-around h-40 space-x-2 w-full text-xs">
+            <div id="barChartContainer">
+                <div id="quizBarChart" class="flex items-end h-40 w-full text-xs">
+                </div>
             </div>
             <p id="chartMessage" class="text-center text-gray-400 hidden">Start a quiz to see your progress!</p>
         </div>
@@ -152,6 +230,7 @@
             <select id="mistakesQuizSelector" class="w-full mb-4 px-3 py-2 rounded-lg text-black bg-gray-200">
                 <option value="">-- Select Quiz --</option>
             </select>
+
             <div id="mistakesContainer" class="space-y-4"></div>
         </div>
 
@@ -160,11 +239,8 @@
         </button>
     </div>
 
-    <div id="quizSection" class="hidden p-6 space-y-6 flex-grow flex flex-col items-center justify-center">
+    <div id="quizSection" class="hidden p-6 space-y-6 flex-grow flex flex-col items-center justify-center mb-20">
         <div id="quizStatusBar" class="hidden bg-gray-800 bg-opacity-50 p-2 rounded-xl shadow-lg w-full max-w-4xl mb-6 flex items-center text-sm sticky-top">
-            <button id="backBtn" class="bg-gray-600 p-2 rounded-full hover:bg-gray-700 transition-colors duration-200">
-                <i data-lucide="chevron-left" class="h-5 w-5 text-white"></i>
-            </button>
             <div class="flex-grow flex justify-around items-center">
                 <p>Qs: <span id="qsAttempted" class="font-bold text-indigo-400">0</span></p>
                 <p>Correct: <span id="qsCorrect" class="font-bold text-green-400">0</span></p>
@@ -176,9 +252,26 @@
         <div id="questionsContainer" class="space-y-8 w-full max-w-2xl">
         </div>
 
-        <button id="submitQuizBtn" class="mt-6 bg-indigo-600 px-8 py-3 rounded-full font-semibold hover:bg-indigo-700 transition-colors duration-200">
+        <button id="submitQuizBtn" class="hidden mt-6 bg-indigo-600 px-8 py-3 rounded-full font-semibold hover:bg-indigo-700 transition-colors duration-200">
             Submit Quiz
         </button>
+    </div>
+
+    <div class="fixed bottom-0 left-0 w-full flex justify-center z-20">
+        <div id="bottomNavBar" class="hidden bg-gray-800 bg-opacity-50 p-2 rounded-xl shadow-lg w-full max-w-4xl flex justify-between items-center">
+            <div class="flex items-center gap-2 text-sm text-gray-300">
+                <i data-lucide="clock" class="h-5 w-5 text-indigo-400"></i>
+                <span id="timerDisplay">00:00</span>
+            </div>
+            <div class="flex gap-2">
+                <button id="quitQuizBtn" class="btn-red px-4 py-2 rounded-full font-semibold flex items-center gap-1">
+                    <i data-lucide="x-square" class="h-4 w-4"></i> Quit
+                </button>
+                <button id="submitQuizBtnBottom" class="bg-indigo-600 px-4 py-2 rounded-full font-semibold hover:bg-indigo-700 transition-colors duration-200 flex items-center gap-1">
+                    <i data-lucide="check" class="h-4 w-4"></i> Submit
+                </button>
+            </div>
+        </div>
     </div>
 
     <div id="mixQuizModal" class="message-box hidden bg-gray-800 p-6 rounded-2xl shadow-xl w-full max-w-lg">
@@ -230,10 +323,8 @@
         <div class="flex flex-col md:flex-row justify-center gap-4 mt-6">
             <button id="resetQuizBtn" class="bg-gray-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-700 transition-colors duration-200">Reset Quiz</button>
             <button id="reattemptWrongBtn" class="bg-indigo-600 px-6 py-2 rounded-full font-semibold hover:bg-indigo-700 transition-colors duration-200">Reattempt Wrong/Unattempted</button>
-            <button id="quitQuizBtn" class="bg-red-600 px-6 py-2 rounded-full font-semibold hover:bg-red-700 transition-colors duration-200">Quit Quiz</button>
         </div>
     </div>
-
     <script>
         // Data for quizzes
         const quizzes = [
@@ -270,6 +361,7 @@
             { "name": "Rules2023", "url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcla7Z19956dwDbDC5DBaAUEjkZ86AnZI5d8hh75bBYBZi8Wywpn4Sz4O6OBCyk7rDWxdr8eyqi0_R/pub?output=csv" },
             { "name": "ContingencyNew", "url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR-Wqco1ZH8FLR8iEjWH7PrWFQ-LQ2kLEzjZdDNMthVDJsqSJ8yuivLXX8qp8EetzqTElSuB1k7X5z_/pub?output=csv" }
         ];
+
         // Get DOM elements
         const navbar = document.getElementById("navbar");
         const mainSection = document.getElementById("mainSection");
@@ -317,6 +409,44 @@
         const quitQuizBtnSummary = document.getElementById("quitQuizBtn");
         const loadingOverlay = document.getElementById("loadingOverlay");
 
+        // New DOM elements for bottom nav bar
+        const bottomNavBar = document.getElementById("bottomNavBar");
+        const timerDisplay = document.getElementById("timerDisplay");
+        const submitQuizBtnBottom = document.getElementById("submitQuizBtnBottom");
+        const quitQuizBtn = document.getElementById("quitQuizBtn");
+
+        // New DOM elements for scrolling
+        const chartContainer = document.getElementById("barChartContainer");
+
+        // New buttons for scrolling in the bar chart
+        const scrollLeftBtn = document.createElement('button');
+        scrollLeftBtn.innerHTML = '<i data-lucide="chevron-left" class="h-4 w-4"></i>';
+        scrollLeftBtn.className = 'bg-gray-700 text-white p-2 rounded-full absolute left-0 top-1/2 transform -translate-y-1/2 -ml-4 z-10 hidden';
+
+        const scrollRightBtn = document.createElement('button');
+        scrollRightBtn.innerHTML = '<i data-lucide="chevron-right" class="h-4 w-4"></i>';
+        scrollRightBtn.className = 'bg-gray-700 text-white p-2 rounded-full absolute right-0 top-1/2 transform -translate-y-1/2 -mr-4 z-10 hidden';
+
+        const barChartParent = document.getElementById('barChartContainer').parentNode;
+        barChartParent.style.position = 'relative';
+        barChartParent.appendChild(scrollLeftBtn);
+        barChartParent.appendChild(scrollRightBtn);
+
+        let currentScrollPos = 0;
+        const scrollAmount = 200; // Adjust scroll distance as needed
+
+        scrollLeftBtn.addEventListener('click', () => {
+            chartContainer.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        });
+
+        scrollRightBtn.addEventListener('click', () => {
+            chartContainer.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        });
+
+        chartContainer.addEventListener('scroll', () => {
+            checkScrollButtons();
+        });
+
         // State variables for the current quiz
         let currentQuizName = '';
         let quizQuestions = [];
@@ -325,6 +455,8 @@
         let attemptedCount = 0;
         let totalQuestions = 0;
         let allQuizzesData = {}; // Stores all fetched quiz data
+        let timerInterval;
+        let quizStartTime;
 
         // Utility function to shuffle an array
         function shuffleArray(array) {
@@ -342,13 +474,32 @@
             lucide.createIcons();
         });
 
+        function startTimer() {
+            quizStartTime = Date.now();
+            timerInterval = setInterval(() => {
+                const elapsedTime = Date.now() - quizStartTime;
+                const minutes = Math.floor(elapsedTime / 60000);
+                const seconds = Math.floor((elapsedTime % 60000) / 1000);
+                timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
         async function fetchAllQuizData() {
             loadingOverlay.style.display = 'flex';
             const fetchPromises = quizzes.map(async q => {
-                const data = await fetchQuizData(q.url);
-                return { name: q.name, data };
+                try {
+                    const data = await fetchQuizData(q.url);
+                    return { name: q.name, data };
+                } catch (error) {
+                    console.error(`Failed to load quiz ${q.name}:`, error);
+                    // Optionally, show a non-blocking alert or log
+                    return { name: q.name, data: null };
+                }
             });
-
             const results = await Promise.all(fetchPromises);
             results.forEach(result => {
                 if (result.data) {
@@ -372,7 +523,6 @@
         function renderQuizCards() {
             mainSection.innerHTML = "";
             const allQuizzes = [...quizzes, { name: "Mixed Quiz", url: "" }];
-
             allQuizzes.forEach(q => {
                 let total, attempted, correct, progress;
 
@@ -387,8 +537,8 @@
                     const progressData = JSON.parse(localStorage.getItem(q.name + "_progress"));
 
                     if (data) {
-                         const stats = { attempted: progressData ? progressData.attemptedCount : 0, correct: progressData ? progressData.score : 0, total: data.length };
-                         localStorage.setItem(q.name + "_stats", JSON.stringify(stats));
+                        const stats = { attempted: progressData ? progressData.attemptedCount : 0, correct: progressData ? progressData.score : 0, total: data.length };
+                        localStorage.setItem(q.name + "_stats", JSON.stringify(stats));
                     }
                     const stats = JSON.parse(localStorage.getItem(q.name + "_stats"));
                     total = stats ? stats.total : 0;
@@ -398,12 +548,11 @@
                 }
 
                 const accuracy = attempted ? Math.round((correct / attempted) * 100) : 0;
-                
+
                 const card = document.createElement("div");
                 card.className = "bg-gray-800 p-4 rounded-xl shadow-lg flex flex-col justify-between transform transition-transform hover:scale-105";
                 let buttonHtml;
                 let buttonAction;
-                
                 if (progress && progress.attemptedCount > 0 && progress.attemptedCount < progress.totalQuestions) {
                     buttonHtml = `<button class="resumeBtn flex-1 bg-indigo-600 py-1 rounded-full hover:bg-indigo-700 transition-colors duration-200">Resume</button>`;
                     buttonAction = () => startQuiz(q.name);
@@ -427,7 +576,10 @@
                 `;
                 mainSection.appendChild(card);
                 if (q.name !== "Mixed Quiz") {
-                    card.querySelector("button").onclick = buttonAction;
+                    const buttonElement = card.querySelector("button");
+                    if (buttonElement) {
+                        buttonElement.onclick = buttonAction;
+                    }
                 }
             });
             lucide.createIcons();
@@ -443,7 +595,7 @@
                 return parseCSV(csvText);
             } catch (error) {
                 showMessageBox(`Failed to load quiz data: ${error.message}`);
-                return null;
+                throw error; // Re-throw to be caught by the parent function
             }
         }
 
@@ -491,7 +643,6 @@
             
             if (isNewStart || !savedProgress) {
                 const data = allQuizzesData[name];
-
                 if (!data || data.length === 0) {
                     showMessageBox("No questions found for this quiz.");
                     return;
@@ -519,9 +670,11 @@
             navbar.classList.add('hidden');
             quizSection.classList.remove('hidden');
             quizStatusBar.classList.remove('hidden');
+            bottomNavBar.classList.remove('hidden'); // Show bottom nav bar
             
             renderQuestions();
             updateStatusBar();
+            startTimer();
             
             // Auto-scroll to the last attempted question on resume
             if (!isNewStart && lastQuestionIndex > 0) {
@@ -532,7 +685,7 @@
                     }
                 }, 100);
             } else {
-                window.scrollTo(0, 0); // Scroll to top for new quiz
+                window.scrollTo({ top: 0, behavior: 'auto' });
             }
         }
 
@@ -561,7 +714,7 @@
                 const questionCard = document.createElement('div');
                 questionCard.id = `question-card-${index}`;
                 questionCard.className = "question-card bg-gray-800 p-6 rounded-2xl shadow-xl w-full space-y-4";
-
+                
                 const questionNumber = document.createElement('div');
                 questionNumber.className = "text-sm text-gray-400 mb-2";
                 questionNumber.textContent = `Question ${index + 1} of ${quizQuestions.length}`;
@@ -569,7 +722,7 @@
                 const questionText = document.createElement('div');
                 questionText.className = "text-xl font-semibold mb-4";
                 questionText.textContent = q.question;
-                
+
                 const optionsContainer = document.createElement('div');
                 optionsContainer.className = "grid grid-cols-1 md:grid-cols-2 gap-4";
 
@@ -612,14 +765,13 @@
             }
 
             const currentQ = quizQuestions[questionIndex];
-            
             let actualCorrectAnswer;
             if (!isNaN(currentQ.answer) && parseInt(currentQ.answer) >= 1 && parseInt(currentQ.answer) <= 4) {
                 actualCorrectAnswer = currentQ.options[parseInt(currentQ.answer) - 1];
             } else {
                 actualCorrectAnswer = currentQ.answer;
             }
-            
+
             // Mark question as answered
             currentQ.userAnswer = userAnswer;
             currentQ.correctAnswer = actualCorrectAnswer;
@@ -627,14 +779,9 @@
 
             const isCorrect = (currentQ.userAnswer === actualCorrectAnswer);
             currentQ.isCorrect = isCorrect;
-            
+
             // Re-calculate stats based on the full, original question set
-            const fullStats = JSON.parse(localStorage.getItem(currentQuizName + "_stats")) || {
-                correct: 0,
-                incorrect: 0,
-                total: totalQuestions,
-                attempted: 0
-            };
+            const fullStats = JSON.parse(localStorage.getItem(currentQuizName + "_stats")) || { correct: 0, incorrect: 0, total: totalQuestions, attempted: 0 };
 
             // If we are in reattempt mode, update original stats
             if (quizQuestions.length < totalQuestions) {
@@ -645,7 +792,7 @@
                     originalQ.userAnswer = userAnswer;
                     originalQ.isCorrect = isCorrect;
                 }
-                
+
                 // Recalculate full stats
                 fullStats.correct = originalQuizQuestions.filter(q => q.isCorrect).length;
                 fullStats.incorrect = originalQuizQuestions.filter(q => q.userAnswer && !q.isCorrect).length;
@@ -656,331 +803,433 @@
                 localStorage.setItem(currentQuizName + "_progress", JSON.stringify({
                     quizQuestions: originalQuizQuestions,
                     score: fullStats.correct,
-                    mistakes: originalQuizQuestions.filter(q => q.userAnswer && !q.isCorrect).map(q => ({ question: q.question, userAnswer: q.userAnswer, correctAnswer: q.correctAnswer })),
+                    mistakes: originalQuizQuestions.filter(q => q.userAnswer && !q.isCorrect).map(q => ({
+                        question: q.question,
+                        userAnswer: q.userAnswer,
+                        correctAnswer: q.correctAnswer
+                    })),
                     attemptedCount: fullStats.attempted,
                     totalQuestions: totalQuestions
                 }));
-
-                // Update mistakes
-                mistakes = originalQuizQuestions.filter(q => q.userAnswer && !q.isCorrect).map(q => ({
-                    question: q.question,
-                    userAnswer: q.userAnswer,
-                    correctAnswer: q.correctAnswer
-                }));
-
-            } else {
-                // If not in reattempt mode, update current stats
-                attemptedCount = quizQuestions.filter(q => q.userAnswer).length;
-                score = quizQuestions.filter(q => q.isCorrect).length;
-                mistakes = quizQuestions.filter(q => q.userAnswer && !q.isCorrect).map(q => ({
-                    question: q.question,
-                    userAnswer: q.userAnswer,
-                    correctAnswer: q.correctAnswer
-                }));
             }
-            
-            // Visually update UI
-            optionButtons.forEach(btn => {
-                btn.disabled = true;
-                if (btn.textContent === actualCorrectAnswer) {
-                    btn.classList.add('bg-green-600');
-                    btn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
-                } else if (btn.textContent === userAnswer) {
-                    btn.classList.add('bg-red-600');
-                    btn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
-                }
-            });
 
+            if (!isResume) {
+                attemptedCount++;
+                if (isCorrect) {
+                    score++;
+                } else {
+                    const mistake = {
+                        question: currentQ.question,
+                        userAnswer: userAnswer,
+                        correctAnswer: actualCorrectAnswer
+                    };
+                    mistakes.push(mistake);
+                }
+                updateStatusBar();
+                saveProgress();
+            }
+
+            // Disable all options
+            optionButtons.forEach(btn => btn.disabled = true);
+
+            // Remove the transition class to make color change instant
+            selectedBtn.classList.remove('transition-colors', 'duration-200');
+            optionButtons.forEach(btn => btn.classList.remove('transition-colors', 'duration-200'));
+
+            // Show feedback
             if (isCorrect) {
-                feedbackEl.textContent = 'Correct!';
-                feedbackEl.classList.add('text-green-400');
+                feedbackEl.textContent = "Correct!";
+                feedbackEl.className = "mt-4 text-center text-green-400 text-lg font-bold";
+                selectedBtn.classList.add("bg-green-700");
             } else {
-                feedbackEl.textContent = `Incorrect. The correct answer was: ${actualCorrectAnswer}`;
-                feedbackEl.classList.add('text-red-400');
+                feedbackEl.textContent = `Incorrect. Correct answer: ${actualCorrectAnswer}`;
+                feedbackEl.className = "mt-4 text-center text-red-400 text-lg font-bold";
+                selectedBtn.classList.add("bg-red-700");
+                const correctBtn = Array.from(optionButtons).find(btn => btn.textContent === actualCorrectAnswer);
+                if (correctBtn) {
+                    correctBtn.classList.add("bg-green-700");
+                }
             }
             feedbackEl.classList.remove('hidden');
 
-            // Save progress and update status bar
-            saveProgress();
-            updateStatusBar();
-
-            // Auto-scroll to the next question, if not the last one
-            if (questionIndex < quizQuestions.length - 1) {
-                setTimeout(() => {
-                    const nextQuestionCard = document.getElementById(`question-card-${questionIndex + 1}`);
-                    if (nextQuestionCard) {
-                        nextQuestionCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                }, 500); // Wait for a moment before scrolling
+            // Scroll to the next question
+            const nextQuestionCard = document.getElementById(`question-card-${questionIndex + 1}`);
+            if (nextQuestionCard) {
+                nextQuestionCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
 
-        // Event Listeners
-        insightsBtn.addEventListener('click', () => {
-            mainSection.classList.add('hidden');
+        submitQuizBtnBottom.onclick = () => {
+            // Check if any questions were attempted
+            if (attemptedCount === 0) {
+                showMessageBox("Please attempt at least one question before submitting.");
+                return;
+            }
+            stopTimer();
+            // Hide quiz sections and show summary modal
             quizSection.classList.add('hidden');
             quizStatusBar.classList.add('hidden');
-            insightsSection.classList.remove('hidden');
-            insightsBtn.classList.add('hidden');
-            quizBtn.classList.remove('hidden');
-            renderDashboard();
-            populateMistakesSelector();
-        });
+            bottomNavBar.classList.add('hidden');
+            quizSummaryModal.classList.remove('hidden');
 
-        quizBtn.addEventListener('click', () => {
-            insightsSection.classList.add('hidden');
-            mainSection.classList.remove('hidden');
-            quizBtn.classList.add('hidden');
-            insightsBtn.classList.remove('hidden');
-            renderQuizCards();
-        });
+            // Update summary modal content
+            const totalQs = totalQuestions;
+            const correctQs = score;
+            const incorrectQs = mistakes.length;
+            const unattemptedQs = totalQs - attemptedCount;
+            const summaryAccuracy = totalQs > 0 ? Math.round((correctQs / totalQs) * 100) : 0;
 
-        backBtn.addEventListener('click', () => {
-            quizSection.classList.add('hidden');
-            quizStatusBar.classList.add('hidden');
-            insightsSection.classList.add('hidden');
-            navbar.classList.remove('hidden');
-            mainSection.classList.remove('hidden');
-            insightsBtn.classList.remove('hidden');
-            quizBtn.classList.add('hidden');
-            renderQuizCards();
-        });
+            summaryScoreEl.textContent = `${correctQs}/${totalQs}`;
+            summaryCorrectEl.textContent = correctQs;
+            summaryIncorrectEl.textContent = incorrectQs;
+            summaryUnattemptedEl.textContent = unattemptedQs;
+            summaryAccuracyEl.textContent = `${summaryAccuracy}%`;
 
-        submitQuizBtn.addEventListener('click', () => {
-            showQuizSummary();
-        });
+            // Update progress ring
+            const circumference = 2 * Math.PI * 45;
+            const offset = circumference - (summaryAccuracy / 100) * circumference;
+            summaryProgressCircle.style.strokeDasharray = circumference;
+            summaryProgressCircle.style.strokeDashoffset = offset;
+        }
 
-        startNewQuizBtn.addEventListener('click', () => {
-            insightsSection.classList.add('hidden');
-            mainSection.classList.remove('hidden');
-            renderQuizCards();
-        });
-
-        closeSummaryModalBtn.addEventListener('click', () => {
+        // FIX: This now closes the summary modal and returns to the quiz
+        closeSummaryModalBtn.onclick = () => {
             quizSummaryModal.classList.add('hidden');
-        });
+            quizSection.classList.remove('hidden');
+            quizStatusBar.classList.remove('hidden');
+            bottomNavBar.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'auto' });
+        };
 
-        resetQuizBtn.addEventListener('click', () => {
+        resetQuizBtn.onclick = () => {
             localStorage.removeItem(currentQuizName + "_progress");
             localStorage.removeItem(currentQuizName + "_stats");
             quizSummaryModal.classList.add('hidden');
-            startQuiz(currentQuizName, true);
-        });
+            mainSection.classList.remove('hidden');
+            navbar.classList.remove('hidden');
+            showMessageBox("Quiz has been reset. You can start it again from the main screen.");
+            window.scrollTo({ top: 0, behavior: 'auto' });
+            renderQuizCards();
+        };
 
-        reattemptWrongBtn.addEventListener('click', () => {
+        quitQuizBtnSummary.onclick = () => {
+            quizSummaryModal.classList.add('hidden');
+            mainSection.classList.remove('hidden');
+            navbar.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'auto' });
+            renderQuizCards();
+        };
+
+
+        reattemptWrongBtn.onclick = () => {
+            quizSummaryModal.classList.add('hidden');
             reattemptModal.classList.remove('hidden');
-            quizSummaryModal.classList.add('hidden');
-        });
+        };
 
-        confirmReattemptBtn.addEventListener('click', () => {
+        confirmReattemptBtn.onclick = () => {
             reattemptModal.classList.add('hidden');
-            const wrongAndUnattempted = quizQuestions.filter(q => q.userAnswer === null || !q.isCorrect);
-            quizQuestions = wrongAndUnattempted;
+            
+            // Filter out correct questions from quizQuestions
+            quizQuestions = quizQuestions.filter(q => !q.isCorrect);
+            
+            // Reset scores for the new session
+            score = 0;
+            attemptedCount = 0;
+            mistakes = [];
+
+            // Reset user answers and correct/incorrect flags for the reattempt questions
+            quizQuestions.forEach(q => {
+                q.userAnswer = null;
+                q.isCorrect = null;
+            });
+
+            totalQuestions = quizQuestions.length;
+            
+            // Re-render the questions
             renderQuestions();
-        });
+            updateStatusBar();
+            startTimer();
+            
+            quizSection.classList.remove('hidden');
+            quizStatusBar.classList.remove('hidden');
+            bottomNavBar.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'auto' }); // Scroll to the top of the new quiz section
+        };
 
-        cancelReattemptBtn.addEventListener('click', () => {
+        cancelReattemptBtn.onclick = () => {
             reattemptModal.classList.add('hidden');
-            showQuizSummary(); // Go back to the summary modal
-        });
+            mainSection.classList.remove('hidden');
+            navbar.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'auto' });
+            renderQuizCards();
+        };
 
-        quitQuizBtnSummary.addEventListener('click', () => {
-            quizSummaryModal.classList.add('hidden');
+        insightsBtn.onclick = () => {
+            mainSection.classList.add('hidden');
+            quizSection.classList.add('hidden');
+            quizStatusBar.classList.add('hidden');
+            bottomNavBar.classList.add('hidden');
+            navbar.classList.remove('hidden');
+            insightsSection.classList.remove('hidden');
+            
+            insightsBtn.classList.add('hidden');
+            quizBtn.classList.remove('hidden');
+            
+            updateInsights();
+        };
+
+        quizBtn.onclick = () => {
+            mainSection.classList.remove('hidden');
+            insightsSection.classList.add('hidden');
+            quizSection.classList.add('hidden');
+            quizStatusBar.classList.add('hidden');
+            bottomNavBar.classList.add('hidden');
+            navbar.classList.remove('hidden');
+
+            insightsBtn.classList.remove('hidden');
+            quizBtn.classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'auto' });
+            renderQuizCards();
+        };
+
+        // New Quit Quiz Button functionality
+        quitQuizBtn.onclick = () => {
+            stopTimer();
+            saveProgress();
+            quizSection.classList.add('hidden');
+            quizStatusBar.classList.add('hidden');
+            bottomNavBar.classList.add('hidden');
+            mainSection.classList.remove('hidden');
+            navbar.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'auto' });
+            renderQuizCards();
+        };
+
+        mixQuizBtn.onclick = () => {
+            mainSection.classList.add('hidden');
+            insightsSection.classList.add('hidden');
             quizSection.classList.add('hidden');
             quizStatusBar.classList.add('hidden');
             navbar.classList.remove('hidden');
+            mixQuizModal.classList.remove('hidden');
+            populateMixQuizList();
+        };
+
+        cancelMixQuizBtn.onclick = () => {
+            mixQuizModal.classList.add('hidden');
             mainSection.classList.remove('hidden');
+            navbar.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'auto' });
             renderQuizCards();
-        });
+        };
 
-        mistakesQuizSelector.addEventListener('change', (e) => {
-            const quizName = e.target.value;
-            displayMistakes(quizName);
-        });
-
-        mixQuizBtn.addEventListener('click', () => {
-            openMixQuizModal();
-        });
-
-        cancelMixQuizBtn.addEventListener('click', () => {
-            mixQuizModal.classList.add('hidden');
-        });
-
-        startMixQuizBtn.addEventListener('click', async () => {
-            mixQuizModal.classList.add('hidden');
-            loadingOverlay.style.display = 'flex';
-            
-            const selectedQuizzes = Array.from(quizList.querySelectorAll('input[type="checkbox"]:checked'));
-            const allQuestions = [];
+        startMixQuizBtn.onclick = async () => {
+            const selectedQuizzes = Array.from(document.querySelectorAll('#quizList input[type="checkbox"]:checked')).map(cb => cb.value);
             
             if (selectedQuizzes.length === 0) {
                 showMessageBox("Please select at least one quiz to mix.");
-                loadingOverlay.style.display = 'none';
                 return;
             }
 
-            const questionsPerQuiz = Math.floor(100 / selectedQuizzes.length);
-            let remainingQuestions = 100 % selectedQuizzes.length;
+            loadingOverlay.style.display = 'flex';
+            let combinedQuestions = [];
             
-            for (const checkbox of selectedQuizzes) {
-                const quizName = checkbox.dataset.name;
-                const questions = allQuizzesData[quizName];
-
-                if (questions) {
-                    shuffleArray(questions);
-                    let numToTake = questionsPerQuiz;
-                    if (remainingQuestions > 0) {
-                        numToTake++;
-                        remainingQuestions--;
-                    }
-                    allQuestions.push(...questions.slice(0, numToTake));
+            for (const quizName of selectedQuizzes) {
+                const quizData = allQuizzesData[quizName];
+                if (quizData) {
+                    combinedQuestions = combinedQuestions.concat(quizData);
                 }
             }
-
-            shuffleArray(allQuestions);
-
+            
             loadingOverlay.style.display = 'none';
 
-            currentQuizName = 'Mixed Quiz';
-            quizQuestions = allQuestions;
+            if (combinedQuestions.length === 0) {
+                showMessageBox("No questions found in the selected quizzes.");
+                return;
+            }
+            
+            shuffleArray(combinedQuestions);
+            
+            mixQuizModal.classList.add('hidden');
+            
+            currentQuizName = "Mixed Quiz";
+            quizQuestions = combinedQuestions.slice(0, 100); // Take up to 100 questions
             totalQuestions = quizQuestions.length;
             score = 0;
             mistakes = [];
             attemptedCount = 0;
-            localStorage.removeItem(currentQuizName + "_progress");
-
+            
+            localStorage.removeItem(currentQuizName + "_progress"); // Reset progress for a new mixed quiz
+            
             mainSection.classList.add('hidden');
-            insightsSection.classList.add('hidden');
-            navbar.classList.add('hidden');
             quizSection.classList.remove('hidden');
             quizStatusBar.classList.remove('hidden');
+            bottomNavBar.classList.remove('hidden');
             
             renderQuestions();
             updateStatusBar();
-            window.scrollTo(0, 0);
-        });
+            startTimer();
+        };
 
-        function openMixQuizModal() {
+        function populateMixQuizList() {
             quizList.innerHTML = '';
             quizzes.forEach(q => {
                 const quizItem = document.createElement('div');
-                quizItem.className = 'flex items-center gap-2 text-white';
+                quizItem.className = "flex items-center space-x-2";
                 quizItem.innerHTML = `
-                    <input type="checkbox" id="mix-${q.name}" data-name="${q.name}" class="form-checkbox text-indigo-600 bg-gray-600 border-gray-500 rounded focus:ring-indigo-500">
-                    <label for="mix-${q.name}" class="text-sm font-medium">${q.name}</label>
+                    <input type="checkbox" id="mix-${q.name}" name="mix-quiz" value="${q.name}" class="form-checkbox text-indigo-600 rounded">
+                    <label for="mix-${q.name}" class="text-white">${q.name}</label>
                 `;
                 quizList.appendChild(quizItem);
             });
-            mixQuizModal.classList.remove('hidden');
         }
 
-        function showQuizSummary() {
-            const unattemptedCount = totalQuestions - attemptedCount;
-            const accuracy = attemptedCount ? Math.round((score / attemptedCount) * 100) : 0;
-            const percentage = (score / totalQuestions) * 100;
-            
-            summaryScoreEl.textContent = `${score}/${totalQuestions}`;
-            summaryCorrectEl.textContent = score;
-            summaryIncorrectEl.textContent = mistakes.length;
-            summaryUnattemptedEl.textContent = unattemptedCount;
-            summaryAccuracyEl.textContent = `${accuracy}%`;
-            
-            // Animate progress circle
-            const radius = summaryProgressCircle.r.baseVal.value;
-            const circumference = 2 * Math.PI * radius;
-            const offset = circumference - (percentage / 100) * circumference;
-            summaryProgressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
-            summaryProgressCircle.style.strokeDashoffset = offset;
+        function updateInsights() {
+            // Update the class of the dashboardStats element to force a 2x2 grid
+            dashboardStats.classList.remove("md:grid-cols-4");
+            dashboardStats.classList.add("grid-cols-2");
 
-            quizSummaryModal.classList.remove('hidden');
-        }
+            // Overall Accuracy
+            let overallCorrect = 0;
+            let overallAttempted = 0;
+            let completedQuizzesCount = 0;
+            let totalQsAttempted = 0;
 
-        function renderDashboard() {
-            renderOverallStats();
-            renderQuizBarChart();
-        }
-        
-        function renderOverallStats() {
-            let totalCorrect = 0;
-            let totalAttempted = 0;
-            let totalWrong = 0;
-
-            const quizNames = quizzes.map(q => q.name);
-            quizNames.push("Mixed Quiz");
-
-            quizNames.forEach(name => {
-                const stats = JSON.parse(localStorage.getItem(name + "_stats"));
-                if (stats) {
-                    totalCorrect += stats.correct;
-                    totalAttempted += stats.attempted;
-                    totalWrong += (stats.attempted - stats.correct);
+            const allQuizNamesWithMixed = [...quizzes.map(q => q.name), "Mixed Quiz"];
+            allQuizNamesWithMixed.forEach(quizName => {
+                const progress = JSON.parse(localStorage.getItem(quizName + "_progress"));
+                if (progress) {
+                    overallCorrect += progress.score;
+                    overallAttempted += progress.attemptedCount;
+                    totalQsAttempted += progress.attemptedCount;
+                    // Check if all questions in the quiz have been attempted
+                    if (progress.totalQuestions > 0 && progress.attemptedCount === progress.totalQuestions) {
+                        completedQuizzesCount++;
+                    }
                 }
             });
 
-            // Update overall accuracy
-            const overallAccuracy = totalAttempted ? Math.round((totalCorrect / totalAttempted) * 100) : 0;
+            const overallAccuracy = overallAttempted ? Math.round((overallCorrect / overallAttempted) * 100) : 0;
             overallAccuracySpan.textContent = `${overallAccuracy}%`;
-
-            // Animate overall progress circle
-            const radius = progressCircle.r.baseVal.value;
-            const circumference = 2 * Math.PI * radius;
+            
+            const circumference = 2 * Math.PI * 45;
             const offset = circumference - (overallAccuracy / 100) * circumference;
-            progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+            progressCircle.style.strokeDasharray = circumference;
             progressCircle.style.strokeDashoffset = offset;
 
-            // Update the new dashboard stats cards
+            // Dashboard Stats (Correct, Incorrect, Completed Quizzes)
+            let totalCorrect = 0;
+            let totalIncorrect = 0;
+
+            allQuizNamesWithMixed.forEach(quizName => {
+                const progress = JSON.parse(localStorage.getItem(quizName + "_progress"));
+                if (progress) {
+                    const quizCorrect = progress.quizQuestions.filter(q => q.isCorrect).length;
+                    const quizIncorrect = progress.quizQuestions.filter(q => q.userAnswer && !q.isCorrect).length;
+                    totalCorrect += quizCorrect;
+                    totalIncorrect += quizIncorrect;
+                }
+            });
+
             dashboardStats.innerHTML = `
-                <div class="bg-gray-700 p-4 rounded-xl shadow-md flex flex-col items-center justify-center">
-                    <i data-lucide="circle-help" class="h-6 w-6 text-indigo-400 mb-2"></i>
-                    <p class="text-sm text-gray-400">Attempted</p>
-                    <p class="text-xl font-bold">${totalAttempted}</p>
+                <div class="p-4 bg-gray-700 rounded-xl">
+                    <p class="text-sm text-gray-400 flex items-center gap-2"><i data-lucide="check-circle" class="h-4 w-4 text-green-400"></i> Correct</p>
+                    <p class="text-2xl font-bold text-green-400 mt-1">${totalCorrect}</p>
                 </div>
-                <div class="bg-gray-700 p-4 rounded-xl shadow-md flex flex-col items-center justify-center">
-                    <i data-lucide="circle-check" class="h-6 w-6 text-green-400 mb-2"></i>
-                    <p class="text-sm text-gray-400">Correct</p>
-                    <p class="text-xl font-bold text-green-400">${totalCorrect}</p>
+                <div class="p-4 bg-gray-700 rounded-xl">
+                    <p class="text-sm text-gray-400 flex items-center gap-2"><i data-lucide="x-circle" class="h-4 w-4 text-red-400"></i> Incorrect</p>
+                    <p class="text-2xl font-bold text-red-400 mt-1">${totalIncorrect}</p>
                 </div>
-                <div class="bg-gray-700 p-4 rounded-xl shadow-md flex flex-col items-center justify-center">
-                    <i data-lucide="circle-x" class="h-6 w-6 text-red-400 mb-2"></i>
-                    <p class="text-sm text-gray-400">Wrong</p>
-                    <p class="text-xl font-bold text-red-400">${totalWrong}</p>
+                <div class="p-4 bg-gray-700 rounded-xl">
+                    <p class="text-sm text-gray-400 flex items-center gap-2"><i data-lucide="trophy" class="h-4 w-4 text-yellow-400"></i> Completed Quizzes</p>
+                    <p class="text-2xl font-bold text-yellow-400 mt-1">${completedQuizzesCount}</p>
+                </div>
+                <div class="p-4 bg-gray-700 rounded-xl">
+                    <p class="text-sm text-gray-400 flex items-center gap-2"><i data-lucide="list-checks" class="h-4 w-4 text-indigo-400"></i> Questions Attempted</p>
+                    <p class="text-2xl font-bold text-indigo-400 mt-1">${totalQsAttempted}</p>
                 </div>
             `;
             lucide.createIcons();
-        }
 
-        function renderQuizBarChart() {
-            let hasData = false;
+            // Bar Chart for Quiz Accuracy
             quizBarChart.innerHTML = '';
-            quizzes.forEach(q => {
-                const stats = JSON.parse(localStorage.getItem(q.name + "_stats"));
-                if (stats && stats.attempted > 0) {
-                    hasData = true;
-                    const accuracy = Math.round((stats.correct / stats.attempted) * 100);
-                    const barContainer = document.createElement('div');
-                    barContainer.className = 'flex flex-col items-center h-full justify-end';
-                    barContainer.innerHTML = `
-                        <div class="bar w-8 relative" style="height: ${accuracy}%;">
-                            <span class="absolute -top-6 text-white text-xs font-bold w-full text-center">${accuracy}%</span>
-                        </div>
-                        <span class="mt-2 text-center w-12 truncate">${q.name}</span>
-                    `;
-                    quizBarChart.appendChild(barContainer);
+            const quizStats = [];
+            allQuizNamesWithMixed.forEach(name => {
+                const progress = JSON.parse(localStorage.getItem(name + "_progress"));
+                const totalQuestionsForChart = progress?.totalQuestions || (allQuizzesData[name] ? allQuizzesData[name].length : 0);
+                
+                // Only push data if there is progress for the quiz
+                if (progress && totalQuestionsForChart > 0) {
+                    const accuracy = Math.round((progress.score / totalQuestionsForChart) * 100);
+                    quizStats.push({ name: name, accuracy: accuracy });
                 }
             });
-            if (hasData) {
-                chartMessage.classList.add('hidden');
-            } else {
+
+            if (quizStats.length === 0) {
                 chartMessage.classList.remove('hidden');
+                // Hide scrolling buttons if there's no chart
+                scrollLeftBtn.classList.add('hidden');
+                scrollRightBtn.classList.add('hidden');
+            } else {
+                chartMessage.classList.add('hidden');
+                const maxAccuracy = Math.max(...quizStats.map(s => s.accuracy));
+                quizStats.forEach(stat => {
+                    const barContainer = document.createElement('div');
+                    barContainer.className = "bar-container";
+                    
+                    const bar = document.createElement('div');
+                    const height = stat.accuracy > 0 ? (stat.accuracy / (maxAccuracy || 100)) * 100 : 5;
+                    bar.className = "bar flex-1 bg-indigo-600 rounded-t-lg relative group";
+                    bar.style.height = `${height}%`;
+                    bar.style.minHeight = stat.accuracy === 0 ? '5px' : '0';
+                    
+                    const tooltip = document.createElement('div');
+                    tooltip.className = "bar-tooltip";
+                    tooltip.textContent = `${stat.name}: ${stat.accuracy}%`;
+                    
+                    const label = document.createElement('div');
+                    label.className = "bar-label";
+                    label.textContent = stat.name;
+                    
+                    barContainer.appendChild(bar);
+                    barContainer.appendChild(tooltip);
+                    barContainer.appendChild(label);
+                    quizBarChart.appendChild(barContainer);
+                });
+
+                // Show/hide scrolling buttons based on content overflow
+                checkScrollButtons();
+            }
+
+            // Past Mistakes Selector
+            populateMistakesSelector();
+        }
+
+        function checkScrollButtons() {
+            if (chartContainer.scrollWidth > chartContainer.clientWidth) {
+                scrollRightBtn.classList.remove('hidden');
+                if (chartContainer.scrollLeft > 0) {
+                    scrollLeftBtn.classList.remove('hidden');
+                } else {
+                    scrollLeftBtn.classList.add('hidden');
+                }
+                if (chartContainer.scrollLeft + chartContainer.clientWidth >= chartContainer.scrollWidth) {
+                    scrollRightBtn.classList.add('hidden');
+                } else {
+                    scrollRightBtn.classList.remove('hidden');
+                }
+            } else {
+                scrollLeftBtn.classList.add('hidden');
+                scrollRightBtn.classList.add('hidden');
             }
         }
 
         function populateMistakesSelector() {
             mistakesQuizSelector.innerHTML = '<option value="">-- Select Quiz --</option>';
-            const quizNames = quizzes.map(q => q.name);
-            quizNames.forEach(name => {
-                const progress = localStorage.getItem(name + "_progress");
-                if (progress) {
+            const allQuizNames = [...quizzes.map(q => q.name), "Mixed Quiz"];
+            allQuizNames.forEach(name => {
+                const progress = JSON.parse(localStorage.getItem(name + "_progress"));
+                if (progress && progress.mistakes && progress.mistakes.length > 0) {
                     const option = document.createElement('option');
                     option.value = name;
                     option.textContent = name;
@@ -989,7 +1238,12 @@
             });
         }
 
-        function displayMistakes(quizName) {
+        mistakesQuizSelector.onchange = () => {
+            const quizName = mistakesQuizSelector.value;
+            renderMistakes(quizName);
+        };
+
+        function renderMistakes(quizName) {
             mistakesContainer.innerHTML = '';
             if (!quizName) {
                 return;
