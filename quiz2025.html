@@ -488,13 +488,14 @@
 
                 if (q.name === "Mixed Quiz") {
                     const mixedStats = JSON.parse(localStorage.getItem("Mixed Quiz" + "_stats"));
-                    total = mixedStats ? mixedStats.total : 0;
-                    attempted = mixedStats ? mixedStats.attempted : 0;
-                    correct = mixedStats ? mixedStats.correct : 0;
                     progress = JSON.parse(localStorage.getItem("Mixed Quiz" + "_progress"));
+                    total = progress ? progress.totalQuestions : (mixedStats ? mixedStats.total : 0);
+                    attempted = progress ? progress.attemptedCount : (mixedStats ? mixedStats.attempted : 0);
+                    correct = progress ? progress.score : (mixedStats ? mixedStats.correct : 0);
                 } else {
                     const data = allQuizzesData[q.name];
                     const progressData = JSON.parse(localStorage.getItem(q.name + "_progress"));
+                    progress = progressData;
 
                     if (data) {
                         const stats = { attempted: progressData ? progressData.attemptedCount : 0, correct: progressData ? progressData.score : 0, total: data.length };
@@ -504,7 +505,6 @@
                     total = stats ? stats.total : 0;
                     attempted = stats ? stats.attempted : 0;
                     correct = stats ? stats.correct : 0;
-                    progress = progressData;
                 }
 
                 const accuracy = attempted ? Math.round((correct / attempted) * 100) : 0;
@@ -513,15 +513,22 @@
                 card.className = "bg-gray-800 p-4 rounded-xl shadow-lg flex flex-col justify-between transform transition-transform hover:scale-105";
                 let buttonHtml;
                 let buttonAction;
-                if (progress && progress.attemptedCount > 0 && progress.attemptedCount < progress.totalQuestions) {
-                    buttonHtml = `<button class="resumeBtn flex-1 bg-indigo-600 py-1 rounded-full hover:bg-indigo-700 transition-colors duration-200">Resume</button>`;
-                    buttonAction = () => startQuiz(q.name);
-                } else if (q.name === "Mixed Quiz") {
-                    buttonHtml = `<span class="text-xs text-gray-400">Use "Mix Quiz" button above</span>`;
-                    buttonAction = () => {};
+                if (q.name === "Mixed Quiz") {
+                    if (progress && progress.attemptedCount > 0 && progress.attemptedCount < progress.totalQuestions) {
+                        buttonHtml = `<button class="resumeBtn flex-1 bg-indigo-600 py-1 rounded-full hover:bg-indigo-700 transition-colors duration-200">Resume</button>`;
+                        buttonAction = () => startQuiz(q.name);
+                    } else {
+                        buttonHtml = `<span class="text-xs text-gray-400">Use "Mix Quiz" button above</span>`;
+                        buttonAction = () => {};
+                    }
                 } else {
-                    buttonHtml = `<button class="startBtn flex-1 bg-indigo-600 py-1 rounded-full hover:bg-indigo-700 transition-colors duration-200">Start</button>`;
-                    buttonAction = () => startQuiz(q.name, true);
+                    if (progress && progress.attemptedCount > 0 && progress.attemptedCount < progress.totalQuestions) {
+                        buttonHtml = `<button class="resumeBtn flex-1 bg-indigo-600 py-1 rounded-full hover:bg-indigo-700 transition-colors duration-200">Resume</button>`;
+                        buttonAction = () => startQuiz(q.name);
+                    } else {
+                        buttonHtml = `<button class="startBtn flex-1 bg-indigo-600 py-1 rounded-full hover:bg-indigo-700 transition-colors duration-200">Start</button>`;
+                        buttonAction = () => startQuiz(q.name, true);
+                    }
                 }
 
                 card.innerHTML = `
@@ -535,11 +542,9 @@
                     </div>
                 `;
                 mainSection.appendChild(card);
-                if (q.name !== "Mixed Quiz") {
-                    const buttonElement = card.querySelector("button");
-                    if (buttonElement) {
-                        buttonElement.onclick = buttonAction;
-                    }
+                const buttonElement = card.querySelector("button");
+                if (buttonElement) {
+                    buttonElement.onclick = buttonAction;
                 }
             });
             lucide.createIcons();
@@ -741,37 +746,20 @@
             const isCorrect = (currentQ.userAnswer === actualCorrectAnswer);
             currentQ.isCorrect = isCorrect;
 
-            // Re-calculate stats based on the full, original question set
-            const fullStats = JSON.parse(localStorage.getItem(currentQuizName + "_stats")) || { correct: 0, incorrect: 0, total: totalQuestions, attempted: 0 };
-
-            // If we are in reattempt mode, update original stats
-            if (quizQuestions.length < totalQuestions) {
-                // Find the original question in the full list and update its state
-                const originalQuizQuestions = JSON.parse(localStorage.getItem(currentQuizName + "_progress")).quizQuestions;
-                const originalQ = originalQuizQuestions.find(q => q.question === currentQ.question);
-                if (originalQ) {
-                    originalQ.userAnswer = userAnswer;
-                    originalQ.isCorrect = isCorrect;
+            // Save mistake to persistent storage if incorrect
+            if (!isCorrect) {
+                const allMistakes = JSON.parse(localStorage.getItem("_all_mistakes")) || [];
+                const newMistake = {
+                    question: currentQ.question,
+                    userAnswer: userAnswer,
+                    correctAnswer: actualCorrectAnswer,
+                    quizName: currentQuizName
+                };
+                // Prevent duplicate mistakes from being added on resume
+                if (!allMistakes.some(m => m.question === newMistake.question && m.quizName === newMistake.quizName)) {
+                    allMistakes.push(newMistake);
+                    localStorage.setItem("_all_mistakes", JSON.stringify(allMistakes));
                 }
-
-                // Recalculate full stats
-                fullStats.correct = originalQuizQuestions.filter(q => q.isCorrect).length;
-                fullStats.incorrect = originalQuizQuestions.filter(q => q.userAnswer && !q.isCorrect).length;
-                fullStats.unattempted = originalQuizQuestions.filter(q => q.userAnswer === null).length;
-                fullStats.attempted = originalQuizQuestions.filter(q => q.userAnswer).length;
-
-                // Save updated full progress
-                localStorage.setItem(currentQuizName + "_progress", JSON.stringify({
-                    quizQuestions: originalQuizQuestions,
-                    score: fullStats.correct,
-                    mistakes: originalQuizQuestions.filter(q => q.userAnswer && !q.isCorrect).map(q => ({
-                        question: q.question,
-                        userAnswer: q.userAnswer,
-                        correctAnswer: q.correctAnswer
-                    })),
-                    attemptedCount: fullStats.attempted,
-                    totalQuestions: totalQuestions
-                }));
             }
 
             if (!isResume) {
@@ -819,12 +807,28 @@
             }
         }
 
+        // New function to save historical stats
+        function saveHistoricalStats() {
+            const historicalSessions = JSON.parse(localStorage.getItem("_historical_sessions")) || [];
+            const newSession = {
+                quizName: currentQuizName,
+                correct: score,
+                attempted: attemptedCount,
+                total: totalQuestions,
+                timestamp: new Date().toISOString()
+            };
+            historicalSessions.push(newSession);
+            localStorage.setItem("_historical_sessions", JSON.stringify(historicalSessions));
+        }
+
         submitQuizBtnBottom.onclick = () => {
             // Check if any questions were attempted
             if (attemptedCount === 0) {
                 showMessageBox("Please attempt at least one question before submitting.");
                 return;
             }
+
+            saveHistoricalStats();
             
             // Hide quiz sections and show summary modal
             quizSection.classList.add('hidden');
@@ -837,7 +841,7 @@
             const correctQs = score;
             const incorrectQs = mistakes.length;
             const unattemptedQs = totalQs - attemptedCount;
-            const summaryAccuracy = totalQs > 0 ? Math.round((correctQs / totalQs) * 100) : 0;
+            const summaryAccuracy = attemptedCount > 0 ? Math.round((correctQs / attemptedCount) * 100) : 0;
 
             summaryScoreEl.textContent = `${correctQs}/${totalQs}`;
             summaryCorrectEl.textContent = correctQs;
@@ -862,8 +866,9 @@
         };
 
         resetQuizBtn.onclick = () => {
+            // Only clear the temporary progress for the current quiz, not historical data.
             localStorage.removeItem(currentQuizName + "_progress");
-            localStorage.removeItem(currentQuizName + "_stats");
+
             quizSummaryModal.classList.add('hidden');
             mainSection.classList.remove('hidden');
             navbar.classList.remove('hidden');
@@ -874,6 +879,7 @@
         };
 
         quitQuizBtnSummary.onclick = () => {
+            saveHistoricalStats();
             stopTimer(); // Stop timer when quitting from summary
             saveProgress();
             quizSummaryModal.classList.add('hidden');
@@ -958,6 +964,7 @@
 
         // New Quit Quiz Button functionality
         quitQuizBtn.onclick = () => {
+            saveHistoricalStats();
             saveProgress();
             quizSection.classList.add('hidden');
             quizStatusBar.classList.add('hidden');
@@ -996,36 +1003,46 @@
 
             loadingOverlay.style.display = 'flex';
             let combinedQuestions = [];
-            
-            for (const quizName of selectedQuizzes) {
-                const quizData = allQuizzesData[quizName];
-                if (quizData) {
-                    combinedQuestions = combinedQuestions.concat(quizData);
-                }
-            }
-            
-            loadingOverlay.style.display = 'none';
+            const maxTotal = 100;
+            const numQuizzes = selectedQuizzes.length;
+            const perQuizLimit = Math.floor(maxTotal / numQuizzes);
 
-            if (combinedQuestions.length === 0) {
-                showMessageBox("No questions found in the selected quizzes.");
-                return;
+            for (const quizName of selectedQuizzes) {
+                const quizData = allQuizzesData[quizName] || [];
+                shuffleArray(quizData);
+                const selectedQs = quizData.slice(0, Math.min(perQuizLimit, quizData.length));
+                combinedQuestions = combinedQuestions.concat(selectedQs);
             }
-            
+
+            // If still under 100, fill remaining with extra random questions
+            if (combinedQuestions.length < maxTotal) {
+                let extras = [];
+                for (const quizName of selectedQuizzes) {
+                    extras = extras.concat(allQuizzesData[quizName] || []);
+                }
+                shuffleArray(extras);
+                const needed = maxTotal - combinedQuestions.length;
+                extras = extras.filter(q => !combinedQuestions.includes(q));
+                combinedQuestions = combinedQuestions.concat(extras.slice(0, needed));
+            }
+
             shuffleArray(combinedQuestions);
-            
-            mixQuizModal.classList.add('hidden');
-            
+            quizQuestions = combinedQuestions.slice(0, Math.min(maxTotal, combinedQuestions.length)); // Take up to 100 questions
+
+            // Set quiz state for mixed quiz
             currentQuizName = "Mixed Quiz";
-            quizQuestions = combinedQuestions.slice(0, 100); // Take up to 100 questions
             totalQuestions = quizQuestions.length;
             score = 0;
             mistakes = [];
             attemptedCount = 0;
             
-            localStorage.removeItem(currentQuizName + "_progress"); // Reset progress for a new mixed quiz
+            saveProgress(); // Save the initial state of the mixed quiz
             
+            mixQuizModal.classList.add('hidden');
+            loadingOverlay.style.display = 'none';
+
             mainSection.classList.add('hidden');
-            // Hide the navbar when starting a mixed quiz
+            insightsSection.classList.add('hidden');
             navbar.classList.add('hidden');
             quizSection.classList.remove('hidden');
             quizStatusBar.classList.remove('hidden');
@@ -1034,6 +1051,7 @@
             renderQuestions();
             updateStatusBar();
             startTimer();
+            window.scrollTo({ top: 0, behavior: 'auto' });
         };
 
         function populateMixQuizList() {
@@ -1054,23 +1072,20 @@
             dashboardStats.classList.remove("md:grid-cols-4");
             dashboardStats.classList.add("grid-cols-2");
 
+            const historicalSessions = JSON.parse(localStorage.getItem("_historical_sessions")) || [];
+            const allMistakes = JSON.parse(localStorage.getItem("_all_mistakes")) || [];
+
             // Overall Accuracy
             let overallCorrect = 0;
             let overallAttempted = 0;
             let completedQuizzesCount = 0;
-            let totalQsAttempted = 0;
-
-            const allQuizNamesWithMixed = [...quizzes.map(q => q.name), "Mixed Quiz"];
-            allQuizNamesWithMixed.forEach(quizName => {
-                const progress = JSON.parse(localStorage.getItem(quizName + "_progress"));
-                if (progress) {
-                    overallCorrect += progress.score;
-                    overallAttempted += progress.attemptedCount;
-                    totalQsAttempted += progress.attemptedCount;
-                    // Check if all questions in the quiz have been attempted
-                    if (progress.totalQuestions > 0 && progress.attemptedCount === progress.totalQuestions) {
-                        completedQuizzesCount++;
-                    }
+            
+            // Calculate stats from historical sessions
+            historicalSessions.forEach(session => {
+                overallCorrect += session.correct;
+                overallAttempted += session.attempted;
+                if (session.attempted === session.total) {
+                    completedQuizzesCount++;
                 }
             });
 
@@ -1083,18 +1098,8 @@
             progressCircle.style.strokeDashoffset = offset;
 
             // Dashboard Stats (Correct, Incorrect, Completed Quizzes)
-            let totalCorrect = 0;
-            let totalIncorrect = 0;
-
-            allQuizNamesWithMixed.forEach(quizName => {
-                const progress = JSON.parse(localStorage.getItem(quizName + "_progress"));
-                if (progress) {
-                    const quizCorrect = progress.quizQuestions.filter(q => q.isCorrect).length;
-                    const quizIncorrect = progress.quizQuestions.filter(q => q.userAnswer && !q.isCorrect).length;
-                    totalCorrect += quizCorrect;
-                    totalIncorrect += quizIncorrect;
-                }
-            });
+            const totalCorrect = overallCorrect;
+            const totalIncorrect = allMistakes.length;
 
             dashboardStats.innerHTML = `
                 <div class="p-4 bg-gray-700 rounded-xl">
@@ -1111,7 +1116,7 @@
                 </div>
                 <div class="p-4 bg-gray-700 rounded-xl">
                     <p class="text-sm text-gray-400 flex items-center gap-2"><i data-lucide="list-checks" class="h-4 w-4 text-indigo-400"></i> Questions Attempted</p>
-                    <p class="text-2xl font-bold text-indigo-400 mt-1">${totalQsAttempted}</p>
+                    <p class="text-2xl font-bold text-indigo-400 mt-1">${overallAttempted}</p>
                 </div>
             `;
             lucide.createIcons();
@@ -1122,15 +1127,14 @@
 
         function populateMistakesSelector() {
             mistakesQuizSelector.innerHTML = '<option value="">-- Select Quiz --</option>';
-            const allQuizNames = [...quizzes.map(q => q.name), "Mixed Quiz"];
-            allQuizNames.forEach(name => {
-                const progress = JSON.parse(localStorage.getItem(name + "_progress"));
-                if (progress && progress.mistakes && progress.mistakes.length > 0) {
-                    const option = document.createElement('option');
-                    option.value = name;
-                    option.textContent = name;
-                    mistakesQuizSelector.appendChild(option);
-                }
+            const allMistakes = JSON.parse(localStorage.getItem("_all_mistakes")) || [];
+            const uniqueQuizzes = [...new Set(allMistakes.map(m => m.quizName))];
+
+            uniqueQuizzes.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                mistakesQuizSelector.appendChild(option);
             });
         }
 
@@ -1144,25 +1148,23 @@
             if (!quizName) {
                 return;
             }
-            const progress = JSON.parse(localStorage.getItem(quizName + "_progress"));
-            if (progress && progress.mistakes) {
-                if (progress.mistakes.length === 0) {
-                    mistakesContainer.innerHTML = `<p class="text-gray-400 text-center">No mistakes found for this quiz.</p>`;
-                } else {
-                    progress.mistakes.forEach(mistake => {
-                        const mistakeCard = document.createElement('div');
-                        mistakeCard.className = "bg-gray-700 p-4 rounded-xl shadow-md space-y-2";
-                        mistakeCard.innerHTML = `
-                            <p class="font-bold">Question:</p>
-                            <p class="text-sm text-gray-300">${mistake.question}</p>
-                            <p class="font-bold text-red-400">Your Answer: <span class="text-red-300">${mistake.userAnswer}</span></p>
-                            <p class="font-bold text-green-400">Correct Answer: <span class="text-green-300">${mistake.correctAnswer}</span></p>
-                        `;
-                        mistakesContainer.appendChild(mistakeCard);
-                    });
-                }
-            } else {
+            const allMistakes = JSON.parse(localStorage.getItem("_all_mistakes")) || [];
+            const filteredMistakes = allMistakes.filter(m => m.quizName === quizName);
+
+            if (filteredMistakes.length === 0) {
                 mistakesContainer.innerHTML = `<p class="text-gray-400 text-center">No mistakes found for this quiz.</p>`;
+            } else {
+                filteredMistakes.forEach(mistake => {
+                    const mistakeCard = document.createElement('div');
+                    mistakeCard.className = "bg-gray-700 p-4 rounded-xl shadow-md space-y-2";
+                    mistakeCard.innerHTML = `
+                        <p class="font-bold">Question:</p>
+                        <p class="text-sm text-gray-300">${mistake.question}</p>
+                        <p class="font-bold text-red-400">Your Answer: <span class="text-red-300">${mistake.userAnswer}</span></p>
+                        <p class="font-bold text-green-400">Correct Answer: <span class="text-green-300">${mistake.correctAnswer}</span></p>
+                    `;
+                    mistakesContainer.appendChild(mistakeCard);
+                });
             }
         }
     </script>
