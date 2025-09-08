@@ -412,9 +412,10 @@ Delay Reason: ${delayReason}`.trim();
                 const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(result)}`;
                 window.open(whatsappUrl, '_blank');
             } else if (platform === 'msteams') {
-                // Use the provided Teams deep link to open the app and share the message
-                const teamsAppUrl = `msteams://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D&message=${encodeURIComponent(result)}`;
-                const teamsWebUrl = `https://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D&message=${encodeURIComponent(result)}`;
+                // The Teams API does not reliably pre-fill the message for existing chats.
+                // This button will now only open the correct Teams chat.
+                const teamsAppUrl = `msteams://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D`;
+                const teamsWebUrl = `https://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D`;
 
                 // Attempt to open the Teams app first
                 window.open(teamsAppUrl, '_self');
