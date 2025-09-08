@@ -412,7 +412,7 @@ Delay Reason: ${delayReason}`.trim();
                 const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(result)}`;
                 window.open(whatsappUrl, '_blank');
             } else if (platform === 'msteams') {
-                const teamsUrl = `https://teams.microsoft.com/l/chat/0/0?users=&message=${encodeURIComponent(result)}`;
+                const teamsUrl = `msteams://teams.microsoft.com/l/chat/0/0?users=&message=${encodeURIComponent(result)}`;
                 window.open(teamsUrl, '_blank');
             }
         }
