@@ -69,6 +69,15 @@
             border-bottom-color: #3b82f6;
         }
 
+        /* New border styles for success and failure */
+        .border-success {
+            border-bottom: 2px solid green !important;
+        }
+
+        .border-failure {
+            border-bottom: 2px solid red !important;
+        }
+
         /* Label styles */
         .form-label {
             position: absolute;
@@ -87,7 +96,7 @@
             font-size: 12px;
             color: #3b82f6;
         }
-
+        
         /* New class for floating labels */
         .form-label.floating {
             top: -12px;
@@ -139,7 +148,7 @@
             border-radius: 0.5rem;
             text-align: center;
         }
-
+        
         .saved-flight-item {
             display: inline-flex;
             align-items: center;
@@ -152,7 +161,7 @@
             cursor: pointer;
             transition: background-color 0.2s;
         }
-
+        
         .saved-flight-item:hover {
             background-color: #cbd5e0;
         }
@@ -198,7 +207,7 @@
         </div>
 
         <div class="form-group">
-            <input type="text" id="lastBag" inputmode="numeric" pattern="0-9]*" class="form-input time-input"
+            <input type="text" id="lastBag" inputmode="numeric" pattern="[0-9]*" class="form-input time-input"
                    placeholder=" " maxlength="5" required/>
             <label for="lastBag" class="form-label">Last Bag</label>
             <div id="lastBagStatus" class="mt-1 text-xs"></div>
@@ -280,7 +289,7 @@
             <span>Clear</span>
         </button>
     </div>
-
+    
     <div id="addFlightButtonContainer" class="mt-4 hidden">
         <button type="button" onclick="addFlight()" class="w-full bg-blue-500 text-white font-bold py-3 px-4 rounded hover:bg-blue-600 flex items-center justify-center space-x-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
@@ -312,7 +321,7 @@
             </div>
         </div>
     </div>
-
+    
     <div id="teamsAlertModal" class="hidden">
         <div class="modal-content">
             <h2 class="text-xl font-bold mb-4">Data Copied!</h2>
@@ -354,7 +363,7 @@
             const minutes = String(date.getMinutes()).padStart(2, '0');
             return `${hours}:${minutes}`;
         }
-
+        
         // --- Data Saving and Loading Functions ---
         function saveStaffData() {
             const arrivalStaff = document.getElementById('arrivalStaff').value;
@@ -365,7 +374,7 @@
 
         function saveFlightData() {
             const flightNumber = document.getElementById('flightNumber').value.trim();
-            if (!flightNumber || flightNumber.length <= 2) {
+            if (!flightNumber) {
                 return;
             }
             const allFlightsData = JSON.parse(localStorage.getItem('allFlightsData')) || {};
@@ -381,6 +390,7 @@
         }
 
         function loadSavedFlight(flightNumber) {
+            saveFlightData(); // Save the current flight data before loading a new one
             const allFlightsData = JSON.parse(localStorage.getItem('allFlightsData')) || {};
             const flightData = allFlightsData[flightNumber];
             if (flightData) {
@@ -390,10 +400,10 @@
                 document.getElementById('firstBag').value = flightData.firstBag;
                 document.getElementById('lastBag').value = flightData.lastBag;
                 document.getElementById('manager').value = flightData.manager;
-                checkDelayReasonAndUpdateUI();
+                updateAllUI();
             }
         }
-
+        
         function loadAllData() {
             const savedArrivalStaff = localStorage.getItem('arrivalStaff');
             const savedBbaStaff = localStorage.getItem('bbaStaff');
@@ -413,7 +423,7 @@
             if (savedBbaStaff) {
                 document.getElementById('bbaStaff').value = savedBbaStaff;
             }
-
+            
             updateSavedFlightsList();
         }
 
@@ -449,6 +459,7 @@
 
         // --- Event Listeners for Saving Data and UI changes ---
         document.getElementById('flightNumber').addEventListener('input', (e) => {
+            saveFlightData(); // Save data on input
             const addFlightButtonContainer = document.getElementById('addFlightButtonContainer');
             if (e.target.value.trim().length > 2) {
                 addFlightButtonContainer.classList.remove('hidden');
@@ -456,6 +467,12 @@
                 addFlightButtonContainer.classList.add('hidden');
             }
         });
+        document.getElementById('co').addEventListener('input', saveFlightData);
+        document.getElementById('ho').addEventListener('input', saveFlightData);
+        document.getElementById('firstBag').addEventListener('input', saveFlightData);
+        document.getElementById('lastBag').addEventListener('input', saveFlightData);
+        document.getElementById('manager').addEventListener('input', saveFlightData);
+
         document.getElementById('arrivalStaff').addEventListener('input', saveStaffData);
         document.getElementById('bbaStaff').addEventListener('input', saveStaffData);
 
@@ -479,7 +496,7 @@
                 } else {
                     input.classList.remove('border-red-500');
                 }
-                checkDelayReasonAndUpdateUI();
+                updateAllUI();
             });
         });
 
@@ -494,41 +511,6 @@
                 hoInput.value = formatTime(hoDate);
             }
         });
-        // Function to enable or disable Delay Reason and calculate total time
-        function checkDelayReason() {
-            const co = document.getElementById('co').value;
-            const lastBag = document.getElementById('lastBag').value;
-            const delayReasonOptions = document.getElementById('delayReasonOptions');
-
-            if (co && lastBag) {
-                const coTime = parseTime(co);
-                const lastBagTime = parseTime(lastBag);
-
-                if (lastBagTime < coTime) {
-                    lastBagTime.setDate(lastBagTime.getDate() + 1);
-                }
-
-                const totalTime = (lastBagTime - coTime) / 60000;
-                const delayReasonField = document.getElementById('delayReason');
-                const delayReasonLabel = document.getElementById('delayReasonLabel');
-                if (totalTime > 20) {
-                    delayReasonField.disabled = false;
-                    delayReasonField.classList.remove('disabled-field');
-                    delayReasonLabel.innerText = `Delay Reason (${totalTime - 20} mins delay, pick or type reason)`;
-                    delayReasonOptions.classList.remove('hidden');
-                } else {
-                    delayReasonField.disabled = true;
-                    delayReasonField.classList.add('disabled-field');
-                    delayReasonLabel.innerText = 'Delay Reason';
-                    delayReasonOptions.classList.add('hidden');
-                    delayReasonField.value = '';
-                }
-            }
-        }
-
-        // Event listeners for CO and Last Bag time changes
-        document.getElementById('co').addEventListener('input', checkDelayReason);
-        document.getElementById('lastBag').addEventListener('input', checkDelayReason);
 
         function getResultText() {
             const flightNumber = document.getElementById('flightNumber').value;
@@ -550,17 +532,20 @@
             const today = new Date();
             const formattedDate = formatDate(today);
             function calculateTimeDifference(startTime, endTime) {
+                if (!startTime || !endTime) return null;
                 const start = parseTime(startTime);
                 const end = parseTime(endTime);
+                if (end < start) end.setDate(end.getDate() + 1);
                 const timeDifference = (end - start) / 60000;
-                return timeDifference >= 0 ? timeDifference : 1440 + timeDifference;
+                return Math.round(timeDifference);
             }
-
-            const totalTime = calculateTimeDifference(co, lastBag);
+            
             const firstBagTime = calculateTimeDifference(co, firstBag);
+            const totalTime = calculateTimeDifference(co, lastBag);
 
-            const fbAchieved = firstBagTime <= 10 ? "Achieved" : "Not Achieved";
-            const lbAchieved = totalTime <= 20 ? "Achieved" : "Not Achieved";
+            const fbAchieved = firstBagTime !== null && firstBagTime <= 10 ? "Achieved" : "Not Achieved";
+            const lbAchieved = totalTime !== null && totalTime <= 20 ? "Achieved" : "Not Achieved";
+
             const result = `
 BBA FB-LB Status
 ${formattedDate}
@@ -570,7 +555,7 @@ CO: ${co}
 HO: ${ho}
 First Bag: ${firstBag} (${fbAchieved})
 Last Bag: ${lastBag} (${lbAchieved})
-Total Time Taken: ${totalTime} minutes
+Total Time Taken: ${totalTime !== null ? totalTime : 'NA'} minutes
 Flight Manager: ${manager}
 Arrival Staff: ${arrivalStaff}
 BBA Staff: ${bbaStaff}
@@ -593,23 +578,16 @@ Delay Reason: ${delayReason}`.trim();
                 document.getElementById('teamsAlertModal').style.display = 'flex';
             }
         }
-
+        
         function openTeamsChat() {
             document.getElementById('teamsAlertModal').style.display = 'none';
             const teamsAppUrl = `msteams://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D`;
-            window.location.href = teamsAppUrl;
+            const teamsWebUrl = `https://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D`;
 
-            // Use a timeout to detect if the Teams app opened.
-            // If the user is redirected to the app, the document will lose focus.
+            window.open(teamsAppUrl, '_self');
             setTimeout(() => {
-                if (!document.hasFocus()) {
-                    // The app successfully opened, so do nothing.
-                } else {
-                    // The app did not open, so open the web version as a fallback.
-                    const teamsWebUrl = `https://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D`;
-                    window.open(teamsWebUrl, '_blank');
-                }
-            }, 500); // 500ms should be enough time for the app to take over.
+                window.open(teamsWebUrl, '_blank');
+            }, 500);
         }
 
         function shareViaUniversal() {
@@ -632,34 +610,10 @@ Delay Reason: ${delayReason}`.trim();
             // Save current data before clearing
             saveFlightData();
             // Clear flight-specific fields but keep staff names
-            document.getElementById('flightNumber').value = '6E';
-            document.getElementById('co').value = '';
-            document.getElementById('ho').value = '';
-            document.getElementById('firstBag').value = '';
-            document.getElementById('lastBag').value = '';
-            document.getElementById('manager').value = '';
-            document.getElementById('delayReason').value = '';
-            document.getElementById('firstBagStatus').innerHTML = '';
-            document.getElementById('lastBagStatus').innerHTML = '';
-            document.querySelectorAll('.time-input').forEach(input => {
-                input.classList.remove('border-red-500');
-            });
-            const delayReasonSection = document.getElementById('delayReason').closest('.form-group');
-            const statusContainer = document.getElementById('statusContainer');
-            delayReasonSection.style.display = 'none';
-            statusContainer.style.display = 'none';
-
-            document.getElementById('delayReason').disabled = true;
-            document.getElementById('delayReason').classList.add('disabled-field');
-            document.getElementById('delayReasonLabel').innerText = 'Delay Reason';
-            document.getElementById('delayReasonOptions').classList.add('hidden');
-            document.querySelectorAll('.delay-reason-checkbox').forEach(checkbox => {
-                checkbox.checked = false;
-            });
+            clearMainForm();
             // Hide the Add Flight button
             document.getElementById('addFlightButtonContainer').classList.add('hidden');
             loadAllData(); // Reload the saved flights list to show the new data
-            checkDelayReasonAndUpdateUI();
         }
 
         function clearMainForm() {
@@ -674,7 +628,7 @@ Delay Reason: ${delayReason}`.trim();
             document.getElementById('lastBagStatus').innerHTML = '';
             // Do NOT clear arrivalStaff and bbaStaff
             document.querySelectorAll('.time-input').forEach(input => {
-                input.classList.remove('border-red-500');
+                input.classList.remove('border-red-500', 'border-success', 'border-failure');
             });
             const delayReasonSection = document.getElementById('delayReason').closest('.form-group');
             const statusContainer = document.getElementById('statusContainer');
@@ -689,7 +643,7 @@ Delay Reason: ${delayReason}`.trim();
             document.querySelectorAll('.delay-reason-checkbox').forEach(checkbox => {
                 checkbox.checked = false;
             });
-            checkDelayReason();
+            updateAllUI();
             document.getElementById('addFlightButtonContainer').classList.add('hidden');
         }
 
@@ -744,12 +698,13 @@ Delay Reason: ${delayReason}`.trim();
                 });
             });
         }
-
+        
         document.getElementById('arrivalStaff').addEventListener('input', saveStaffData);
         document.getElementById('bbaStaff').addEventListener('input', saveStaffData);
         window.addEventListener('DOMContentLoaded', () => {
             loadAllData();
             setupFloatingLabels();
+            updateAllUI();
         });
         document.querySelectorAll('.delay-reason-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', () => {
@@ -759,68 +714,115 @@ Delay Reason: ${delayReason}`.trim();
                 document.getElementById('delayReason').value = selectedReasons;
             });
         });
-        document.addEventListener('DOMContentLoaded', function() {
+
+        function updateAllUI() {
+            const coInput = document.getElementById('co');
+            const firstBagInput = document.getElementById('firstBag');
+            const lastBagInput = document.getElementById('lastBag');
+            const co = coInput.value;
+            const firstBag = firstBagInput.value;
+            const lastBag = lastBagInput.value;
+            const firstBagStatus = document.getElementById('firstBagStatus');
+            const lastBagStatus = document.getElementById('lastBagStatus');
             const delayReasonSection = document.getElementById('delayReason').closest('.form-group');
             const statusContainer = document.getElementById('statusContainer');
 
-            delayReasonSection.style.display = 'none';
-            statusContainer.style.display = 'none';
-
-            function checkDelayReasonAndUpdateUI() {
-                const co = document.getElementById('co').value;
-                const firstBag = document.getElementById('firstBag').value;
-                const lastBag = document.getElementById('lastBag').value;
-                const firstBagStatus = document.getElementById('firstBagStatus');
-                const lastBagStatus = document.getElementById('lastBagStatus');
-
-                firstBagStatus.innerHTML = '';
-                lastBagStatus.innerHTML = '';
-
-                if (co && firstBag && lastBag) {
-                    const coTime = parseTime(co);
-                    const firstBagTime = parseTime(firstBag);
-                    const lastBagTime = parseTime(lastBag);
-
-                    if (firstBagTime < coTime) firstBagTime.setDate(firstBagTime.getDate() + 1);
-                    if (lastBagTime < coTime) lastBagTime.setDate(lastBagTime.getDate() + 1);
-                    const firstDiff = Math.round((firstBagTime - coTime) / 60000);
-                    const lastDiff = Math.round((lastBagTime - coTime) / 60000);
-                    const fbAchieved = firstDiff <= 10;
-                    firstBagStatus.innerHTML = `<span class="icon-with-text ${fbAchieved ? 'icon-success' : 'icon-failure'}">
+            // Update First Bag status
+            firstBagStatus.innerHTML = '';
+            if (co && firstBag && co.length === 5 && firstBag.length === 5) {
+                const coTime = parseTime(co);
+                const firstBagTime = parseTime(firstBag);
+                if (firstBagTime < coTime) firstBagTime.setDate(firstBagTime.getDate() + 1);
+                const firstDiff = Math.round((firstBagTime - coTime) / 60000);
+                const fbAchieved = firstDiff <= 10;
+                
+                firstBagStatus.innerHTML = `<span class="icon-with-text ${fbAchieved ? 'icon-success' : 'icon-failure'}">
                                                 ${fbAchieved ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>'}
                                                 ${fbAchieved ? 'Achieved' : 'Not Achieved'}
                                             </span>`;
-                    const lbAchieved = lastDiff <= 20;
-                    lastBagStatus.innerHTML = `<span class="icon-with-text ${lbAchieved ? 'icon-success' : 'icon-failure'}">
+                
+                // Update First Bag input border
+                if (fbAchieved) {
+                    firstBagInput.classList.remove('border-failure');
+                    firstBagInput.classList.add('border-success');
+                } else {
+                    firstBagInput.classList.remove('border-success');
+                    firstBagInput.classList.add('border-failure');
+                }
+            } else {
+                firstBagInput.classList.remove('border-success', 'border-failure');
+            }
+
+            // Update Last Bag status and overall UI
+            lastBagStatus.innerHTML = '';
+            if (co && lastBag && co.length === 5 && lastBag.length === 5) {
+                const coTime = parseTime(co);
+                const lastBagTime = parseTime(lastBag);
+                
+                if (lastBagTime < coTime) lastBagTime.setDate(lastBagTime.getDate() + 1);
+                const lastDiff = Math.round((lastBagTime - coTime) / 60000);
+                
+                const lbAchieved = lastDiff <= 20;
+                lastBagStatus.innerHTML = `<span class="icon-with-text ${lbAchieved ? 'icon-success' : 'icon-failure'}">
                                                 ${lbAchieved ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucude-check"><path d="M20 6 9 17l-5-5"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>'}
                                                 ${lbAchieved ? 'Achieved' : 'Not Achieved'}
                                             </span>`;
-                    statusContainer.innerHTML = `
-                        <div class="mb-2">
-                            Fb - ${firstDiff} mins,
-                            Lb - ${lastDiff} mins
-                        </div>
-                        <div class="mb-2">Total time taken: ${lastDiff} minutes</div>
+                
+                // Update Last Bag input border
+                if (lbAchieved) {
+                    lastBagInput.classList.remove('border-failure');
+                    lastBagInput.classList.add('border-success');
+                } else {
+                    lastBagInput.classList.remove('border-success');
+                    lastBagInput.classList.add('border-failure');
+                }
 
-                        <div>Delay : NA </div>
-                    `;
-                    if (lastDiff > 20) {
-                        delayReasonSection.style.display = 'block';
-                        statusContainer.style.display = 'none';
-                    } else {
-                        delayReasonSection.style.display = 'none';
-                        statusContainer.style.display = 'block';
-                    }
+                const firstDiff = co && firstBag ? Math.round((parseTime(firstBag) - parseTime(co)) / 60000) : 'NA';
+                statusContainer.innerHTML = `
+                    <div class="mb-2">
+                        Fb - ${firstDiff} mins,
+                        Lb - ${lastDiff} mins
+                    </div>
+                    <div class="mb-2">Total time taken: ${lastDiff} minutes</div>
+                    <div>Delay : NA </div>
+                `;
+
+                if (lastDiff > 20) {
+                    delayReasonSection.style.display = 'block';
+                    statusContainer.style.display = 'none';
+                    document.getElementById('delayReason').disabled = false;
+                    document.getElementById('delayReason').classList.remove('disabled-field');
+                    document.getElementById('delayReasonLabel').innerText = `Delay Reason (${lastDiff - 20} mins delay, pick or type reason)`;
+                    document.getElementById('delayReasonOptions').classList.remove('hidden');
                 } else {
                     delayReasonSection.style.display = 'none';
-                    statusContainer.style.display = 'none';
+                    statusContainer.style.display = 'block';
+                    document.getElementById('delayReason').disabled = true;
+                    document.getElementById('delayReason').classList.add('disabled-field');
+                    document.getElementById('delayReasonLabel').innerText = 'Delay Reason';
+                    document.getElementById('delayReasonOptions').classList.add('hidden');
+                    document.getElementById('delayReason').value = '';
+                    document.querySelectorAll('.delay-reason-checkbox').forEach(checkbox => {
+                        checkbox.checked = false;
+                    });
                 }
+            } else {
+                // Hide overall status and delay reason section if lastBag or co are not fully entered
+                lastBagInput.classList.remove('border-success', 'border-failure');
+                delayReasonSection.style.display = 'none';
+                statusContainer.style.display = 'none';
             }
+        }
 
-            ['co', 'firstBag', 'lastBag'].forEach(id => {
-                document.getElementById(id).addEventListener('input', checkDelayReasonAndUpdateUI);
-            });
-            checkDelayReasonAndUpdateUI();
+        ['co', 'firstBag', 'lastBag'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateAllUI);
+        });
+
+        // Initial UI update on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAllData();
+            setupFloatingLabels();
+            updateAllUI();
         });
     </script>
 </body>
