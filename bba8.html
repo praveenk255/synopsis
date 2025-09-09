@@ -347,6 +347,13 @@
             <h2 class="text-xl font-bold mb-4">Data Copied!</h2>
             <p class="mb-4">The flight data has been copied to your clipboard.</p>
             <p class="font-bold mb-4">Click OK and paste the data in Teams.</p>
+            <p class="text-sm text-red-500 mb-2">Note: This sharing feature will work only in Edge Browser (Under work profile)</p>
+            <div class="flex items-center justify-center mb-4">
+                <label for="hideTeamsAlertCheckbox" class="flex items-center space-x-2 cursor-pointer text-sm">
+                    <input type="checkbox" id="hideTeamsAlertCheckbox" class="h-4 w-4 text-purple-600 rounded">
+                    <span>Don't show this again</span>
+                </label>
+            </div>
             <button onclick="openTeamsChat()" class="bg-purple-600 text-white font-bold py-2 px-4 rounded hover:bg-purple-700">OK</button>
         </div>
     </div>
@@ -371,6 +378,11 @@
     <script>
         const EXPIRY_TIME_MS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
         let flightToDelete = null;
+
+        // Function to set the 'hideTeamsAlert' flag
+        function setHideTeamsAlert() {
+            localStorage.setItem('hideTeamsAlert', 'true');
+        }
 
         // --- Data Saving and Loading Functions ---
         // New function to save non-flight-specific data on input
@@ -454,7 +466,8 @@
 
         function loadSavedFlight(flightNumber) {
             saveNonFlightData(); // Save the current form data before loading a new one
-            const allFlightsData = JSON.parse(localStorage.getItem('allFlightsData')) || {};
+            const allFlightsData = JSON.parse(localStorage.getItem('allFlightsData')) ||
+            {};
             const flightData = allFlightsData[flightNumber];
             if (flightData) {
                 document.getElementById('flightNumber').value = flightNumber;
@@ -494,7 +507,8 @@
         function updateSavedFlightsList() {
             const savedFlightsList = document.getElementById('savedFlightsList');
             savedFlightsList.innerHTML = ''; // Clear previous buttons
-            const allFlightsData = JSON.parse(localStorage.getItem('allFlightsData')) || {};
+            const allFlightsData = JSON.parse(localStorage.getItem('allFlightsData')) ||
+            {};
             const flightNumbers = Object.keys(allFlightsData).reverse();
 
             if (flightNumbers.length === 0) {
@@ -518,7 +532,6 @@
                     button.appendChild(deleteSpan);
                     savedFlightsList.appendChild(button);
                 });
-
                 // Add the plus button to the saved flights list
                 const plusButton = document.createElement('button');
                 plusButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Add New';
@@ -537,12 +550,10 @@
                 addFlightButtonContainer.classList.add('hidden');
             }
         });
-
         // Add event listeners to all form fields to save data on input
         document.querySelectorAll('.form-input, .time-input, .delay-reason-checkbox').forEach(input => {
             input.addEventListener('input', saveNonFlightData);
         });
-
         // Auto-format time input with colon and validate
         document.querySelectorAll('.time-input').forEach(input => {
             input.addEventListener('input', () => {
@@ -620,7 +631,8 @@ CO: ${co}
 HO: ${ho}
 First Bag: ${firstBag} (${fbAchieved})
 Last Bag: ${lastBag} (${lbAchieved})
-Total Time Taken: ${totalTime !== null ? totalTime : 'NA'} minutes
+Total Time Taken: ${totalTime !== null ?
+totalTime : 'NA'} minutes
 Flight Manager: ${manager}
 Arrival Staff: ${arrivalStaff}
 BBA Staff: ${bbaStaff}
@@ -640,11 +652,20 @@ Delay Reason: ${delayReason}`.trim();
         function generateResult(platform) {
             if (platform === 'msteams') {
                 copyResult();
-                document.getElementById('teamsAlertModal').style.display = 'flex';
+                // Check if the user has opted to hide the modal
+                if (localStorage.getItem('hideTeamsAlert') === 'true') {
+                    openTeamsChat();
+                } else {
+                    document.getElementById('teamsAlertModal').style.display = 'flex';
+                }
             }
         }
 
         function openTeamsChat() {
+            // Check if "Don't show this again" is checked before hiding the modal
+            if (document.getElementById('hideTeamsAlertCheckbox').checked) {
+                setHideTeamsAlert();
+            }
             document.getElementById('teamsAlertModal').style.display = 'none';
             const teamsAppUrl = `msteams://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D`;
             const teamsWebUrl = `https://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D`;
@@ -730,7 +751,8 @@ Delay Reason: ${delayReason}`.trim();
 
         function confirmDelete() {
             if (flightToDelete) {
-                let allFlightsData = JSON.parse(localStorage.getItem('allFlightsData')) || {};
+                let allFlightsData = JSON.parse(localStorage.getItem('allFlightsData')) ||
+                {};
                 delete allFlightsData[flightToDelete];
                 localStorage.setItem('allFlightsData', JSON.stringify(allFlightsData));
                 updateSavedFlightsList();
@@ -791,8 +813,10 @@ Delay Reason: ${delayReason}`.trim();
                 const fbAchieved = firstDiff <= 10;
                 
                 firstBagStatus.innerHTML = `<span class="icon-with-text ${fbAchieved ? 'icon-success' : 'icon-failure'}">
-                                                ${fbAchieved ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>'}
-                                                ${fbAchieved ? 'Achieved' : 'Not Achieved'}
+                                                ${fbAchieved ?
+'<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>'}
+                                                ${fbAchieved ?
+'Achieved' : 'Not Achieved'}
                                             </span>`;
                 // Update First Bag input border
                 if (fbAchieved) {
@@ -816,8 +840,10 @@ Delay Reason: ${delayReason}`.trim();
                 const lastDiff = Math.round((lastBagTime - coTime) / 60000);
                 const lbAchieved = lastDiff <= 20;
                 lastBagStatus.innerHTML = `<span class="icon-with-text ${lbAchieved ? 'icon-success' : 'icon-failure'}">
-                                                ${lbAchieved ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>'}
-                                                ${lbAchieved ? 'Achieved' : 'Not Achieved'}
+                                                ${lbAchieved ?
+'<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>'}
+                                                ${lbAchieved ?
+'Achieved' : 'Not Achieved'}
                                             </span>`;
                 // Update Last Bag input border
                 if (lbAchieved) {
@@ -828,7 +854,8 @@ Delay Reason: ${delayReason}`.trim();
                     lastBagInput.classList.add('border-failure');
                 }
 
-                const firstDiff = co && firstBag ? Math.round((parseTime(firstBag) - parseTime(co)) / 60000) : 'NA';
+                const firstDiff = co && firstBag ?
+Math.round((parseTime(firstBag) - parseTime(co)) / 60000) : 'NA';
                 statusContainer.innerHTML = `
                     <div class="mb-2">
                         Fb - ${firstDiff} mins,
@@ -867,7 +894,6 @@ Delay Reason: ${delayReason}`.trim();
         ['co', 'firstBag', 'lastBag'].forEach(id => {
             document.getElementById(id).addEventListener('input', updateAllUI);
         });
-        
         // Initial UI update on page load
         document.addEventListener('DOMContentLoaded', () => {
             loadAllData();
