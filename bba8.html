@@ -134,7 +134,7 @@
         }
 
         /* Styles for the custom modal box */
-        #teamsAlertModal, #deleteConfirmationModal {
+        #teamsAlertModal, #deleteConfirmationModal, #teamsFailModal {
             position: fixed;
             inset: 0;
             background-color: rgba(0, 0, 0, 0.5);
@@ -142,7 +142,7 @@
             align-items: center;
             justify-content: center;
         }
-        #teamsAlertModal .modal-content, #deleteConfirmationModal .modal-content {
+        #teamsAlertModal .modal-content, #deleteConfirmationModal .modal-content, #teamsFailModal .modal-content {
             background-color: white;
             padding: 2rem;
             border-radius: 0.5rem;
@@ -357,6 +357,19 @@
             <button onclick="openTeamsChat()" class="bg-purple-600 text-white font-bold py-2 px-4 rounded hover:bg-purple-700">OK</button>
         </div>
     </div>
+    
+    <div id="teamsFailModal" class="hidden">
+        <div class="modal-content">
+            <h2 class="text-lg font-semibold mb-3 text-center">Error</h2>
+            <p class="text-gray-700 mb-4 text-sm text-center">Failed to open Teams App. Please check if Teams is installed or try again later.</p>
+            <div class="flex justify-center">
+                <button onclick="hideTeamsFailModal()"
+                        class="bg-blue-500 text-white py-2 px-3 rounded hover:bg-blue-600 text-sm">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
 
     <div id="deleteConfirmationModal" class="hidden">
         <div class="modal-content">
@@ -382,6 +395,14 @@
         // Function to set the 'hideTeamsAlert' flag
         function setHideTeamsAlert() {
             localStorage.setItem('hideTeamsAlert', 'true');
+        }
+
+        function showTeamsFailModal() {
+            document.getElementById('teamsFailModal').style.display = 'flex';
+        }
+
+        function hideTeamsFailModal() {
+            document.getElementById('teamsFailModal').style.display = 'none';
         }
 
         // --- Data Saving and Loading Functions ---
@@ -667,7 +688,22 @@ Delay Reason: ${delayReason}`.trim();
                 setHideTeamsAlert();
             }
             document.getElementById('teamsAlertModal').style.display = 'none';
+
             const teamsAppUrl = `msteams://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D`;
+            const timeout = 2000; // Time in milliseconds to wait before assuming failure
+
+            const timeoutId = setTimeout(() => {
+                // If the timeout expires and the window has focus, it's a good indication the app didn't launch
+                if (document.hasFocus()) {
+                    showTeamsFailModal();
+                }
+            }, timeout);
+
+            // Listen for a window blur event, which indicates the app has opened and the browser lost focus
+            window.addEventListener('blur', () => {
+                clearTimeout(timeoutId);
+            }, { once: true }); // The { once: true } option ensures the listener is removed after it runs once
+
             window.open(teamsAppUrl, '_self');
         }
 
