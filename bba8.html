@@ -96,7 +96,7 @@
             font-size: 12px;
             color: #3b82f6;
         }
-        
+
         /* New class for floating labels */
         .form-label.floating {
             top: -12px;
@@ -148,7 +148,7 @@
             border-radius: 0.5rem;
             text-align: center;
         }
-        
+
         .saved-flight-item {
             display: inline-flex;
             align-items: center;
@@ -161,7 +161,7 @@
             cursor: pointer;
             transition: background-color 0.2s;
         }
-        
+
         .saved-flight-item:hover {
             background-color: #cbd5e0;
         }
@@ -173,6 +173,23 @@
             font-weight: bold;
             line-height: 1;
             cursor: pointer;
+        }
+
+        .new-flight-btn {
+            display: inline-flex;
+            align-items: center;
+            background-color: #e2e8f0;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #4a5568;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .new-flight-btn:hover {
+            background-color: #cbd5e0;
         }
     </style>
 </head>
@@ -237,7 +254,8 @@
 
                 <div class="grid grid-cols-2 gap-x-4 gap-y-1">
                     <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
-                        <input type="checkbox" class="delay-reason-checkbox" value="Heavy and bulky bags"/>
+                        <input type="checkbox" class="delay-reason-checkbox"
+                               value="Heavy and bulky bags"/>
                         <span class="text-sm whitespace-nowrap">Heavy and bulky bags</span>
                     </label>
                     <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
@@ -266,12 +284,14 @@
 
     <div class="mt-6 grid grid-cols-2 gap-4">
         <button onclick="shareViaUniversal()"
-                class="w-full bg-green-500 text-white font-bold py-3 px-4 rounded hover:bg-green-600 flex items-center justify-center space-x-2">
+                class="w-full bg-green-500 text-white font-bold py-3 px-4 rounded hover:bg-green-600
+ flex items-center justify-center space-x-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-share-2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
             <span>Share</span>
         </button>
         <button onclick="generateResult('msteams')"
-                class="w-full bg-purple-600 text-white font-bold py-3 px-4 rounded hover:bg-purple-700 flex items-center justify-center space-x-2">
+                class="w-full bg-purple-600 text-white font-bold py-3 px-4 rounded hover:bg-purple-700 flex
+ items-center justify-center space-x-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             <span>Teams</span>
         </button>
@@ -289,7 +309,7 @@
             <span>Clear</span>
         </button>
     </div>
-    
+
     <div id="addFlightButtonContainer" class="mt-4 hidden">
         <button type="button" onclick="addFlight()" class="w-full bg-blue-500 text-white font-bold py-3 px-4 rounded hover:bg-blue-600 flex items-center justify-center space-x-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
@@ -300,7 +320,7 @@
     <div id="savedFlightsContainer" class="mt-6">
         <h3 class="font-semibold text-gray-700 mb-2">Saved Flights:</h3>
         <div id="savedFlightsList" class="flex flex-wrap gap-2">
-            </div>
+        </div>
     </div>
 
 
@@ -321,7 +341,7 @@
             </div>
         </div>
     </div>
-    
+
     <div id="teamsAlertModal" class="hidden">
         <div class="modal-content">
             <h2 class="text-xl font-bold mb-4">Data Copied!</h2>
@@ -363,7 +383,7 @@
             const minutes = String(date.getMinutes()).padStart(2, '0');
             return `${hours}:${minutes}`;
         }
-        
+
         // --- Data Saving and Loading Functions ---
         function saveStaffData() {
             const arrivalStaff = document.getElementById('arrivalStaff').value;
@@ -390,7 +410,7 @@
         }
 
         function loadSavedFlight(flightNumber) {
-            saveFlightData(); // Save the current flight data before loading a new one
+            saveFlightData(); // ADDED this line to save current data before loading new
             const allFlightsData = JSON.parse(localStorage.getItem('allFlightsData')) || {};
             const flightData = allFlightsData[flightNumber];
             if (flightData) {
@@ -403,7 +423,7 @@
                 updateAllUI();
             }
         }
-        
+
         function loadAllData() {
             const savedArrivalStaff = localStorage.getItem('arrivalStaff');
             const savedBbaStaff = localStorage.getItem('bbaStaff');
@@ -423,7 +443,7 @@
             if (savedBbaStaff) {
                 document.getElementById('bbaStaff').value = savedBbaStaff;
             }
-            
+
             updateSavedFlightsList();
         }
 
@@ -454,12 +474,18 @@
                     button.appendChild(deleteSpan);
                     savedFlightsList.appendChild(button);
                 });
+
+                // Add the plus button to the saved flights list
+                const plusButton = document.createElement('button');
+                plusButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Add New';
+                plusButton.className = 'new-flight-btn ml-2';
+                plusButton.onclick = clearMainForm; // Calls the function to clear the form, keeping staff names
+                savedFlightsList.appendChild(plusButton);
             }
         }
 
         // --- Event Listeners for Saving Data and UI changes ---
         document.getElementById('flightNumber').addEventListener('input', (e) => {
-            saveFlightData(); // Save data on input
             const addFlightButtonContainer = document.getElementById('addFlightButtonContainer');
             if (e.target.value.trim().length > 2) {
                 addFlightButtonContainer.classList.remove('hidden');
@@ -467,15 +493,8 @@
                 addFlightButtonContainer.classList.add('hidden');
             }
         });
-        document.getElementById('co').addEventListener('input', saveFlightData);
-        document.getElementById('ho').addEventListener('input', saveFlightData);
-        document.getElementById('firstBag').addEventListener('input', saveFlightData);
-        document.getElementById('lastBag').addEventListener('input', saveFlightData);
-        document.getElementById('manager').addEventListener('input', saveFlightData);
-
         document.getElementById('arrivalStaff').addEventListener('input', saveStaffData);
         document.getElementById('bbaStaff').addEventListener('input', saveStaffData);
-
         // Auto-format time input with colon and validate
         document.querySelectorAll('.time-input').forEach(input => {
             input.addEventListener('input', () => {
@@ -511,7 +530,6 @@
                 hoInput.value = formatTime(hoDate);
             }
         });
-
         function getResultText() {
             const flightNumber = document.getElementById('flightNumber').value;
             const co = document.getElementById('co').value;
@@ -539,13 +557,12 @@
                 const timeDifference = (end - start) / 60000;
                 return Math.round(timeDifference);
             }
-            
+
             const firstBagTime = calculateTimeDifference(co, firstBag);
             const totalTime = calculateTimeDifference(co, lastBag);
 
             const fbAchieved = firstBagTime !== null && firstBagTime <= 10 ? "Achieved" : "Not Achieved";
             const lbAchieved = totalTime !== null && totalTime <= 20 ? "Achieved" : "Not Achieved";
-
             const result = `
 BBA FB-LB Status
 ${formattedDate}
@@ -578,7 +595,7 @@ Delay Reason: ${delayReason}`.trim();
                 document.getElementById('teamsAlertModal').style.display = 'flex';
             }
         }
-        
+
         function openTeamsChat() {
             document.getElementById('teamsAlertModal').style.display = 'none';
             const teamsAppUrl = `msteams://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D`;
@@ -613,7 +630,8 @@ Delay Reason: ${delayReason}`.trim();
             clearMainForm();
             // Hide the Add Flight button
             document.getElementById('addFlightButtonContainer').classList.add('hidden');
-            loadAllData(); // Reload the saved flights list to show the new data
+            loadAllData();
+            // Reload the saved flights list to show the new data
         }
 
         function clearMainForm() {
@@ -698,7 +716,7 @@ Delay Reason: ${delayReason}`.trim();
                 });
             });
         }
-        
+
         document.getElementById('arrivalStaff').addEventListener('input', saveStaffData);
         document.getElementById('bbaStaff').addEventListener('input', saveStaffData);
         window.addEventListener('DOMContentLoaded', () => {
@@ -714,7 +732,6 @@ Delay Reason: ${delayReason}`.trim();
                 document.getElementById('delayReason').value = selectedReasons;
             });
         });
-
         function updateAllUI() {
             const coInput = document.getElementById('co');
             const firstBagInput = document.getElementById('firstBag');
@@ -726,7 +743,6 @@ Delay Reason: ${delayReason}`.trim();
             const lastBagStatus = document.getElementById('lastBagStatus');
             const delayReasonSection = document.getElementById('delayReason').closest('.form-group');
             const statusContainer = document.getElementById('statusContainer');
-
             // Update First Bag status
             firstBagStatus.innerHTML = '';
             if (co && firstBag && co.length === 5 && firstBag.length === 5) {
@@ -740,7 +756,6 @@ Delay Reason: ${delayReason}`.trim();
                                                 ${fbAchieved ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>'}
                                                 ${fbAchieved ? 'Achieved' : 'Not Achieved'}
                                             </span>`;
-                
                 // Update First Bag input border
                 if (fbAchieved) {
                     firstBagInput.classList.remove('border-failure');
@@ -761,13 +776,11 @@ Delay Reason: ${delayReason}`.trim();
                 
                 if (lastBagTime < coTime) lastBagTime.setDate(lastBagTime.getDate() + 1);
                 const lastDiff = Math.round((lastBagTime - coTime) / 60000);
-                
                 const lbAchieved = lastDiff <= 20;
                 lastBagStatus.innerHTML = `<span class="icon-with-text ${lbAchieved ? 'icon-success' : 'icon-failure'}">
-                                                ${lbAchieved ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucude-check"><path d="M20 6 9 17l-5-5"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>'}
+                                                ${lbAchieved ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>'}
                                                 ${lbAchieved ? 'Achieved' : 'Not Achieved'}
                                             </span>`;
-                
                 // Update Last Bag input border
                 if (lbAchieved) {
                     lastBagInput.classList.remove('border-failure');
@@ -786,7 +799,6 @@ Delay Reason: ${delayReason}`.trim();
                     <div class="mb-2">Total time taken: ${lastDiff} minutes</div>
                     <div>Delay : NA </div>
                 `;
-
                 if (lastDiff > 20) {
                     delayReasonSection.style.display = 'block';
                     statusContainer.style.display = 'none';
@@ -817,7 +829,6 @@ Delay Reason: ${delayReason}`.trim();
         ['co', 'firstBag', 'lastBag'].forEach(id => {
             document.getElementById(id).addEventListener('input', updateAllUI);
         });
-
         // Initial UI update on page load
         document.addEventListener('DOMContentLoaded', () => {
             loadAllData();
