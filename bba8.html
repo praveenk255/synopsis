@@ -668,12 +668,7 @@ Delay Reason: ${delayReason}`.trim();
             }
             document.getElementById('teamsAlertModal').style.display = 'none';
             const teamsAppUrl = `msteams://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D`;
-            const teamsWebUrl = `https://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D`;
-
             window.open(teamsAppUrl, '_self');
-            setTimeout(() => {
-                window.open(teamsWebUrl, '_blank');
-            }, 500);
         }
 
         function shareViaUniversal() {
