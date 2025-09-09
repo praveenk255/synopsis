@@ -87,7 +87,7 @@
             font-size: 12px;
             color: #3b82f6;
         }
-        
+
         /* New class for floating labels */
         .form-label.floating {
             top: -12px;
@@ -139,7 +139,7 @@
             border-radius: 0.5rem;
             text-align: center;
         }
-        
+
         .saved-flight-item {
             display: inline-flex;
             align-items: center;
@@ -152,7 +152,7 @@
             cursor: pointer;
             transition: background-color 0.2s;
         }
-        
+
         .saved-flight-item:hover {
             background-color: #cbd5e0;
         }
@@ -280,7 +280,7 @@
             <span>Clear</span>
         </button>
     </div>
-    
+
     <div id="addFlightButtonContainer" class="mt-4 hidden">
         <button type="button" onclick="addFlight()" class="w-full bg-blue-500 text-white font-bold py-3 px-4 rounded hover:bg-blue-600 flex items-center justify-center space-x-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
@@ -312,16 +312,13 @@
             </div>
         </div>
     </div>
-    
+
     <div id="teamsAlertModal" class="hidden">
         <div class="modal-content">
             <h2 class="text-xl font-bold mb-4">Data Copied!</h2>
             <p class="mb-4">The flight data has been copied to your clipboard.</p>
-            <p class="font-bold mb-4">Click OK and paste the data in Teams. <br/> Note: This Feature only work in Edge broswer(Workprofile).</p>
-            <div class="flex justify-center space-x-4">
-                <button onclick="openTeamsChat()" class="bg-purple-600 text-white font-bold py-2 px-4 rounded hover:bg-purple-700">OK</button>
-                <button onclick="openTeamsChatAndDismiss()" class="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-600">Don't show this again</button>
-            </div>
+            <p class="font-bold mb-4">Click OK and paste the data in Teams.</p>
+            <button onclick="openTeamsChat()" class="bg-purple-600 text-white font-bold py-2 px-4 rounded hover:bg-purple-700">OK</button>
         </div>
     </div>
 
@@ -357,7 +354,7 @@
             const minutes = String(date.getMinutes()).padStart(2, '0');
             return `${hours}:${minutes}`;
         }
-        
+
         // --- Data Saving and Loading Functions ---
         function saveStaffData() {
             const arrivalStaff = document.getElementById('arrivalStaff').value;
@@ -396,7 +393,7 @@
                 checkDelayReasonAndUpdateUI();
             }
         }
-        
+
         function loadAllData() {
             const savedArrivalStaff = localStorage.getItem('arrivalStaff');
             const savedBbaStaff = localStorage.getItem('bbaStaff');
@@ -416,7 +413,7 @@
             if (savedBbaStaff) {
                 document.getElementById('bbaStaff').value = savedBbaStaff;
             }
-            
+
             updateSavedFlightsList();
         }
 
@@ -593,29 +590,26 @@ Delay Reason: ${delayReason}`.trim();
         function generateResult(platform) {
             if (platform === 'msteams') {
                 copyResult();
-                const skipTeamsAlert = localStorage.getItem('skipTeamsAlert');
-                if (skipTeamsAlert === 'true') {
-                    openTeamsChat();
-                } else {
-                    document.getElementById('teamsAlertModal').style.display = 'flex';
-                }
+                document.getElementById('teamsAlertModal').style.display = 'flex';
             }
         }
-        
+
         function openTeamsChat() {
             document.getElementById('teamsAlertModal').style.display = 'none';
             const teamsAppUrl = `msteams://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D`;
-            const teamsWebUrl = `https://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D`;
+            window.location.href = teamsAppUrl;
 
-            window.open(teamsAppUrl, '_self');
+            // Use a timeout to detect if the Teams app opened.
+            // If the user is redirected to the app, the document will lose focus.
             setTimeout(() => {
-                window.open(teamsWebUrl, '_blank');
-            }, 500);
-        }
-        
-        function openTeamsChatAndDismiss() {
-            localStorage.setItem('skipTeamsAlert', 'true');
-            openTeamsChat();
+                if (!document.hasFocus()) {
+                    // The app successfully opened, so do nothing.
+                } else {
+                    // The app did not open, so open the web version as a fallback.
+                    const teamsWebUrl = `https://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D`;
+                    window.open(teamsWebUrl, '_blank');
+                }
+            }, 500); // 500ms should be enough time for the app to take over.
         }
 
         function shareViaUniversal() {
@@ -635,8 +629,6 @@ Delay Reason: ${delayReason}`.trim();
         }
 
         function addFlight() {
-            // Reload the page to show the new data first
-            window.location.reload(); 
             // Save current data before clearing
             saveFlightData();
             // Clear flight-specific fields but keep staff names
@@ -666,7 +658,7 @@ Delay Reason: ${delayReason}`.trim();
             });
             // Hide the Add Flight button
             document.getElementById('addFlightButtonContainer').classList.add('hidden');
-            
+            loadAllData(); // Reload the saved flights list to show the new data
             checkDelayReasonAndUpdateUI();
         }
 
@@ -752,7 +744,7 @@ Delay Reason: ${delayReason}`.trim();
                 });
             });
         }
-        
+
         document.getElementById('arrivalStaff').addEventListener('input', saveStaffData);
         document.getElementById('bbaStaff').addEventListener('input', saveStaffData);
         window.addEventListener('DOMContentLoaded', () => {
@@ -805,11 +797,11 @@ Delay Reason: ${delayReason}`.trim();
                                             </span>`;
                     statusContainer.innerHTML = `
                         <div class="mb-2">
-                            Fb - ${firstDiff} mins, 
+                            Fb - ${firstDiff} mins,
                             Lb - ${lastDiff} mins
                         </div>
                         <div class="mb-2">Total time taken: ${lastDiff} minutes</div>
-                        
+
                         <div>Delay : NA </div>
                     `;
                     if (lastDiff > 20) {
