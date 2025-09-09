@@ -486,7 +486,7 @@
         }
 
         function loadSavedFlight(flightNumber) {
-            saveNonFlightData(); // Save the current form data before loading a new one
+            saveFlightData(); // First, save the current flight data as a permanent entry.
             const allFlightsData = JSON.parse(localStorage.getItem('allFlightsData')) ||
             {};
             const flightData = allFlightsData[flightNumber];
