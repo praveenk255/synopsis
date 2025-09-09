@@ -371,6 +371,50 @@
     <script>
         const EXPIRY_TIME_MS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
         let flightToDelete = null;
+
+        // --- Data Saving and Loading Functions ---
+        // New function to save non-flight-specific data on input
+        function saveNonFlightData() {
+            const flightNumber = document.getElementById('flightNumber').value;
+            const co = document.getElementById('co').value;
+            const ho = document.getElementById('ho').value;
+            const firstBag = document.getElementById('firstBag').value;
+            const lastBag = document.getElementById('lastBag').value;
+            const manager = document.getElementById('manager').value;
+            const arrivalStaff = document.getElementById('arrivalStaff').value;
+            const bbaStaff = document.getElementById('bbaStaff').value;
+            
+            // Create an object to save all form values except the saved flights list
+            const currentFormData = {
+                flightNumber: flightNumber,
+                co: co,
+                ho: ho,
+                firstBag: firstBag,
+                lastBag: lastBag,
+                manager: manager,
+                arrivalStaff: arrivalStaff,
+                bbaStaff: bbaStaff,
+            };
+            // Save the current form data to a single key in localStorage
+            localStorage.setItem('currentFormData', JSON.stringify(currentFormData));
+        }
+
+        // New function to load data from localStorage on page load
+        function loadCurrentFormData() {
+            const savedData = localStorage.getItem('currentFormData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                document.getElementById('flightNumber').value = data.flightNumber || '6E';
+                document.getElementById('co').value = data.co || '';
+                document.getElementById('ho').value = data.ho || '';
+                document.getElementById('firstBag').value = data.firstBag || '';
+                document.getElementById('lastBag').value = data.lastBag || '';
+                document.getElementById('manager').value = data.manager || '';
+                document.getElementById('arrivalStaff').value = data.arrivalStaff || '';
+                document.getElementById('bbaStaff').value = data.bbaStaff || '';
+            }
+        }
+        
         // Function to parse time
         function parseTime(time) {
             const [hours, minutes] = time.split(':').map(Number);
@@ -384,7 +428,6 @@
             return `${hours}:${minutes}`;
         }
 
-        // --- Data Saving and Loading Functions ---
         function saveStaffData() {
             const arrivalStaff = document.getElementById('arrivalStaff').value;
             const bbaStaff = document.getElementById('bbaStaff').value;
@@ -394,7 +437,7 @@
 
         function saveFlightData() {
             const flightNumber = document.getElementById('flightNumber').value.trim();
-            if (!flightNumber) {
+            if (!flightNumber || flightNumber === '6E') { // Prevents saving the default "6E" as a new flight
                 return;
             }
             const allFlightsData = JSON.parse(localStorage.getItem('allFlightsData')) || {};
@@ -410,7 +453,7 @@
         }
 
         function loadSavedFlight(flightNumber) {
-            saveFlightData(); // ADDED this line to save current data before loading new
+            saveNonFlightData(); // Save the current form data before loading a new one
             const allFlightsData = JSON.parse(localStorage.getItem('allFlightsData')) || {};
             const flightData = allFlightsData[flightNumber];
             if (flightData) {
@@ -445,6 +488,7 @@
             }
 
             updateSavedFlightsList();
+            loadCurrentFormData(); // Load the form state on every page load
         }
 
         function updateSavedFlightsList() {
@@ -487,14 +531,18 @@
         // --- Event Listeners for Saving Data and UI changes ---
         document.getElementById('flightNumber').addEventListener('input', (e) => {
             const addFlightButtonContainer = document.getElementById('addFlightButtonContainer');
-            if (e.target.value.trim().length > 2) {
+            if (e.target.value.trim().length > 2 && e.target.value.trim() !== '6E') { // Prevents showing "Add Flight" for default value
                 addFlightButtonContainer.classList.remove('hidden');
             } else {
                 addFlightButtonContainer.classList.add('hidden');
             }
         });
-        document.getElementById('arrivalStaff').addEventListener('input', saveStaffData);
-        document.getElementById('bbaStaff').addEventListener('input', saveStaffData);
+
+        // Add event listeners to all form fields to save data on input
+        document.querySelectorAll('.form-input, .time-input, .delay-reason-checkbox').forEach(input => {
+            input.addEventListener('input', saveNonFlightData);
+        });
+
         // Auto-format time input with colon and validate
         document.querySelectorAll('.time-input').forEach(input => {
             input.addEventListener('input', () => {
@@ -624,14 +672,10 @@ Delay Reason: ${delayReason}`.trim();
         }
 
         function addFlight() {
-            // Save current data before clearing
             saveFlightData();
-            // Clear flight-specific fields but keep staff names
             clearMainForm();
-            // Hide the Add Flight button
             document.getElementById('addFlightButtonContainer').classList.add('hidden');
             loadAllData();
-            // Reload the saved flights list to show the new data
         }
 
         function clearMainForm() {
@@ -644,7 +688,7 @@ Delay Reason: ${delayReason}`.trim();
             document.getElementById('delayReason').value = '';
             document.getElementById('firstBagStatus').innerHTML = '';
             document.getElementById('lastBagStatus').innerHTML = '';
-            // Do NOT clear arrivalStaff and bbaStaff
+
             document.querySelectorAll('.time-input').forEach(input => {
                 input.classList.remove('border-red-500', 'border-success', 'border-failure');
             });
@@ -663,6 +707,7 @@ Delay Reason: ${delayReason}`.trim();
             });
             updateAllUI();
             document.getElementById('addFlightButtonContainer').classList.add('hidden');
+            saveNonFlightData(); // Save the cleared state to localStorage
         }
 
         function showClearConfirmation() {
@@ -717,13 +762,6 @@ Delay Reason: ${delayReason}`.trim();
             });
         }
 
-        document.getElementById('arrivalStaff').addEventListener('input', saveStaffData);
-        document.getElementById('bbaStaff').addEventListener('input', saveStaffData);
-        window.addEventListener('DOMContentLoaded', () => {
-            loadAllData();
-            setupFloatingLabels();
-            updateAllUI();
-        });
         document.querySelectorAll('.delay-reason-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', () => {
                 const selectedReasons = Array.from(document.querySelectorAll('.delay-reason-checkbox:checked'))
@@ -829,6 +867,7 @@ Delay Reason: ${delayReason}`.trim();
         ['co', 'firstBag', 'lastBag'].forEach(id => {
             document.getElementById(id).addEventListener('input', updateAllUI);
         });
+        
         // Initial UI update on page load
         document.addEventListener('DOMContentLoaded', () => {
             loadAllData();
