@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Data Entry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Legacy grid styling */
+        .legacy-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3 columns for the first row */
+            gap: 16px;
+        }
+
+        /* For larger screens, the grid pattern will adjust to fit two items per row after the first row */
+        .legacy-grid > div:nth-child(n + 4):nth-child(-n + 8) {
+            grid-column: span 1;
+        }
+
+        /* Delay Reason should span full width */
+        .legacy-grid > div:last-child {
+            grid-column: span 3;
+        }
+
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 768px) {
+            .legacy-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .legacy-grid > div:nth-child(n + 4):nth-child(-n + 8) {
+                grid-column: span 1;
+            }
+
+            .legacy-grid > div:last-child {
+                grid-column: span 2;
+            }
+        }
+
+        /* Custom styles for the disabled Delay Reason field */
+        .disabled-field {
+            background-color: #ffcccc;
+            color: #a3a3a3;
+        }
+
+        /* Form group container */
+        .form-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Input and textarea styles */
+        .form-input {
+            width: 100%;
+            padding: 8px 0;
+            font-size: 14px;
+            border: none;
+            border-bottom: 2px solid #ccc;
+            background-color: transparent;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        /* Focus and valid states */
+        .form-input:focus,
+        .form-input:not(:placeholder-shown) {
+            border-bottom-color: #3b82f6;
+        }
+
+        /* New border styles for success and failure */
+        .border-success {
+            border-bottom: 2px solid green !important;
+        }
+
+        .border-failure {
+            border-bottom: 2px solid red !important;
+        }
+
+        /* Label styles */
+        .form-label {
+            position: absolute;
+            top: 8px;
+            left: 0;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        /* Move label up when input is focused or has content */
+        .form-input:focus ~ .form-label,
+        .form-input:not(:placeholder-shown) ~ .form-label {
+            top: -12px;
+            font-size: 12px;
+            color: #3b82f6;
+        }
+
+        /* New class for floating labels */
+        .form-label.floating {
+            top: -12px;
+            font-size: 12px;
+            color: #3b82f6;
+        }
+
+        /* Disabled field styles */
+        .disabled-field {
+            background-color: #ffcccc;
+            color: #a3a3a3;
+        }
+
+        /* Remove form-input class from the label */
+        #delayReasonLabel {
+            display: block;
+            font-size: 14px;
+            color: #000000;
+            margin-bottom: 8px;
+        }
+
+        /* Added styles for icons */
+        .icon-with-text {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .icon-success {
+            color: green;
+        }
+
+        .icon-failure {
+            color: red;
+        }
+
+        /* Styles for the custom modal box */
+        #teamsAlertModal,
+        #deleteConfirmationModal,
+        #teamsFailModal {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        #teamsAlertModal .modal-content,
+        #deleteConfirmationModal .modal-content,
+        #teamsFailModal .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+
+        .saved-flight-item {
+            display: inline-flex;
+            align-items: center;
+            background-color: #e2e8f0;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #4a5568;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .saved-flight-item:hover {
+            background-color: #cbd5e0;
+        }
+
+        .delete-btn {
+            margin-left: 0.5rem;
+            color: #ef4444;
+            font-size: 1.25rem;
+            font-weight: bold;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .new-flight-btn {
+            display: inline-flex;
+            align-items: center;
+            background-color: #e2e8f0;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #4a5568;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .new-flight-btn:hover {
+            background-color: #cbd5e0;
+        }
+
+        /* Styles for the copy confirmation popup */
+        .copy-popup {
+            position: absolute;
+            bottom: 120%; /* Position above the button */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #24292e; /* GitHub-style dark background */
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 10;
+        }
+
+        .copy-popup::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: #24292e transparent transparent transparent;
+        }
+
+        /* Make the popup visible */
+        .copy-popup.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Change button style on active/copied state */
+        .copy-success {
+            background-color: #1f2937 !important; /* A dark gray/black */
+        }
+
+        /* Added relative positioning to the copy button's parent container for popup positioning */
+        .relative {
+            position: relative;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+<div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
+
+    <form id="flightForm" class="legacy-grid">
+
+        <div class="form-group">
+            <input type="text" id="flightNumber" inputmode="numeric" pattern="[0-9]*" class="form-input" placeholder=" "
+                   required value="6E"/>
+            <label for="flightNumber" class="form-label">Flight Number</label>
+        </div>
+
+        <div class="form-group">
+            <input type="text" id="co" inputmode="numeric" pattern="[0-9]*" class="form-input time-input" placeholder=" "
+                   maxlength="5" required/>
+            <label for="co" class="form-label">CO</label>
+        </div>
+
+        <div class="form-group">
+            <input type="text" id="ho" inputmode="numeric" pattern="[0-9]*" class="form-input time-input" placeholder=" "
+                   maxlength="5" required/>
+            <label for="ho" class="form-label">HO</label>
+        </div>
+
+        <div class="form-group">
+            <input type="text" id="firstBag" inputmode="numeric" pattern="[0-9]*" class="form-input time-input"
+                   placeholder=" " maxlength="5" required/>
+            <label for="firstBag" class="form-label">First Bag</label>
+            <div id="firstBagStatus" class="mt-1 text-xs"></div>
+        </div>
+
+        <div class="form-group">
+            <input type="text" id="lastBag" inputmode="numeric" pattern="[0-9]*" class="form-input time-input"
+                   placeholder=" " maxlength="5" required/>
+            <label for="lastBag" class="form-label">Last Bag</label>
+            <div id="lastBagStatus" class="mt-1 text-xs"></div>
+        </div>
+
+        <div class="form-group">
+            <input type="text" id="manager" class="form-input" placeholder=" " required/>
+            <label for="manager" class="form-label">Flight Manager</label>
+        </div>
+
+        <div class="form-group">
+            <input type="text" id="arrivalStaff" class="form-input" placeholder=" " required/>
+            <label for="arrivalStaff" class="form-label">Arrival Staff</label>
+        </div>
+
+        <div class="form-group">
+            <input type="text" id="bbaStaff" class="form-input" placeholder=" " required/>
+            <label for="bbaStaff" class="form-label">BBA Staff</label>
+        </div>
+
+        <div class="form-group">
+            <label for="delayReason" id="delayReasonLabel" class="block text-sm text-gray-600 mb-1">
+                Delay Reason
+            </label>
+
+            <div id="delayReasonOptions" class="hidden mt-2">
+
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1">
+                    <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
+                        <input type="checkbox" class="delay-reason-checkbox"
+                               value="Heavy and bulky bags"/>
+                        <span class="text-sm whitespace-nowrap">Heavy and bulky bags</span>
+                    </label>
+                    <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
+                        <input type="checkbox" class="delay-reason-checkbox" value="Shortage of helpers"/>
+                        <span class="text-sm whitespace-nowrap">Shortage of helpers</span>
+                    </label>
+                    <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
+                        <input type="checkbox" class="delay-reason-checkbox" value="Clashing of flights"/>
+                        <span class="text-sm whitespace-nowrap">Clashing of flights</span>
+                    </label>
+                    <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
+                        <input type="checkbox" class="delay-reason-checkbox" value="Trolleys received late"/>
+                        <span class="text-sm whitespace-nowrap">Trolleys received late</span>
+                    </label>
+                </div>
+            </div>
+
+            <textarea id="delayReason" class="w-full p-2 border rounded disabled-field" placeholder="e.g., NA"
+                      disabled></textarea>
+        </div>
+    </form>
+    <div>
+    </div>
+
+    <div id="statusContainer" class="mt-4 p-3 bg-gray-100 rounded-lg"></div>
+
+    <div class="mt-6 grid grid-cols-2 gap-4">
+        <button onclick="shareViaUniversal()"
+                class="w-full bg-green-500 text-white font-bold py-3 px-4 rounded hover:bg-green-600
+ flex items-center justify-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-share-2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
+            <span>Share</span>
+        </button>
+        <button onclick="generateResult('msteams')"
+                class="w-full bg-purple-600 text-white font-bold py-3 px-4 rounded hover:bg-purple-700 flex
+ items-center justify-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Teams</span>
+        </button>
+    </div>
+
+    <div class="mt-4 grid grid-cols-2 gap-4">
+        <div class="relative w-full">
+            <button onclick="copyResult()" id="copyButton" class="w-full bg-gray-500 text-white font-bold py-3 px-4 rounded hover:bg-gray-600 flex items-center justify-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy-plus"><line x1="15" x2="15" y1="18" y2="12"/><line x1="12" x2="18" y1="15" y2="15"/><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                <span>Copy</span>
+            </button>
+        </div>
+        <button onclick="showClearConfirmation()"
+                class="w-full bg-red-500 text-white font-bold py-3 px-4 rounded hover:bg-red-600 flex items-center justify-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+            <span>Clear</span>
+        </button>
+    </div>
+
+    <div id="addFlightButtonContainer" class="mt-4 hidden">
+        <button type="button" onclick="addFlight()" class="w-full bg-blue-500 text-white font-bold py-3 px-4 rounded hover:bg-blue-600 flex items-center justify-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            <span>Add Flight</span>
+        </button>
+    </div>
+
+    <div id="savedFlightsContainer" class="mt-6">
+        <h3 class="font-semibold text-gray-700 mb-2">Saved Flights:</h3>
+        <div class="flex items-center space-x-2">
+            <div id="savedFlightsList" class="flex flex-wrap gap-2">
+            </div>
+            <div id="copyAllContainer" class="relative hidden">
+                <button onclick="copyAllFlights()" id="copyAllButton" class="new-flight-btn ml-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                    <span>Copy All</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="clearConfirmation" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden"
+         aria-hidden="true">
+        <div class="bg-white rounded-lg shadow-lg p-4 max-w-sm w-full">
+            <h2 class="text-lg font-semibold mb-3 text-center">Are you sure?</h2>
+            <p class="text-gray-700 mb-4 text-sm text-center">Are you sure you want to clear all fields</p>
+            <div class="flex justify-center gap-3">
+                <button onclick="clearConfirmedForm()"
+                        class="bg-red-500 text-white py-2 px-3 rounded hover:bg-red-600 text-sm">
+                    OK
+                </button>
+                <button onclick="hideClearConfirmation()"
+                        class="bg-gray-300 text-gray-700 py-2 px-3 rounded hover:bg-gray-400 text-sm">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="teamsAlertModal" class="hidden">
+        <div class="modal-content">
+            <h2 class="text-xl font-bold mb-4">Data Copied!</h2>
+            <p class="mb-4">The flight data has been copied to your clipboard.</p>
+            <p class="font-bold mb-4">Click OK and paste the data in Teams.</p>
+            <p class="text-sm text-red-500 mb-2">Note: This sharing feature will work only in Edge Browser (Under work profile)</p>
+            <div class="flex items-center justify-center mb-4">
+                <label for="hideTeamsAlertCheckbox" class="flex items-center space-x-2 cursor-pointer text-sm">
+                    <input type="checkbox" id="hideTeamsAlertCheckbox" class="h-4 w-4 text-purple-600 rounded">
+                    <span>Don't show this again</span>
+                </label>
+            </div>
+            <button onclick="openTeamsChat()" class="bg-purple-600 text-white font-bold py-2 px-4 rounded hover:bg-purple-700">OK</button>
+        </div>
+    </div>
+    
+    <div id="teamsFailModal" class="hidden">
+        <div class="modal-content">
+            <h2 class="text-lg font-semibold mb-3 text-center">Error</h2>
+            <p class="text-gray-700 mb-4 text-sm text-center">Failed to open Teams App. Please check if Teams is installed or try again later.</p>
+            <div class="flex justify-center">
+                <button onclick="hideTeamsFailModal()"
+                        class="bg-blue-500 text-white py-2 px-3 rounded hover:bg-blue-600 text-sm">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteConfirmationModal" class="hidden">
+        <div class="modal-content">
+            <h2 class="text-lg font-semibold mb-3 text-center">Are you sure?</h2>
+            <p class="text-gray-700 mb-4 text-sm text-center">Do you want to delete this flight?</p>
+            <div class="flex justify-center gap-3">
+                <button onclick="confirmDelete()"
+                        class="bg-red-500 text-white py-2 px-3 rounded hover:bg-red-600 text-sm">
+                    OK
+                </button>
+                <button onclick="cancelDelete()"
+                        class="bg-gray-300 text-gray-700 py-2 px-3 rounded hover:bg-gray-400 text-sm">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const EXPIRY_TIME_MS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
+        let flightToDelete = null;
+
+        // Function to set the 'hideTeamsAlert' flag
+        function setHideTeamsAlert() {
+            localStorage.setItem("hideTeamsAlert", "true");
+        }
+
+        function showTeamsFailModal() {
+            document.getElementById("teamsFailModal").style.display = "flex";
+        }
+
+        function hideTeamsFailModal() {
+            document.getElementById("teamsFailModal").style.display = "none";
+        }
+
+        // --- Data Saving and Loading Functions ---
+        // New function to save non-flight-specific data on input
+        function saveNonFlightData() {
+            const flightNumber = document.getElementById("flightNumber").value;
+            const co = document.getElementById("co").value;
+            const ho = document.getElementById("ho").value;
+            const firstBag = document.getElementById("firstBag").value;
+            const lastBag = document.getElementById("lastBag").value;
+            const manager = document.getElementById("manager").value;
+            const arrivalStaff = document.getElementById("arrivalStaff").value;
+            const bbaStaff = document.getElementById("bbaStaff").value;
+
+            // Create an object to save all form values except the saved flights list
+            const currentFormData = {
+                flightNumber: flightNumber,
+                co: co,
+                ho: ho,
+                firstBag: firstBag,
+                lastBag: lastBag,
+                manager: manager,
+                arrivalStaff: arrivalStaff,
+                bbaStaff: bbaStaff,
+            };
+            // Save the current form data to a single key in localStorage
+            localStorage.setItem("currentFormData", JSON.stringify(currentFormData));
+        }
+
+        // New function to load data from localStorage on page load
+        function loadCurrentFormData() {
+            const savedData = localStorage.getItem("currentFormData");
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                document.getElementById("flightNumber").value = data.flightNumber || "6E";
+                document.getElementById("co").value = data.co || "";
+                document.getElementById("ho").value = data.ho || "";
+                document.getElementById("firstBag").value = data.firstBag || "";
+                document.getElementById("lastBag").value = data.lastBag || "";
+                document.getElementById("manager").value = data.manager || "";
+                document.getElementById("arrivalStaff").value = data.arrivalStaff || "";
+                document.getElementById("bbaStaff").value = data.bbaStaff || "";
+            }
+        }
+
+        // Function to parse time
+        function parseTime(time) {
+            const [hours, minutes] = time.split(":").map(Number);
+            return new Date(1970, 0, 1, hours, minutes);
+        }
+
+        // Function to format time into HH:MM
+        function formatTime(date) {
+            const hours = String(date.getHours()).padStart(2, "0");
+            const minutes = String(date.getMinutes()).padStart(2, "0");
+            return `${hours}:${minutes}`;
+        }
+
+        function saveStaffData() {
+            const arrivalStaff = document.getElementById("arrivalStaff").value;
+            const bbaStaff = document.getElementById("bbaStaff").value;
+            localStorage.setItem("arrivalStaff", arrivalStaff);
+            localStorage.setItem("bbaStaff", bbaStaff);
+        }
+
+        function saveFlightData() {
+            const flightNumber = document.getElementById("flightNumber").value.trim();
+            if (!flightNumber || flightNumber === "6E") {
+                // Prevents saving the default "6E" as a new flight
+                return;
+            }
+            const allFlightsData =
+                JSON.parse(localStorage.getItem("allFlightsData")) || {};
+            allFlightsData[flightNumber] = {
+                co: document.getElementById("co").value,
+                ho: document.getElementById("ho").value,
+                firstBag: document.getElementById("firstBag").value,
+                lastBag: document.getElementById("lastBag").value,
+                manager: document.getElementById("manager").value,
+                timestamp: Date.now(),
+            };
+            localStorage.setItem("allFlightsData", JSON.stringify(allFlightsData));
+        }
+
+        function loadSavedFlight(flightNumber) {
+            saveFlightData(); // First, save the current flight data as a permanent entry.
+            const allFlightsData =
+                JSON.parse(localStorage.getItem("allFlightsData")) || {};
+            const flightData = allFlightsData[flightNumber];
+            if (flightData) {
+                document.getElementById("flightNumber").value = flightNumber;
+                document.getElementById("co").value = flightData.co;
+                document.getElementById("ho").value = flightData.ho;
+                document.getElementById("firstBag").value = flightData.firstBag;
+                document.getElementById("lastBag").value = flightData.lastBag;
+                document.getElementById("manager").value = flightData.manager;
+                updateAllUI();
+            }
+        }
+
+        function loadAllData() {
+            const savedArrivalStaff = localStorage.getItem("arrivalStaff");
+            const savedBbaStaff = localStorage.getItem("bbaStaff");
+            const allFlightsData =
+                JSON.parse(localStorage.getItem("allFlightsData")) || {};
+            // Cleanup expired flight data
+            const now = Date.now();
+            const cleanedFlightsData = {};
+            for (const flight in allFlightsData) {
+                if (now - allFlightsData[flight].timestamp < EXPIRY_TIME_MS) {
+                    cleanedFlightsData[flight] = allFlightsData[flight];
+                }
+            }
+            localStorage.setItem("allFlightsData", JSON.stringify(cleanedFlightsData));
+            if (savedArrivalStaff) {
+                document.getElementById("arrivalStaff").value = savedArrivalStaff;
+            }
+            if (savedBbaStaff) {
+                document.getElementById("bbaStaff").value = savedBbaStaff;
+            }
+
+            updateSavedFlightsList();
+            loadCurrentFormData(); // Load the form state on every page load
+        }
+
+        function updateSavedFlightsList() {
+            const savedFlightsList = document.getElementById("savedFlightsList");
+            const copyAllContainer = document.getElementById("copyAllContainer");
+            savedFlightsList.innerHTML = ""; // Clear previous buttons
+            const allFlightsData =
+                JSON.parse(localStorage.getItem("allFlightsData")) || {};
+            const flightNumbers = Object.keys(allFlightsData).reverse();
+
+            if (flightNumbers.length === 0) {
+                document.getElementById("savedFlightsContainer").style.display = "none";
+                copyAllContainer.classList.add("hidden");
+            } else {
+                document.getElementById("savedFlightsContainer").style.display = "block";
+                copyAllContainer.classList.remove("hidden");
+                flightNumbers.forEach((flightNumber) => {
+                    const button = document.createElement("button");
+                    button.textContent = flightNumber;
+                    button.className = "saved-flight-item";
+                    button.onclick = () => loadSavedFlight(flightNumber);
+
+                    const deleteSpan = document.createElement("span");
+                    deleteSpan.textContent = "❌";
+                    deleteSpan.className = "delete-btn";
+                    deleteSpan.onclick = (e) => {
+                        e.stopPropagation(); // Prevent button click event from firing
+                        showDeleteConfirmation(flightNumber);
+                    };
+
+                    button.appendChild(deleteSpan);
+                    savedFlightsList.appendChild(button);
+                });
+                // Add the plus button to the saved flights list
+                const plusButton = document.createElement("button");
+                plusButton.innerHTML =
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Add New';
+                plusButton.className = "new-flight-btn ml-2";
+                plusButton.onclick = clearMainForm; // Calls the function to clear the form, keeping staff names
+                savedFlightsList.appendChild(plusButton);
+            }
+        }
+
+        // --- Event Listeners for Saving Data and UI changes ---
+        document.getElementById("flightNumber").addEventListener("input", (e) => {
+            const addFlightButtonContainer = document.getElementById(
+                "addFlightButtonContainer"
+            );
+            if (e.target.value.trim().length > 2 && e.target.value.trim() !== "6E") {
+                // Prevents showing "Add Flight" for default value
+                addFlightButtonContainer.classList.remove("hidden");
+            } else {
+                addFlightButtonContainer.classList.add("hidden");
+            }
+        });
+        // Add event listeners to all form fields to save data on input
+        document
+            .querySelectorAll(".form-input, .time-input, .delay-reason-checkbox")
+            .forEach((input) => {
+                input.addEventListener("input", saveNonFlightData);
+            });
+        // Auto-format time input with colon and validate
+        document.querySelectorAll(".time-input").forEach((input) => {
+            input.addEventListener("input", () => {
+                let value = input.value.replace(/[^0-9:]/g, "");
+                if (value.length > 2 && !value.includes(":")) {
+                    value = value.slice(0, 2) + ":" + value.slice(2);
+                }
+                if (value.length > 5) {
+                    value = value.slice(0, 5);
+                }
+                input.value = value;
+                const [hours, minutes] = value.split(":").map(Number);
+                const isInvalid =
+                    hours > 23 ||
+                    isNaN(hours) ||
+                    minutes > 59 ||
+                    isNaN(minutes) ||
+                    (value.includes(":") && minutes === undefined);
+                if (isInvalid) {
+                    input.classList.add("border-red-500");
+                } else {
+                    input.classList.remove("border-red-500");
+                }
+                updateAllUI();
+            });
+        });
+
+        // Function to auto-calculate HO time based on CO time
+        document.getElementById("co").addEventListener("input", (e) => {
+            const coTime = e.target.value;
+            const hoInput = document.getElementById("ho");
+            if (coTime.length === 5 && !e.target.classList.contains("border-red-500")) {
+                const [hours, minutes] = coTime.split(":").map(Number);
+                let hoDate = new Date();
+                hoDate.setHours(hours, minutes + 2, 0, 0);
+                hoInput.value = formatTime(hoDate);
+            }
+        });
+
+        function formatDate(date) {
+            const day = String(date.getDate()).padStart(2, "0");
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const year = String(date.getFullYear()).slice(-2);
+            return `${day}/${month}/${year}`;
+        }
+
+        function parseTime(time) {
+            const [hours, minutes] = time.split(":").map(Number);
+            return new Date(1970, 0, 1, hours, minutes);
+        }
+
+        function calculateTimeDifference(startTime, endTime) {
+            if (!startTime || !endTime) return null;
+            const start = parseTime(startTime);
+            const end = parseTime(endTime);
+            if (end < start) end.setDate(end.getDate() + 1);
+            const timeDifference = (end - start) / 60000;
+            return Math.round(timeDifference);
+        }
+
+        function getResultText() {
+            const flightNumber = document.getElementById("flightNumber").value;
+            const co = document.getElementById("co").value;
+            const ho = document.getElementById("ho").value;
+            const firstBag = document.getElementById("firstBag").value;
+            const lastBag = document.getElementById("lastBag").value;
+            const manager = document.getElementById("manager").value;
+            const arrivalStaff = document.getElementById("arrivalStaff").value;
+            const bbaStaff = document.getElementById("bbaStaff").value;
+            const delayReason = document.getElementById("delayReason").value || "NA";
+
+            const today = new Date();
+            const formattedDate = formatDate(today);
+
+            const firstBagTime = calculateTimeDifference(co, firstBag);
+            const totalTime = calculateTimeDifference(co, lastBag);
+
+            const fbAchieved =
+                firstBagTime !== null && firstBagTime <= 10 ? "Achieved" : "Not Achieved";
+            const lbAchieved =
+                totalTime !== null && totalTime <= 20 ? "Achieved" : "Not Achieved";
+            const result = `
+BBA FB-LB Status
+${formattedDate}
+
+Flight Number: ${flightNumber}
+CO: ${co}
+HO: ${ho}
+First Bag: ${firstBag} (${fbAchieved})
+Last Bag: ${lastBag} (${lbAchieved})
+Total Time Taken: ${totalTime !== null ? totalTime : "NA"} minutes
+Flight Manager: ${manager}
+Arrival Staff: ${arrivalStaff}
+BBA Staff: ${bbaStaff}
+
+Delay Reason: ${delayReason}`.trim();
+            return result;
+        }
+
+        // New function to generate a single string from all saved flights
+        function getAllFlightsText() {
+            const allFlightsData =
+                JSON.parse(localStorage.getItem("allFlightsData")) || {};
+            const flightNumbers = Object.keys(allFlightsData).reverse();
+            const allData = flightNumbers
+                .map((flightNumber) => {
+                    const flightData = allFlightsData[flightNumber];
+                    const arrivalStaff = document.getElementById("arrivalStaff").value;
+                    const bbaStaff = document.getElementById("bbaStaff").value;
+                    const today = new Date();
+                    const formattedDate = formatDate(today);
+
+                    const firstBagTime = calculateTimeDifference(
+                        flightData.co,
+                        flightData.firstBag
+                    );
+                    const totalTime = calculateTimeDifference(
+                        flightData.co,
+                        flightData.lastBag
+                    );
+                    const fbAchieved =
+                        firstBagTime !== null && firstBagTime <= 10
+                            ? "Achieved"
+                            : "Not Achieved";
+                    const lbAchieved =
+                        totalTime !== null && totalTime <= 20 ? "Achieved" : "Not Achieved";
+                    const delayReason = flightData.delayReason || "NA";
+
+                    return `BBA FB-LB Status
+${formattedDate}
+
+Flight Number: ${flightNumber}
+CO: ${flightData.co}
+HO: ${flightData.ho}
+First Bag: ${flightData.firstBag} (${fbAchieved})
+Last Bag: ${flightData.lastBag} (${lbAchieved})
+Total Time Taken: ${totalTime !== null ? totalTime : "NA"} minutes
+Flight Manager: ${flightData.manager}
+Arrival Staff: ${arrivalStaff}
+BBA Staff: ${bbaStaff}
+
+Delay Reason: ${delayReason}`.trim();
+                })
+                .join("\n\n————————————————\n\n");
+            return allData;
+        }
+
+        // New function to generate HTML table from data
+        function generateHtmlTableResult(flightData) {
+            const today = new Date();
+            const formattedDate = formatDate(today);
+            const arrivalStaff = document.getElementById("arrivalStaff").value;
+            const bbaStaff = document.getElementById("bbaStaff").value;
+
+            // Generate table header
+            let html = `
+            <div>
+                <b>BBA FB-LB Status</b>
+                <br>
+                ${formattedDate}
+            </div>
+            <table style="width:100%; border-collapse: collapse; margin-top: 15px;">
+                <tbody>
+            `;
+
+            // Loop through flight data and add rows
+            const metrics = {
+                'Flight Number': flightData.flightNumber,
+                'CO': flightData.co,
+                'HO': flightData.ho,
+                'First Bag': `${flightData.firstBag} (${flightData.fbAchieved})`,
+                'Last Bag': `${flightData.lastBag} (${flightData.lbAchieved})`,
+                'Total Time Taken': `${flightData.totalTime !== null ? flightData.totalTime : 'NA'} minutes`,
+                'Flight Manager': flightData.manager,
+                'Arrival Staff': arrivalStaff,
+                'BBA Staff': bbaStaff,
+                'Delay Reason': flightData.delayReason
+            };
+
+            for (const key in metrics) {
+                html += `
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px; white-space: nowrap;">${key}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${metrics[key]}</td>
+                </tr>
+                `;
+            }
+
+            // Close table and return
+            html += `</tbody></table>`;
+            return html;
+        }
+
+        // New function to get single flight data object
+        function getSingleFlightData() {
+            const co = document.getElementById("co").value;
+            const firstBag = document.getElementById("firstBag").value;
+            const lastBag = document.getElementById("lastBag").value;
+
+            const firstBagTime = calculateTimeDifference(co, firstBag);
+            const totalTime = calculateTimeDifference(co, lastBag);
+
+            const fbAchieved = firstBagTime !== null && firstBagTime <= 10 ? "Achieved" : "Not Achieved";
+            const lbAchieved = totalTime !== null && totalTime <= 20 ? "Achieved" : "Not Achieved";
+
+            return {
+                flightNumber: document.getElementById("flightNumber").value,
+                co: co,
+                ho: document.getElementById("ho").value,
+                firstBag: firstBag,
+                lastBag: lastBag,
+                manager: document.getElementById("manager").value,
+                delayReason: document.getElementById("delayReason").value || "NA",
+                fbAchieved: fbAchieved,
+                lbAchieved: lbAchieved,
+                totalTime: totalTime
+            };
+        }
+
+
+        async function copyResult() {
+            try {
+                const flightData = getSingleFlightData();
+                const htmlText = generateHtmlTableResult(flightData);
+
+                const blob = new Blob([htmlText], { type: 'text/html' });
+                const item = new ClipboardItem({ 'text/html': blob });
+
+                await navigator.clipboard.write([item]);
+                showCopyFeedback();
+            } catch (err) {
+                console.error("Failed to copy: ", err);
+                // Fallback to plain text if HTML copy fails
+                await navigator.clipboard.writeText(getResultText());
+            }
+        }
+
+        // New function to copy all flights
+        async function copyAllFlights() {
+            const allFlightsData =
+                JSON.parse(localStorage.getItem("allFlightsData")) || {};
+            const flightNumbers = Object.keys(allFlightsData).reverse();
+
+            const allHtml = flightNumbers
+                .map((flightNumber) => {
+                    const flightData = allFlightsData[flightNumber];
+                    const firstBagTime = calculateTimeDifference(flightData.co, flightData.firstBag);
+                    const totalTime = calculateTimeDifference(flightData.co, flightData.lastBag);
+                    const fbAchieved = firstBagTime !== null && firstBagTime <= 10 ? "Achieved" : "Not Achieved";
+                    const lbAchieved = totalTime !== null && totalTime <= 20 ? "Achieved" : "Not Achieved";
+                    const currentFlightData = {
+                        ...flightData,
+                        fbAchieved: fbAchieved,
+                        lbAchieved: lbAchieved,
+                        totalTime: totalTime,
+                        flightNumber: flightNumber
+                    };
+                    return generateHtmlTableResult(currentFlightData);
+                })
+                .join('<br><br><b>————————————————</b><br><br>');
+
+            try {
+                const blob = new Blob([allHtml], { type: 'text/html' });
+                const item = new ClipboardItem({ 'text/html': blob });
+                await navigator.clipboard.write([item]);
+                showCopyFeedback("copyAllButton");
+            } catch (err) {
+                console.error("Failed to copy all flights: ", err);
+                // Fallback to plain text if HTML copy fails
+                await navigator.clipboard.writeText(getAllFlightsText());
+            }
+        }
+
+
+        function showCopyFeedback(buttonId = "copyButton") {
+            const copyButton = document.getElementById(buttonId);
+            const popup = document.createElement("div");
+            popup.className = "copy-popup";
+            popup.textContent = "Copied!";
+            copyButton.parentNode.appendChild(popup);
+
+            // Show popup and change button color
+            setTimeout(() => {
+                popup.classList.add("show");
+                copyButton.classList.add("copy-success");
+                copyButton.classList.remove("bg-gray-500", "hover:bg-gray-600");
+            }, 10); // Small delay to allow element to be rendered
+
+            // Hide popup and revert button color after 1.5 seconds
+            setTimeout(() => {
+                popup.classList.remove("show");
+                copyButton.classList.remove("copy-success");
+                if (buttonId === "copyButton") {
+                    copyButton.classList.add("bg-gray-500", "hover:bg-gray-600");
+                }
+                setTimeout(() => {
+                    popup.remove();
+                }, 300); // Wait for transition to finish before removing from DOM
+            }, 1500);
+        }
+
+        function generateResult(platform) {
+            if (platform === "msteams") {
+                copyResult();
+                // Check if the user has opted to hide the modal
+                if (localStorage.getItem("hideTeamsAlert") === "true") {
+                    openTeamsChat();
+                } else {
+                    document.getElementById("teamsAlertModal").style.display = "flex";
+                }
+            }
+        }
+
+        function openTeamsChat() {
+            // Check if "Don't show this again" is checked before hiding the modal
+            if (document.getElementById("hideTeamsAlertCheckbox").checked) {
+                setHideTeamsAlert();
+            }
+            document.getElementById("teamsAlertModal").style.display = "none";
+
+            const teamsAppUrl = `msteams://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D`;
+            const timeout = 2000; // Time in milliseconds to wait before assuming failure
+
+            const timeoutId = setTimeout(() => {
+                // If the timeout expires and the window has focus, it's a good indication the app didn't launch
+                if (document.hasFocus()) {
+                    showTeamsFailModal();
+                }
+            }, timeout);
+
+            // Listen for a window blur event, which indicates the app has opened and the browser lost focus
+            window.addEventListener(
+                "blur",
+                () => {
+                    clearTimeout(timeoutId);
+                },
+                { once: true }
+            ); // The { once: true } option ensures the listener is removed after it runs once
+
+            window.open(teamsAppUrl, "_self");
+        }
+
+        function shareViaUniversal() {
+            const result = getResultText();
+            if (navigator.share) {
+                navigator
+                    .share({
+                        title: "Flight Data Report",
+                        text: result,
+                    })
+                    .catch((error) => {
+                        console.error("Error sharing:", error);
+                    });
+            } else {
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(result)}`;
+                window.open(whatsappUrl, "_blank");
+            }
+        }
+
+        function addFlight() {
+            saveFlightData();
+            clearMainForm();
+            document.getElementById("addFlightButtonContainer").classList.add("hidden");
+            loadAllData();
+        }
+
+        function clearMainForm() {
+            document.getElementById("flightNumber").value = "6E";
+            document.getElementById("co").value = "";
+            document.getElementById("ho").value = "";
+            document.getElementById("firstBag").value = "";
+            document.getElementById("lastBag").value = "";
+            document.getElementById("manager").value = "";
+            document.getElementById("delayReason").value = "";
+            document.getElementById("firstBagStatus").innerHTML = "";
+            document.getElementById("lastBagStatus").innerHTML = "";
+
+            document.querySelectorAll(".time-input").forEach((input) => {
+                input.classList.remove(
+                    "border-red-500",
+                    "border-success",
+                    "border-failure"
+                );
+            });
+            const delayReasonSection = document
+                .getElementById("delayReason")
+                .closest(".form-group");
+            const statusContainer = document.getElementById("statusContainer");
+
+            delayReasonSection.style.display = "none";
+            statusContainer.style.display = "none";
+
+            document.getElementById("delayReason").disabled = true;
+            document.getElementById("delayReason").classList.add("disabled-field");
+            document.getElementById("delayReasonLabel").innerText = "Delay Reason";
+            document.getElementById("delayReasonOptions").classList.add("hidden");
+            document.querySelectorAll(".delay-reason-checkbox").forEach((checkbox) => {
+                checkbox.checked = false;
+            });
+            updateAllUI();
+            document.getElementById("addFlightButtonContainer").classList.add("hidden");
+            saveNonFlightData(); // Save the cleared state to localStorage
+        }
+
+        function showClearConfirmation() {
+            document.getElementById("clearConfirmation").classList.remove("hidden");
+        }
+
+        function hideClearConfirmation() {
+            document.getElementById("clearConfirmation").classList.add("hidden");
+        }
+
+        function clearConfirmedForm() {
+            clearMainForm();
+            hideClearConfirmation();
+        }
+
+        function showDeleteConfirmation(flightNumber) {
+            flightToDelete = flightNumber;
+            document.getElementById("deleteConfirmationModal").style.display = "flex";
+        }
+
+        function confirmDelete() {
+            if (flightToDelete) {
+                let allFlightsData =
+                    JSON.parse(localStorage.getItem("allFlightsData")) || {};
+                delete allFlightsData[flightToDelete];
+                localStorage.setItem("allFlightsData", JSON.stringify(allFlightsData));
+                updateSavedFlightsList();
+                flightToDelete = null; // Reset the variable
+            }
+            document.getElementById("deleteConfirmationModal").style.display = "none";
+        }
+
+        function cancelDelete() {
+            flightToDelete = null;
+            document.getElementById("deleteConfirmationModal").style.display = "none";
+        }
+
+        function setupFloatingLabels() {
+            const formInputs = document.querySelectorAll(".form-input");
+            formInputs.forEach((input) => {
+                const label = input.nextElementSibling;
+                if (input.value.trim() !== "") {
+                    label.classList.add("floating");
+                }
+                input.addEventListener("focus", () => {
+                    label.classList.add("floating");
+                });
+                input.addEventListener("blur", () => {
+                    if (input.value.trim() === "") {
+                        label.classList.remove("floating");
+                    }
+                });
+            });
+        }
+
+        document.querySelectorAll(".delay-reason-checkbox").forEach((checkbox) => {
+            checkbox.addEventListener("change", () => {
+                const selectedReasons = Array.from(
+                    document.querySelectorAll(".delay-reason-checkbox:checked")
+                )
+                    .map((checkbox) => checkbox.value)
+                    .join(", ");
+                document.getElementById("delayReason").value = selectedReasons;
+            });
+        });
+        function updateAllUI() {
+            const coInput = document.getElementById("co");
+            const firstBagInput = document.getElementById("firstBag");
+            const lastBagInput = document.getElementById("lastBag");
+            const co = coInput.value;
+            const firstBag = firstBagInput.value;
+            const lastBag = lastBagInput.value;
+            const firstBagStatus = document.getElementById("firstBagStatus");
+            const lastBagStatus = document.getElementById("lastBagStatus");
+            const delayReasonSection = document
+                .getElementById("delayReason")
+                .closest(".form-group");
+            const statusContainer = document.getElementById("statusContainer");
+            // Update First Bag status
+            firstBagStatus.innerHTML = "";
+            if (co && firstBag && co.length === 5 && firstBag.length === 5) {
+                const coTime = parseTime(co);
+                const firstBagTime = parseTime(firstBag);
+                if (firstBagTime < coTime) firstBagTime.setDate(firstBagTime.getDate() + 1);
+                const firstDiff = Math.round((firstBagTime - coTime) / 60000);
+                const fbAchieved = firstDiff <= 10;
+
+                firstBagStatus.innerHTML = `<span class="icon-with-text ${
+                    fbAchieved ? "icon-success" : "icon-failure"
+                }">
+                                        ${
+                    fbAchieved
+                        ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"/></svg>'
+                        : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>'
+                }
+                                        ${
+                    fbAchieved
+                        ? "Achieved"
+                        : "Not Achieved"
+                }
+                                    </span>`;
+                // Update First Bag input border
+                if (fbAchieved) {
+                    firstBagInput.classList.remove("border-failure");
+                    firstBagInput.classList.add("border-success");
+                } else {
+                    firstBagInput.classList.remove("border-success");
+                    firstBagInput.classList.add("border-failure");
+                }
+            } else {
+                firstBagInput.classList.remove("border-success", "border-failure");
+            }
+
+            // Update Last Bag status and overall UI
+            lastBagStatus.innerHTML = "";
+            if (co && lastBag && co.length === 5 && lastBag.length === 5) {
+                const coTime = parseTime(co);
+                const lastBagTime = parseTime(lastBag);
+
+                if (lastBagTime < coTime) lastBagTime.setDate(lastBagTime.getDate() + 1);
+                const lastDiff = Math.round((lastBagTime - coTime) / 60000);
+                const lbAchieved = lastDiff <= 20;
+                lastBagStatus.innerHTML = `<span class="icon-with-text ${
+                    lbAchieved ? "icon-success" : "icon-failure"
+                }">
+                                        ${
+                    lbAchieved
+                        ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"/></svg>'
+                        : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>'
+                }
+                                        ${
+                    lbAchieved
+                        ? "Achieved"
+                        : "Not Achieved"
+                }
+                                    </span>`;
+                // Update Last Bag input border
+                if (lbAchieved) {
+                    lastBagInput.classList.remove("border-failure");
+                    lastBagInput.classList.add("border-success");
+                } else {
+                    lastBagInput.classList.remove("border-success");
+                    lastBagInput.classList.add("border-failure");
+                }
+
+                const firstDiff =
+                    co && firstBag
+                        ? Math.round((parseTime(firstBag) - parseTime(co)) / 60000)
+                        : "NA";
+                statusContainer.innerHTML = `
+            <div class="mb-2">
+                Fb - ${firstDiff} mins,
+                Lb - ${lastDiff} mins
+            </div>
+            <div class="mb-2">Total time taken: ${lastDiff} minutes</div>
+            <div>Delay : NA </div>
+        `;
+                if (lastDiff > 20) {
+                    delayReasonSection.style.display = "block";
+                    statusContainer.style.display = "none";
+                    document.getElementById("delayReason").disabled = false;
+                    document.getElementById("delayReason").classList.remove("disabled-field");
+                    document.getElementById("delayReasonLabel").innerText = `Delay Reason (${
+                        lastDiff - 20
+                    } mins delay, pick or type reason)`;
+                    document.getElementById("delayReasonOptions").classList.remove("hidden");
+                } else {
+                    delayReasonSection.style.display = "none";
+                    statusContainer.style.display = "block";
+                    document.getElementById("delayReason").disabled = true;
+                    document.getElementById("delayReason").classList.add("disabled-field");
+                    document.getElementById("delayReasonLabel").innerText = "Delay Reason";
+                    document.getElementById("delayReasonOptions").classList.add("hidden");
+                    document.getElementById("delayReason").value = "";
+                    document
+                        .querySelectorAll(".delay-reason-checkbox")
+                        .forEach((checkbox) => {
+                            checkbox.checked = false;
+                        });
+                }
+            } else {
+                // Hide overall status and delay reason section if lastBag or co are not fully entered
+                lastBagInput.classList.remove("border-success", "border-failure");
+                delayReasonSection.style.display = "none";
+                statusContainer.style.display = "none";
+            }
+        }
+
+        ["co", "firstBag", "lastBag"].forEach((id) => {
+            document.getElementById(id).addEventListener("input", updateAllUI);
+        });
+        // Initial UI update on page load
+        document.addEventListener("DOMContentLoaded", () => {
+            loadAllData();
+            setupFloatingLabels();
+            updateAllUI();
+        });
+    </script>
+</body>
+</html>
