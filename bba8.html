@@ -371,12 +371,19 @@
             <span class="text-sm text-red-600 mt-1">Clear</span>
         </div>
     </div>
-    <div id="addFlightButtonContainer" class="mt-4 hidden">
-        <button type="button" onclick="addFlight()" class="w-full bg-blue-500 text-white font-bold py-3 px-4 rounded hover:bg-blue-600 flex items-center justify-center space-x-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-            <span>Add Flight</span>
-        </button>
+
+    <div class="mt-4 grid grid-cols-4 gap-4">
+        <div id="addFlightButtonContainer" class="flex flex-col items-center col-span-1 hidden">
+            <button type="button" onclick="addFlight()"
+                    class="w-full bg-blue-500 text-white font-bold py-3 px-4 rounded hover:bg-blue-600
+                           flex items-center justify-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            </button>
+            <span class="text-sm text-blue-600 mt-1">Add Flight</span>
+        </div>
+        <div class="col-span-3"></div>
     </div>
+
 
     <div id="savedFlightsContainer" class="mt-6">
         <h3 class="font-semibold text-gray-700 mb-2">Saved Flights:</h3>
@@ -512,7 +519,7 @@ function confirmClearAfterShare() {
     if (document.getElementById("alwaysClearCheckbox").checked) {
         setAlwaysClearPreference(true);
     }
-    clearConfirmedForm();
+    clearMainForm(); // Changed to clearMainForm to only clear flight data
     hideClearAfterShareConfirmation();
 }
 
@@ -520,7 +527,7 @@ function confirmClearAfterShare() {
 function handleSuccessfulShare() {
     // The previous form validity check is removed to allow sharing/copying with empty fields
     if (getAlwaysClearPreference()) {
-        clearConfirmedForm();
+        clearMainForm(); // Use clearMainForm to keep staff names
     } else {
         showClearAfterShareConfirmation();
     }
@@ -613,7 +620,10 @@ function loadCurrentFormData() {
 // Function to parse time
 function parseTime(time) {
     const [hours, minutes] = time.split(":").map(Number);
-    return new Date(1970, 0, 1, hours, minutes);
+    // Ensure the Date object is created with correct UTC or local time assumptions
+    // For time-only comparisons, setting the date to epoch start is fine.
+    const date = new Date(1970, 0, 1, hours, minutes);
+    return date;
 }
 
 // Function to format time into HH:MM
@@ -679,6 +689,7 @@ function loadSavedFlight(flightNumber) {
         document.getElementById("delayReason").value = flightData.delayReason || "";
         // Staff data is intentionally NOT overwritten when loading a flight
         updateAllUI();
+        saveNonFlightData(); // Save loaded flight data as current form state
     }
 }
 
@@ -754,6 +765,7 @@ document.getElementById("flightNumber").addEventListener("input", (e) => {
     } else {
         addFlightButtonContainer.classList.add("hidden");
     }
+    saveNonFlightData(); // Ensure this is called to update form state
 });
 
 // MODIFIED: Add event listeners to all form fields.
@@ -783,7 +795,8 @@ document.querySelectorAll(".time-input").forEach((input) => {
             isNaN(hours) ||
             minutes > 59 ||
             isNaN(minutes) ||
-            (value.includes(":") && minutes === undefined);
+            (value.includes(":") && minutes === undefined) ||
+            value.length < 5;
         if (isInvalid) {
             input.classList.add("border-red-500");
         } else {
@@ -802,6 +815,7 @@ document.getElementById("co").addEventListener("input", (e) => {
         let hoDate = new Date();
         hoDate.setHours(hours, minutes + 2, 0, 0);
         hoInput.value = formatTime(hoDate);
+        saveNonFlightData(); // Save HO after auto-filling
     }
 });
 
@@ -813,10 +827,10 @@ function formatDate(date) {
 }
 
 function calculateTimeDifference(startTime, endTime) {
-    if (!startTime || !endTime) return null;
+    if (!startTime || !endTime || startTime.length !== 5 || endTime.length !== 5) return null;
     const start = parseTime(startTime);
     const end = parseTime(endTime);
-    if (end < start) end.setDate(end.getDate() + 1);
+    if (end < start) end.setDate(end.getDate() + 1); // Handles time passing midnight
     const timeDifference = (end - start) / 60000;
     return Math.round(timeDifference);
 }
@@ -838,10 +852,12 @@ function getResultText() {
     const firstBagTime = calculateTimeDifference(co, firstBag);
     const totalTime = calculateTimeDifference(co, lastBag);
 
+    // Only calculate achievement if times are valid (not null)
     const fbAchieved =
         firstBagTime !== null && firstBagTime <= 10 ? "Achieved" : "Not Achieved";
     const lbAchieved =
         totalTime !== null && totalTime <= 20 ? "Achieved" : "Not Achieved";
+
     const result = `
 BBA FB-LB Status
 ${formattedDate}
@@ -865,14 +881,16 @@ function getAllFlightsText() {
     const allFlightsData =
         JSON.parse(localStorage.getItem("allFlightsData")) || {};
     const flightNumbers = Object.keys(allFlightsData).reverse();
+    // Staff data is pulled from the *current* form state for the "Copy All" feature (as per script.js logic)
+    const arrivalStaff = document.getElementById("arrivalStaff").value || "NA";
+    const bbaStaff = document.getElementById("bbaStaff").value || "NA";
+    const today = new Date();
+    const formattedDate = formatDate(today);
+
     const allData = flightNumbers
         .map((flightNumber) => {
             const flightData = allFlightsData[flightNumber];
-            // Staff data is pulled from the *current* form state for the "Copy All" feature
-            const arrivalStaff = document.getElementById("arrivalStaff").value;
-            const bbaStaff = document.getElementById("bbaStaff").value;
-            const today = new Date();
-            const formattedDate = formatDate(today);
+
 
             const firstBagTime = calculateTimeDifference(
                 flightData.co,
@@ -935,6 +953,7 @@ async function copyResult() {
 // New function to copy all flights
 async function copyAllFlights() {
     const textToCopy = getAllFlightsText();
+    // Check if there are any flights saved
     if (Object.keys(JSON.parse(localStorage.getItem("allFlightsData")) || {}).length === 0) {
         // No flights to copy, just return
         return;
@@ -953,7 +972,9 @@ function showCopyFeedback(buttonId = "copyButton") {
     const popup = document.createElement("div");
     popup.className = "copy-popup";
     popup.textContent = "Copied!";
-    copyButton.parentNode.appendChild(popup);
+    // Ensure the button's parent is the correct element for relative positioning
+    const buttonParent = copyButton.closest('.relative') || copyButton.parentNode;
+    buttonParent.appendChild(popup);
 
     // Show popup and change button color
     setTimeout(() => {
@@ -998,23 +1019,29 @@ function openTeamsChat() {
     const teamsAppUrl = `msteams://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D`;
     const timeout = 1000;
 
-    const timeoutId = setTimeout(() => {
-        // Failure path: If the app didn't launch, show the error modal.
-        if (document.hasFocus()) {
-            showTeamsFailModal();
-            // *** IMPORTANT: Do NOT call handleSuccessfulShare() here ***
-        }
-    }, timeout);
+    let appLaunched = false;
 
-    // Success path: A window blur indicates the Teams app successfully launched.
+    const blurHandler = () => {
+        clearTimeout(timeoutId); // Cancel the failure timer
+        appLaunched = true;
+        handleSuccessfulShare(); // Call success handler
+        window.removeEventListener("blur", blurHandler);
+    };
+
     window.addEventListener(
         "blur",
-        () => {
-            clearTimeout(timeoutId); // Cancel the failure timer
-            handleSuccessfulShare(); // Call success handler
-        },
+        blurHandler,
         { once: true }
     );
+
+    const timeoutId = setTimeout(() => {
+        // Failure path: If the app didn't launch (no blur event occurred)
+        // and the browser is focused, show the error modal.
+        if (!appLaunched && document.hasFocus()) {
+            showTeamsFailModal();
+        }
+        window.removeEventListener("blur", blurHandler); // Clean up the listener
+    }, timeout);
 
     window.open(teamsAppUrl, "_self");
 }
@@ -1094,6 +1121,7 @@ function clearMainForm() {
     document.getElementById("addFlightButtonContainer").classList.add("hidden");
     saveNonFlightData(); // Save the cleared flight-related state
     // saveStaffData() is implicitly called by event listeners on staff inputs
+    setupFloatingLabels(); // Re-apply floating labels after clearing
 }
 
 function showClearConfirmation() {
@@ -1105,6 +1133,10 @@ function hideClearConfirmation() {
 }
 
 function clearConfirmedForm() {
+    // Clear staff data as well for the full clear confirmation
+    document.getElementById("arrivalStaff").value = "";
+    document.getElementById("bbaStaff").value = "";
+    saveStaffData(); // Save the cleared staff data
     clearMainForm();
     hideClearConfirmation();
 }
@@ -1137,6 +1169,8 @@ function setupFloatingLabels() {
         const label = input.nextElementSibling;
         if (input.value.trim() !== "") {
             label.classList.add("floating");
+        } else {
+            label.classList.remove("floating");
         }
         input.addEventListener("focus", () => {
             label.classList.add("floating");
@@ -1157,8 +1191,10 @@ document.querySelectorAll(".delay-reason-checkbox").forEach((checkbox) => {
             .map((checkbox) => checkbox.value)
             .join(", ");
         document.getElementById("delayReason").value = selectedReasons;
+        saveNonFlightData(); // Save the delay reason selection
     });
 });
+
 function updateAllUI() {
     const coInput = document.getElementById("co");
     const firstBagInput = document.getElementById("firstBag");
@@ -1172,14 +1208,17 @@ function updateAllUI() {
         .getElementById("delayReason")
         .closest(".form-group");
     const statusContainer = document.getElementById("statusContainer");
-    // Update First Bag status
+    
+    // Clear statuses initially
     firstBagStatus.innerHTML = "";
-    if (co && firstBag && co.length === 5 && firstBag.length === 5) {
-        const coTime = parseTime(co);
-        const firstBagTime = parseTime(firstBag);
-        if (firstBagTime < coTime) firstBagTime.setDate(firstBagTime.getDate() + 1);
-        const firstDiff = Math.round((firstBagTime - coTime) / 60000);
-        const fbAchieved = firstDiff <= 10;
+    lastBagStatus.innerHTML = "";
+    let firstDiff = null;
+    let lastDiff = null;
+    
+    // Check if CO and First Bag are fully entered and valid
+    if (co && firstBag && co.length === 5 && firstBag.length === 5 && !coInput.classList.contains("border-red-500") && !firstBagInput.classList.contains("border-red-500")) {
+        firstDiff = calculateTimeDifference(co, firstBag);
+        const fbAchieved = firstDiff !== null && firstDiff <= 10;
 
         firstBagStatus.innerHTML = `<span class="icon-with-text ${
             fbAchieved ? "icon-success" : "icon-failure"
@@ -1207,15 +1246,11 @@ function updateAllUI() {
         firstBagInput.classList.remove("border-success", "border-failure");
     }
 
-    // Update Last Bag status and overall UI
-    lastBagStatus.innerHTML = "";
-    if (co && lastBag && co.length === 5 && lastBag.length === 5) {
-        const coTime = parseTime(co);
-        const lastBagTime = parseTime(lastBag);
+    // Check if CO and Last Bag are fully entered and valid
+    if (co && lastBag && co.length === 5 && lastBag.length === 5 && !coInput.classList.contains("border-red-500") && !lastBagInput.classList.contains("border-red-500")) {
+        lastDiff = calculateTimeDifference(co, lastBag);
+        const lbAchieved = lastDiff !== null && lastDiff <= 20;
 
-        if (lastBagTime < coTime) lastBagTime.setDate(lastBagTime.getDate() + 1);
-        const lastDiff = Math.round((lastBagTime - coTime) / 60000);
-        const lbAchieved = lastDiff <= 20;
         lastBagStatus.innerHTML = `<span class="icon-with-text ${
             lbAchieved ? "icon-success" : "icon-failure"
         }">
@@ -1239,19 +1274,17 @@ function updateAllUI() {
             lastBagInput.classList.add("border-failure");
         }
 
-        const firstDiff =
-            co && firstBag
-                ? Math.round((parseTime(firstBag) - parseTime(co)) / 60000)
-                : "NA";
+        // Display Overall Status and Delay Logic
         statusContainer.innerHTML = `
             <div class="mb-2">
-                Fb - ${firstDiff} mins,
-                Lb - ${lastDiff} mins
+                Fb - ${firstDiff !== null ? firstDiff : "NA"} mins,
+                Lb - ${lastDiff !== null ? lastDiff : "NA"} mins
             </div>
-            <div class="mb-2">Total time taken: ${lastDiff} minutes</div>
+            <div class="mb-2">Total time taken: ${lastDiff !== null ? lastDiff : "NA"} minutes</div>
             <div>Delay : NA </div>
         `;
-        if (lastDiff > 20) {
+
+        if (lastDiff !== null && lastDiff > 20) {
             delayReasonSection.style.display = "block";
             statusContainer.style.display = "none";
             document.getElementById("delayReason").disabled = false;
@@ -1292,5 +1325,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateAllUI();
 });
     </script>
+</div>
 </body>
 </html>
