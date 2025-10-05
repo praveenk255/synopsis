@@ -242,6 +242,55 @@
 .relative {
     position: relative;
 }
+
+/* --- NEW Windows 11 style button --- */
+.win11-icon-button {
+    width: 60px; /* Standard size for a square/circle button */
+    height: 60px;
+    background-color: white;
+    border-radius: 12px; /* Subtle rounding for Win11 style */
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); /* Very light shadow for "floating" */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+    /* Removed border */
+}
+
+.win11-icon-button:hover {
+    background-color: #f3f4f6; /* Light gray hover state */
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.1);
+}
+
+.win11-icon-button:active {
+    background-color: #e5e7eb; /* Slightly darker active state */
+}
+
+/* Style for the button's icon */
+.win11-icon-button svg {
+    stroke-width: 2.25; /* Slightly bolder stroke */
+}
+
+/* Color classes for the icons */
+.icon-green {
+    color: #10b981; /* Emerald green */
+}
+
+.icon-purple {
+    color: #8b5cf6; /* Violet purple */
+}
+
+.icon-gray {
+    color: #4b5563; /* Dark gray for Copy, changed for visibility */
+}
+
+.icon-red {
+    color: #ef4444; /* Red for Clear/Delete */
+}
+
+.icon-blue {
+    color: #3b82f6; /* Blue for Add Flight */
+}
     </style>
 </head>
 <body class="bg-gray-100 p-6">
@@ -337,36 +386,31 @@
 
         <div class="flex flex-col items-center">
             <button onclick="shareViaUniversal()"
-                    class="w-full bg-green-500 text-white font-bold py-3 px-4 rounded hover:bg-green-600
-                           flex items-center justify-center space-x-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-share-2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
+                    class="w-full win11-icon-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-share-2 icon-green"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
             </button>
             <span class="text-sm text-green-600 mt-1">Share</span>
         </div>
 
         <div class="flex flex-col items-center">
             <button onclick="generateResult('msteams')"
-                    class="w-full bg-purple-600 text-white font-bold py-3 px-4 rounded hover:bg-purple-700
-                           flex items-center justify-center space-x-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    class="w-full win11-icon-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square icon-purple"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </button>
             <span class="text-sm text-purple-600 mt-1">Teams</span>
         </div>
 
         <div class="flex flex-col items-center relative">
             <button onclick="copyResult()" id="copyButton"
-                    class="w-full bg-gray-500 text-white font-bold py-3 px-4 rounded hover:bg-gray-600
-                           flex items-center justify-center space-x-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy-plus"><line x1="15" x2="15" y1="18" y2="12"/><line x1="12" x2="18" y1="15" y2="15"/><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                    class="w-full win11-icon-button bg-gray-500 hover:bg-gray-600"> <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy-plus icon-gray"><line x1="15" x2="15" y1="18" y2="12"/><line x1="12" x2="18" y1="15" y2="15"/><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
             </button>
             <span class="text-sm text-gray-600 mt-1">Copy</span>
         </div>
 
         <div class="flex flex-col items-center">
             <button onclick="showClearConfirmation()"
-                    class="w-full bg-red-500 text-white font-bold py-3 px-4 rounded hover:bg-red-600
-                           flex items-center justify-center space-x-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                    class="w-full win11-icon-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2 icon-red"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
             </button>
             <span class="text-sm text-red-600 mt-1">Clear</span>
         </div>
@@ -375,9 +419,8 @@
     <div class="mt-4 grid grid-cols-4 gap-4">
         <div id="addFlightButtonContainer" class="flex flex-col items-center col-span-1 hidden">
             <button type="button" onclick="addFlight()"
-                    class="w-full bg-blue-500 text-white font-bold py-3 px-4 rounded hover:bg-blue-600
-                           flex items-center justify-center space-x-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                    class="w-full win11-icon-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus icon-blue"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
             </button>
             <span class="text-sm text-blue-600 mt-1">Add Flight</span>
         </div>
@@ -519,7 +562,7 @@ function confirmClearAfterShare() {
     if (document.getElementById("alwaysClearCheckbox").checked) {
         setAlwaysClearPreference(true);
     }
-    clearMainForm(); // Changed to clearMainForm to only clear flight data
+    clearConfirmedForm();
     hideClearAfterShareConfirmation();
 }
 
@@ -527,7 +570,7 @@ function confirmClearAfterShare() {
 function handleSuccessfulShare() {
     // The previous form validity check is removed to allow sharing/copying with empty fields
     if (getAlwaysClearPreference()) {
-        clearMainForm(); // Use clearMainForm to keep staff names
+        clearConfirmedForm();
     } else {
         showClearAfterShareConfirmation();
     }
@@ -620,10 +663,7 @@ function loadCurrentFormData() {
 // Function to parse time
 function parseTime(time) {
     const [hours, minutes] = time.split(":").map(Number);
-    // Ensure the Date object is created with correct UTC or local time assumptions
-    // For time-only comparisons, setting the date to epoch start is fine.
-    const date = new Date(1970, 0, 1, hours, minutes);
-    return date;
+    return new Date(1970, 0, 1, hours, minutes);
 }
 
 // Function to format time into HH:MM
@@ -689,7 +729,6 @@ function loadSavedFlight(flightNumber) {
         document.getElementById("delayReason").value = flightData.delayReason || "";
         // Staff data is intentionally NOT overwritten when loading a flight
         updateAllUI();
-        saveNonFlightData(); // Save loaded flight data as current form state
     }
 }
 
@@ -765,7 +804,6 @@ document.getElementById("flightNumber").addEventListener("input", (e) => {
     } else {
         addFlightButtonContainer.classList.add("hidden");
     }
-    saveNonFlightData(); // Ensure this is called to update form state
 });
 
 // MODIFIED: Add event listeners to all form fields.
@@ -795,8 +833,7 @@ document.querySelectorAll(".time-input").forEach((input) => {
             isNaN(hours) ||
             minutes > 59 ||
             isNaN(minutes) ||
-            (value.includes(":") && minutes === undefined) ||
-            value.length < 5;
+            (value.includes(":") && minutes === undefined);
         if (isInvalid) {
             input.classList.add("border-red-500");
         } else {
@@ -815,7 +852,6 @@ document.getElementById("co").addEventListener("input", (e) => {
         let hoDate = new Date();
         hoDate.setHours(hours, minutes + 2, 0, 0);
         hoInput.value = formatTime(hoDate);
-        saveNonFlightData(); // Save HO after auto-filling
     }
 });
 
@@ -827,10 +863,10 @@ function formatDate(date) {
 }
 
 function calculateTimeDifference(startTime, endTime) {
-    if (!startTime || !endTime || startTime.length !== 5 || endTime.length !== 5) return null;
+    if (!startTime || !endTime) return null;
     const start = parseTime(startTime);
     const end = parseTime(endTime);
-    if (end < start) end.setDate(end.getDate() + 1); // Handles time passing midnight
+    if (end < start) end.setDate(end.getDate() + 1);
     const timeDifference = (end - start) / 60000;
     return Math.round(timeDifference);
 }
@@ -852,12 +888,10 @@ function getResultText() {
     const firstBagTime = calculateTimeDifference(co, firstBag);
     const totalTime = calculateTimeDifference(co, lastBag);
 
-    // Only calculate achievement if times are valid (not null)
     const fbAchieved =
         firstBagTime !== null && firstBagTime <= 10 ? "Achieved" : "Not Achieved";
     const lbAchieved =
         totalTime !== null && totalTime <= 20 ? "Achieved" : "Not Achieved";
-
     const result = `
 BBA FB-LB Status
 ${formattedDate}
@@ -881,16 +915,14 @@ function getAllFlightsText() {
     const allFlightsData =
         JSON.parse(localStorage.getItem("allFlightsData")) || {};
     const flightNumbers = Object.keys(allFlightsData).reverse();
-    // Staff data is pulled from the *current* form state for the "Copy All" feature (as per script.js logic)
-    const arrivalStaff = document.getElementById("arrivalStaff").value || "NA";
-    const bbaStaff = document.getElementById("bbaStaff").value || "NA";
-    const today = new Date();
-    const formattedDate = formatDate(today);
-
     const allData = flightNumbers
         .map((flightNumber) => {
             const flightData = allFlightsData[flightNumber];
-
+            // Staff data is pulled from the *current* form state for the "Copy All" feature
+            const arrivalStaff = document.getElementById("arrivalStaff").value;
+            const bbaStaff = document.getElementById("bbaStaff").value;
+            const today = new Date();
+            const formattedDate = formatDate(today);
 
             const firstBagTime = calculateTimeDifference(
                 flightData.co,
@@ -953,7 +985,6 @@ async function copyResult() {
 // New function to copy all flights
 async function copyAllFlights() {
     const textToCopy = getAllFlightsText();
-    // Check if there are any flights saved
     if (Object.keys(JSON.parse(localStorage.getItem("allFlightsData")) || {}).length === 0) {
         // No flights to copy, just return
         return;
@@ -972,14 +1003,13 @@ function showCopyFeedback(buttonId = "copyButton") {
     const popup = document.createElement("div");
     popup.className = "copy-popup";
     popup.textContent = "Copied!";
-    // Ensure the button's parent is the correct element for relative positioning
-    const buttonParent = copyButton.closest('.relative') || copyButton.parentNode;
-    buttonParent.appendChild(popup);
+    copyButton.parentNode.appendChild(popup);
 
     // Show popup and change button color
     setTimeout(() => {
         popup.classList.add("show");
         copyButton.classList.add("copy-success");
+        // Removed old Tailwind classes from remove list
         copyButton.classList.remove("bg-gray-500", "hover:bg-gray-600");
     }, 10); // Small delay to allow element to be rendered
 
@@ -987,6 +1017,7 @@ function showCopyFeedback(buttonId = "copyButton") {
     setTimeout(() => {
         popup.classList.remove("show");
         copyButton.classList.remove("copy-success");
+        // Re-add background only if it's the main copy button (which needs to revert its original state)
         if (buttonId === "copyButton") {
             copyButton.classList.add("bg-gray-500", "hover:bg-gray-600");
         }
@@ -1019,29 +1050,23 @@ function openTeamsChat() {
     const teamsAppUrl = `msteams://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D`;
     const timeout = 1000;
 
-    let appLaunched = false;
+    const timeoutId = setTimeout(() => {
+        // Failure path: If the app didn't launch, show the error modal.
+        if (document.hasFocus()) {
+            showTeamsFailModal();
+            // *** IMPORTANT: Do NOT call handleSuccessfulShare() here ***
+        }
+    }, timeout);
 
-    const blurHandler = () => {
-        clearTimeout(timeoutId); // Cancel the failure timer
-        appLaunched = true;
-        handleSuccessfulShare(); // Call success handler
-        window.removeEventListener("blur", blurHandler);
-    };
-
+    // Success path: A window blur indicates the Teams app successfully launched.
     window.addEventListener(
         "blur",
-        blurHandler,
+        () => {
+            clearTimeout(timeoutId); // Cancel the failure timer
+            handleSuccessfulShare(); // Call success handler
+        },
         { once: true }
     );
-
-    const timeoutId = setTimeout(() => {
-        // Failure path: If the app didn't launch (no blur event occurred)
-        // and the browser is focused, show the error modal.
-        if (!appLaunched && document.hasFocus()) {
-            showTeamsFailModal();
-        }
-        window.removeEventListener("blur", blurHandler); // Clean up the listener
-    }, timeout);
 
     window.open(teamsAppUrl, "_self");
 }
@@ -1121,7 +1146,6 @@ function clearMainForm() {
     document.getElementById("addFlightButtonContainer").classList.add("hidden");
     saveNonFlightData(); // Save the cleared flight-related state
     // saveStaffData() is implicitly called by event listeners on staff inputs
-    setupFloatingLabels(); // Re-apply floating labels after clearing
 }
 
 function showClearConfirmation() {
@@ -1133,10 +1157,6 @@ function hideClearConfirmation() {
 }
 
 function clearConfirmedForm() {
-    // Clear staff data as well for the full clear confirmation
-    document.getElementById("arrivalStaff").value = "";
-    document.getElementById("bbaStaff").value = "";
-    saveStaffData(); // Save the cleared staff data
     clearMainForm();
     hideClearConfirmation();
 }
@@ -1169,8 +1189,6 @@ function setupFloatingLabels() {
         const label = input.nextElementSibling;
         if (input.value.trim() !== "") {
             label.classList.add("floating");
-        } else {
-            label.classList.remove("floating");
         }
         input.addEventListener("focus", () => {
             label.classList.add("floating");
@@ -1191,10 +1209,8 @@ document.querySelectorAll(".delay-reason-checkbox").forEach((checkbox) => {
             .map((checkbox) => checkbox.value)
             .join(", ");
         document.getElementById("delayReason").value = selectedReasons;
-        saveNonFlightData(); // Save the delay reason selection
     });
 });
-
 function updateAllUI() {
     const coInput = document.getElementById("co");
     const firstBagInput = document.getElementById("firstBag");
@@ -1208,17 +1224,14 @@ function updateAllUI() {
         .getElementById("delayReason")
         .closest(".form-group");
     const statusContainer = document.getElementById("statusContainer");
-    
-    // Clear statuses initially
+    // Update First Bag status
     firstBagStatus.innerHTML = "";
-    lastBagStatus.innerHTML = "";
-    let firstDiff = null;
-    let lastDiff = null;
-    
-    // Check if CO and First Bag are fully entered and valid
-    if (co && firstBag && co.length === 5 && firstBag.length === 5 && !coInput.classList.contains("border-red-500") && !firstBagInput.classList.contains("border-red-500")) {
-        firstDiff = calculateTimeDifference(co, firstBag);
-        const fbAchieved = firstDiff !== null && firstDiff <= 10;
+    if (co && firstBag && co.length === 5 && firstBag.length === 5) {
+        const coTime = parseTime(co);
+        const firstBagTime = parseTime(firstBag);
+        if (firstBagTime < coTime) firstBagTime.setDate(firstBagTime.getDate() + 1);
+        const firstDiff = Math.round((firstBagTime - coTime) / 60000);
+        const fbAchieved = firstDiff <= 10;
 
         firstBagStatus.innerHTML = `<span class="icon-with-text ${
             fbAchieved ? "icon-success" : "icon-failure"
@@ -1246,11 +1259,15 @@ function updateAllUI() {
         firstBagInput.classList.remove("border-success", "border-failure");
     }
 
-    // Check if CO and Last Bag are fully entered and valid
-    if (co && lastBag && co.length === 5 && lastBag.length === 5 && !coInput.classList.contains("border-red-500") && !lastBagInput.classList.contains("border-red-500")) {
-        lastDiff = calculateTimeDifference(co, lastBag);
-        const lbAchieved = lastDiff !== null && lastDiff <= 20;
+    // Update Last Bag status and overall UI
+    lastBagStatus.innerHTML = "";
+    if (co && lastBag && co.length === 5 && lastBag.length === 5) {
+        const coTime = parseTime(co);
+        const lastBagTime = parseTime(lastBag);
 
+        if (lastBagTime < coTime) lastBagTime.setDate(lastBagTime.getDate() + 1);
+        const lastDiff = Math.round((lastBagTime - coTime) / 60000);
+        const lbAchieved = lastDiff <= 20;
         lastBagStatus.innerHTML = `<span class="icon-with-text ${
             lbAchieved ? "icon-success" : "icon-failure"
         }">
@@ -1274,17 +1291,19 @@ function updateAllUI() {
             lastBagInput.classList.add("border-failure");
         }
 
-        // Display Overall Status and Delay Logic
+        const firstDiff =
+            co && firstBag
+                ? Math.round((parseTime(firstBag) - parseTime(co)) / 60000)
+                : "NA";
         statusContainer.innerHTML = `
             <div class="mb-2">
-                Fb - ${firstDiff !== null ? firstDiff : "NA"} mins,
-                Lb - ${lastDiff !== null ? lastDiff : "NA"} mins
+                Fb - ${firstDiff} mins,
+                Lb - ${lastDiff} mins
             </div>
-            <div class="mb-2">Total time taken: ${lastDiff !== null ? lastDiff : "NA"} minutes</div>
+            <div class="mb-2">Total time taken: ${lastDiff} minutes</div>
             <div>Delay : NA </div>
         `;
-
-        if (lastDiff !== null && lastDiff > 20) {
+        if (lastDiff > 20) {
             delayReasonSection.style.display = "block";
             statusContainer.style.display = "none";
             document.getElementById("delayReason").disabled = false;
@@ -1325,6 +1344,5 @@ document.addEventListener("DOMContentLoaded", () => {
     updateAllUI();
 });
     </script>
-</div>
 </body>
 </html>
