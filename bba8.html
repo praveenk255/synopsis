@@ -356,6 +356,43 @@
             line-height: 1.2; /* Tighter line height for two-line text */
             text-align: center;
         }
+
+        #delayReason {
+  /* Makes the background completely transparent */
+  background-color: transparent;
+
+  /* Sets a solid 1-pixel black border */
+  border: 1px solid black;
+
+  /* Ensures the text remains fully opaque (black) */
+  color: black;
+
+  /* Optional: Removes the default focus outline that might interfere */
+  outline: none;
+}
+
+#statusContainer {
+  /* Makes the background completely transparent */
+  background-color: transparent;
+
+  
+
+  /* Ensures the text remains fully opaque (black) */
+  color: black;
+
+  /* Optional: Removes the default focus outline that might interfere */
+  outline: none;
+
+  /* To handle the existing inline style and classes from your HTML: */
+  /* Re-setting the padding, margin-top, and border-radius (if desired) */
+  margin-top: 1rem; /* Equivalent to mt-4 in Tailwind CSS */
+  padding: 0.75rem; /* Equivalent to p-3 in Tailwind CSS */
+  border-radius: 0.5rem; /* Equivalent to rounded-lg in Tailwind CSS */
+
+  /* The display: block is already set via inline style, but can be added here for completeness */
+  display: block;
+}
+        
     </style>
 </head>
 <body class="bg-gray-100 p-6">
