@@ -577,9 +577,7 @@ display: block;
             <div class="col-span-1"></div>
         </div>
         </div>
-
-
-    <div id="clearConfirmation" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden"
+    </div> <div id="clearConfirmation" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden"
          aria-hidden="true">
         <div class="bg-white rounded-lg shadow-lg p-4 max-w-sm w-full">
             <h2 class="text-lg font-semibold mb-3 text-center">Are you sure?</h2>
@@ -703,7 +701,7 @@ display: block;
         </div>
     </div>
 
-    <script>
+    <script >
 const EXPIRY_TIME_MS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
 let flightToDelete = null;
 
@@ -1200,6 +1198,7 @@ Delay Reason: ${delayReason}`.trim();
 }
 
 // --- MODIFIED FUNCTION: Generate HTML Table (Title and Date in separate Header cells) ---
+// --- UPDATED FUNCTION: Generate mobile-friendly table (21-char columns, word wrap) ---
 function generateTableHTML() {
     const flightNumber = document.getElementById("flightNumber").value;
     const co = document.getElementById("co").value;
@@ -1221,56 +1220,92 @@ function generateTableHTML() {
         firstBagTime !== null && firstBagTime <= 10 ? "Achieved" : "Not Achieved";
     const lbAchieved =
         totalTime !== null && totalTime <= 20 ? "Achieved" : "Not Achieved";
-    
-    // HTML with inline styles for basic compatibility in email/Teams
-    const style = `border-collapse: collapse; width: 100%; font-family: sans-serif; font-size: 14px;`;
-    // Header style for the title and date rows
-    const thStyle = `border: 1px solid #ccc; padding: 8px; text-align: left; background-color: #f2f2f2; font-weight: bold;`; 
-    // Data cell style
-    const tdStyle = `border: 1px solid #ccc; padding: 8px; text-align: left;`;
-    
-    // Helper function to create a status span
-    const statusSpan = (value, achieved) => {
-        const color = achieved === "Achieved" ? "green" : (achieved === "Not Achieved" ? "red" : "gray");
-        return `<span style="font-weight: bold;">${value}</span> <span style="color: ${color};">(${achieved})</span>`;
-    };
-    
-    // Function to create a basic table row
-    const createRow = (field, value) => {
-        const displayValue = value || "&nbsp;"; 
-        // Use a 40% width on the field column to clearly separate key from value
-        return `<tr><td style="${tdStyle} width: 40%;">${field}</td><td style="${tdStyle}">${displayValue}</td></tr>`;
-    }
 
-    // Function to create the status row (First Bag, Last Bag)
-    const createStatusRow = (field, timeValue, achievedStatus) => {
-        const displayTimeValue = timeValue || 'NA';
-        const displayStatus = timeValue !== null ? statusSpan(displayTimeValue, achievedStatus) : 'NA';
-        return `<tr><td style="${tdStyle} width: 40%;">${field}</td><td style="${tdStyle}">${displayStatus}</td></tr>`;
-    }
-    
-    // MODIFIED STRUCTURE: Title in first <th>, Date in second <th>.
+    // --- MOBILE-FRIENDLY TABLE STYLES ---
+    const tableStyle = `
+        border-collapse: collapse;
+        width: 100%;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        table-layout: fixed; /* Ensures equal column width */
+        word-wrap: break-word;
+        border: 1px solid #ccc;
+    `;
+    const thStyle = `
+        border: 1px solid #ccc;
+        padding: 6px;
+        text-align: left;
+        background-color: #f2f4ff;
+        font-weight: bold;
+        width: 50%;
+        word-break: break-word;
+        white-space: normal;
+    `;
+    const tdStyle = `
+        border: 1px solid #ccc;
+        padding: 6px;
+        text-align: left;
+        vertical-align: top;
+        width: 50%;
+        word-break: break-word;
+        white-space: normal;
+    `;
+
+    // Helper to wrap long words and preserve max 21 characters per line
+    const wrapText = (text) => {
+        if (!text) return "&nbsp;";
+        const words = text.split(" ");
+        let currentLine = "";
+        const lines = [];
+        for (const word of words) {
+            if ((currentLine + " " + word).trim().length > 21) {
+                lines.push(currentLine.trim());
+                currentLine = word;
+            } else {
+                currentLine += " " + word;
+            }
+        }
+        if (currentLine.trim().length > 0) lines.push(currentLine.trim());
+        return lines.join("<br>");
+    };
+
+    const statusSpan = (value, achieved) => {
+        const color = achieved === "Achieved" ? "green" : achieved === "Not Achieved" ? "red" : "gray";
+        return `<span style="font-weight:bold;">${value}</span> <span style="color:${color};">(${achieved})</span>`;
+    };
+
+    const createRow = (label, value) =>
+        `<tr>
+            <td style="${tdStyle}">${wrapText(label)}</td>
+            <td style="${tdStyle}">${wrapText(value)}</td>
+        </tr>`;
+
+    const createStatusRow = (label, value, status) =>
+        `<tr>
+            <td style="${tdStyle}">${wrapText(label)}</td>
+            <td style="${tdStyle}">${statusSpan(value || "NA", status)}</td>
+        </tr>`;
+
+    // --- Build HTML ---
     const html = `
-        <table style="${style}">
+        <table style="${tableStyle}">
             <thead>
                 <tr>
-                    <th style="${thStyle} width: 40%;">BBA FB-LB Status</th>
-                    <th style="${thStyle} width: 60%;">(Date: ${formattedDate})</th>
+                    <th style="${thStyle}">BBA FB-LB Status</th>
+                    <th style="${thStyle}">Date: ${formattedDate}</th>
                 </tr>
             </thead>
             <tbody>
-                <tr><td style="${tdStyle}" colspan="2">&nbsp;</td></tr>
-                
-                ${createRow('Flight Number', flightNumber)}
-                ${createRow('CO', co)}
-                ${createRow('HO', ho)}
-                ${createStatusRow('First Bag', firstBag, fbAchieved)}
-                ${createStatusRow('Last Bag', lastBag, lbAchieved)}
-                ${createRow('Total Time Taken', (totalTime !== null ? totalTime + ' minutes' : 'NA'))}
-                ${createRow('Flight Manager', manager)}
-                ${createRow('Arrival Staff', arrivalStaff)}
-                ${createRow('BBA Staff', bbaStaff)}
-                ${createRow('Delay Reason', delayReason)}
+                ${createRow("Flight Number", flightNumber)}
+                ${createRow("CO", co)}
+                ${createRow("HO", ho)}
+                ${createStatusRow("First Bag", firstBag, fbAchieved)}
+                ${createStatusRow("Last Bag", lastBag, lbAchieved)}
+                ${createRow("Total Time Taken", totalTime !== null ? `${totalTime} mins` : "NA")}
+                ${createRow("Flight Manager", manager)}
+                ${createRow("Arrival Staff", arrivalStaff)}
+                ${createRow("BBA Staff", bbaStaff)}
+                ${createRow("Delay Reason", delayReason)}
             </tbody>
         </table>
     `.trim();
@@ -1278,42 +1313,57 @@ function generateTableHTML() {
     return html;
 }
 
+
 // --- MODIFIED FUNCTION: Copy HTML Only to Clipboard (No fallback) ---
+// --- UPDATED FUNCTION: Modern clipboard copy (no highlight in Teams Web) ---
 async function copyHtmlToClipboard(htmlString) {
-    if (!document.execCommand) {
-        console.warn("document.execCommand is required for rich-text clipboard copy and is not available in this environment.");
+    try {
+        // Preferred modern API path (no selection, no highlight)
+        if (navigator.clipboard && window.ClipboardItem) {
+            const blobInput = new Blob([htmlString], { type: "text/html" });
+            const plainText = htmlString.replace(/<[^>]+>/g, ""); // Strip tags for fallback plain text
+            const item = new ClipboardItem({
+                "text/html": blobInput,
+                "text/plain": new Blob([plainText], { type: "text/plain" })
+            });
+            await navigator.clipboard.write([item]);
+            return true;
+        } 
+        // Fallback for older browsers (execCommand)
+        else {
+            const tempElement = document.createElement("div");
+            tempElement.innerHTML = htmlString;
+            tempElement.style.position = "absolute";
+            tempElement.style.left = "-9999px";
+            tempElement.style.top = "0";
+            tempElement.style.opacity = "0";
+            document.body.appendChild(tempElement);
+
+            const range = document.createRange();
+            range.selectNodeContents(tempElement);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            const success = document.execCommand("copy");
+
+            // Clean selection
+            if (window.getSelection) {
+                const sel = window.getSelection();
+                if (sel.removeAllRanges) sel.removeAllRanges();
+                if (sel.empty) sel.empty();
+            }
+            document.activeElement?.blur?.();
+            document.body.removeChild(tempElement);
+
+            return success;
+        }
+    } catch (err) {
+        console.error("Clipboard copy failed:", err);
         return false;
     }
-
-    try {
-        // Create a temporary element to hold the content
-        const tempElement = document.createElement('div');
-        tempElement.innerHTML = htmlString;
-        tempElement.style.position = 'absolute';
-        tempElement.style.left = '-9999px'; // Hide it off-screen
-        document.body.appendChild(tempElement);
-
-        const range = document.createRange();
-        range.selectNodeContents(tempElement);
-        
-        const selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
-        
-        // Use the deprecated execCommand('copy') which often correctly copies both HTML and plain text (rich text)
-        const success = document.execCommand('copy');
-        
-        selection.removeAllRanges();
-        document.body.removeChild(tempElement);
-
-        return success; // Returns true or false based on execCommand('copy') success
-
-    } catch (err) {
-        console.error("Failed to copy HTML using execCommand:", err);
-        return false; // Return false on failure
-        // Plain text fallback removed as per user request
-    }
 }
+
 
 // --- MODIFIED FUNCTION: Action for "Share as Table" button ---
 async function shareAsTableViaUniversal() {
@@ -1925,6 +1975,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setupFloatingLabels();
     updateAllUI();
 });
+
     </script>
 </body>
 </html>
