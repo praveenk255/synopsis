@@ -528,6 +528,22 @@ display: block;
     </div>
     
     <div class="mt-4 grid grid-cols-4 gap-4">
+        <button id="shareFbButton" onclick="shareFb()" class="icon-button-container-new icon-button-share hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" 
+                stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-briefcase icon-blue">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 3H8v4h8V3z"/>
+            </svg>
+            <span class="text-sm text-blue-600 icon-label">Share Fb</span>
+        </button>
+
+        <button id="shareLbButton" onclick="shareLb()" class="icon-button-container-new icon-button-share hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" 
+                stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-briefcase icon-green">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 3H8v4h8V3z"/>
+            </svg>
+            <span class="text-sm text-green-600 icon-label">Share Lb</span>
+        </button>
+
         <button onclick="shareAsTableViaUniversal()"
                 class="icon-button-container-new icon-button-table col-span-1"
                 id="shareAsTableButton">
@@ -542,12 +558,16 @@ display: block;
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-undo-2 icon-gray-700"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a7 7 0 0 1 7 7v3"/></svg>
             <span class="text-sm text-gray-700 icon-label">Undo Clear</span>
         </button>
-
+    </div>
+    
+    <div class="mt-4 grid grid-cols-4 gap-4">
         <button type="button" onclick="addFlight()" id="addFlightButtonContainer"
                 class="icon-button-container-new icon-button-add col-span-1 hidden">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus icon-blue"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
             <span class="text-sm text-blue-600 icon-label">Add Flight</span>
         </button>
+        <div class="col-span-1"></div>
+        <div class="col-span-1"></div>
         <div class="col-span-1"></div>
     </div>
 
@@ -701,7 +721,7 @@ display: block;
         </div>
     </div>
 
-    <script >
+    <script>
 const EXPIRY_TIME_MS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
 let flightToDelete = null;
 
@@ -916,7 +936,10 @@ function loadCurrentFormData() {
 // Function to parse time
 function parseTime(time) {
     const [hours, minutes] = time.split(":").map(Number);
-    return new Date(1970, 0, 1, hours, minutes);
+    // Use the current date for time comparison
+    const now = new Date();
+    // This creates a date object on the current date with the given time
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
 }
 
 // Function to format time into HH:MM
@@ -925,6 +948,30 @@ function formatTime(date) {
     const minutes = String(date.getMinutes()).padStart(2, "0");
     return `${hours}:${minutes}`;
 }
+
+// NEW: Global variable to store the interval ID for the real-time countdown
+let countdownInterval = null; 
+
+// NEW: Function to calculate and return time until a target date
+function calculateTimeUntil(targetDate) {
+    const now = new Date();
+    
+    // targetDate is already calculated as CO + 20 minutes. 
+    // If CO was in the past and the 20 mins elapsed, diffMs will be 0 or negative.
+    let diffMs = targetDate.getTime() - now.getTime();
+    
+    if (diffMs <= 0) {
+        return "Max time reached";
+    }
+
+    const totalSeconds = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    
+    // Format seconds with leading zero for aesthetic
+    return `${minutes}m ${String(seconds).padStart(2, '0')}s left`;
+}
+
 
 // Function to save arrival and BBA staff data (persists across form clear)
 function saveStaffData() {
@@ -1071,6 +1118,54 @@ function handleTimeDblClick(event) {
 }
 // --- END NEW FUNCTION ---
 
+// --- NEW: Visibility functions for Share Fb/Lb buttons ---
+
+// NEW HELPER FUNCTION: Checks if the input time is more than 10 minutes past the current time
+function isTimeTooOld(inputTimeValue) {
+    // If the time is not 5 characters (HH:MM), it's considered not entered or invalid
+    if (!inputTimeValue || inputTimeValue.length !== 5) {
+        return false;
+    }
+
+    const inputTime = parseTime(inputTimeValue);
+    const now = new Date();
+    
+    // Calculate the time 10 minutes ago
+    const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
+
+    // If the input time is older than the 'tenMinutesAgo' threshold, it is too old.
+    // The parseTime function ensures both inputTime and tenMinutesAgo are on the current date,
+    // which handles the 10-minute check robustly around midnight.
+    if (inputTime.getTime() < tenMinutesAgo.getTime()) {
+        return true;
+    }
+
+    return false;
+}
+
+// MODIFIED: Function to explicitly update the visibility of the Share Fb button
+function updateShareFbButtonVisibility() {
+    const fb = document.getElementById("firstBag").value.trim();
+    
+    // Hide if empty OR if the time is too old
+    const hide = !fb || isTimeTooOld(fb);
+    
+    document.getElementById("shareFbButton").classList.toggle("hidden", hide);
+}
+
+// MODIFIED: Function to explicitly update the visibility of the Share Lb button
+function updateShareLbButtonVisibility() {
+    const lb = document.getElementById("lastBag").value.trim();
+    
+    // Hide if empty OR if the time is too old
+    const hide = !lb || isTimeTooOld(lb);
+    
+    document.getElementById("shareLbButton").classList.toggle("hidden", hide);
+}
+
+// --- END NEW VISIBILITY FUNCTIONS ---
+
+
 // --- Event Listeners for Saving Data and UI changes ---
 document.getElementById("flightNumber").addEventListener("input", (e) => {
     const addFlightButtonContainer = document.getElementById(
@@ -1101,6 +1196,11 @@ document.querySelectorAll(".form-input, .time-input, .delay-reason-checkbox").fo
         input.addEventListener("dblclick", handleTimeDblClick);
     }
 });
+
+// MODIFIED: Updated the original listeners to use the new visibility functions
+document.getElementById("firstBag").addEventListener("input", updateShareFbButtonVisibility);
+document.getElementById("lastBag").addEventListener("input", updateShareLbButtonVisibility);
+
 
 // Auto-format time input with colon and validate
 document.querySelectorAll(".time-input").forEach((input) => {
@@ -1537,6 +1637,42 @@ function openTeamsChat() {
     window.open(teamsAppUrl, "_self");
 }
 
+// --- Share Fb and Share Lb Buttons ---
+
+function getTeamsDeeplink() {
+    return "msteams://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D";
+}
+
+async function shareFb() {
+    const flightNumber = document.getElementById("flightNumber").value.trim();
+    const fbTime = document.getElementById("firstBag").value.trim();
+    if (!flightNumber || !fbTime) return;
+
+    const message = `${flightNumber}\n\nFb ${fbTime}`;
+    await shareToTeams(message);
+}
+
+async function shareLb() {
+    const flightNumber = document.getElementById("flightNumber").value.trim();
+    const lbTime = document.getElementById("lastBag").value.trim();
+    if (!flightNumber || !lbTime) return;
+
+    const message = `${flightNumber}\n\nLb ${lbTime}`;
+    await shareToTeams(message);
+}
+
+async function shareToTeams(message) {
+    try {
+        await navigator.clipboard.writeText(message);
+        showTeamsAlertModal(); // Reuse the existing modal
+        // After modal “OK”, Teams will open via hideTeamsAlertModal -> openTeamsChat()
+    } catch (err) {
+        console.error("Clipboard error:", err);
+        showTeamsFailModal();
+    }
+}
+
+
 // UPDATED: shareViaUniversal calls the success handler only on success paths.
 function shareViaUniversal() {
     const result = getResultText();
@@ -1621,6 +1757,10 @@ function clearMainForm(isUndoSafeClear = false) {
         // [NEW] Hide the undo button (in case clearMainForm is called directly or after a new flight)
         hideUndoButton();
     }
+
+    // *** FIX: Explicitly update the visibility of Share FB/LB buttons after clearing ***
+    updateShareFbButtonVisibility();
+    updateShareLbButtonVisibility();
     
     // Re-run setupFloatingLabels
     setupFloatingLabels();
@@ -1851,6 +1991,12 @@ function updateAllUI() {
         .closest(".form-group");
     const statusContainer = document.getElementById("statusContainer");
     
+    // NEW: Clear existing interval to prevent multiple running timers
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+    
     // Update First Bag status
     firstBagStatus.innerHTML = "";
     if (co && firstBag && co.length === 5 && firstBag.length === 5) {
@@ -1889,6 +2035,7 @@ function updateAllUI() {
     // Update Last Bag status and overall UI
     lastBagStatus.innerHTML = "";
     if (co && lastBag && co.length === 5 && lastBag.length === 5) {
+        // --- EXISTING LOGIC FOR WHEN LAST BAG IS ENTERED ---
         const coTime = parseTime(co);
         const lastBagTime = parseTime(lastBag);
 
@@ -1956,7 +2103,84 @@ function updateAllUI() {
                     });
             }
         }
+    } else if (co && co.length === 5) {
+        // --- NEW LOGIC FOR REAL-TIME COUNTDOWN WHEN LAST BAG IS EMPTY ---
+        const coTime = parseTime(co);
+        // Calculate the target time (CO + 20 mins)
+        let targetTime = new Date(coTime.getTime() + 20 * 60000);
+        
+        const now = new Date(); // Get current time
+        
+        // **MODIFICATION START**
+        // If the target time (CO + 20 mins) is already in the past, stop the countdown and hide all related UI elements.
+        if (targetTime.getTime() <= now.getTime()) { 
+            // Hide the message
+            lastBagStatus.innerHTML = ""; 
+            
+            // Clear interval (if one was running from a previous call)
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+
+            // Reset borders for last bag input
+            lastBagInput.classList.remove("border-success", "border-failure");
+            
+            // Hide delay section and overall status
+            delayReasonSection.style.display = "none";
+            statusContainer.style.display = "none";
+            
+            // Ensure delay reason field is disabled/hidden
+            document.getElementById("delayReason").disabled = true;
+            document.getElementById("delayReason").classList.add("disabled-field");
+            document.getElementById("delayReasonLabel").innerText = "Delay Reason";
+            document.getElementById("delayReasonOptions").classList.add("hidden");
+            
+            return; // EXIT the function early if max time is past
+        }
+        // **MODIFICATION END**
+
+        const maxLbTime = formatTime(targetTime);
+        
+        // Function to update the countdown display
+        const updateCountdownDisplay = () => {
+            const timeRemainingText = calculateTimeUntil(targetTime);
+            
+            // The display text
+            const timeDisplay = `Max LB: ${maxLbTime} (${timeRemainingText})`;
+            
+            // Apply color based on status
+            let colorClass = "";
+            if (timeRemainingText.includes("Max time reached")) {
+                colorClass = "text-red-600 font-bold";
+            } else if (timeRemainingText.includes("0m")) {
+                colorClass = "text-yellow-600 font-bold"; // Getting close
+            } else {
+                colorClass = "text-gray-600";
+            }
+            
+            lastBagStatus.innerHTML = `<span class="${colorClass}">${timeDisplay}</span>`;
+
+            // If max time is reached, clear the interval
+            if (timeRemainingText.includes("Max time reached")) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+        };
+
+        // Set up the initial display and the real-time update
+        updateCountdownDisplay();
+        countdownInterval = setInterval(updateCountdownDisplay, 1000); // Update every second
+
+        // Reset borders for last bag input
+        lastBagInput.classList.remove("border-success", "border-failure");
+        
+        // Hide delay section and overall status if lastBag is empty
+        delayReasonSection.style.display = "none";
+        statusContainer.style.display = "none";
+
     } else {
+        // --- EXISTING LOGIC FOR WHEN CO IS EMPTY OR INVALID ---
         // Hide overall status and delay reason section if lastBag or co are not fully entered
         lastBagInput.classList.remove("border-success", "border-failure");
         delayReasonSection.style.display = "none";
@@ -1974,6 +2198,9 @@ document.addEventListener("DOMContentLoaded", () => {
     loadAllData();
     setupFloatingLabels();
     updateAllUI();
+    // Initial call to hide buttons if inputs are empty on load (includes the new time check)
+    updateShareFbButtonVisibility();
+    updateShareLbButtonVisibility();
 });
 
     </script>
