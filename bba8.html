@@ -8,7 +8,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        /* --- NEW: Global Background and Form Transparency Styles --- */
+       /* --- NEW: Global Background and Form Transparency Styles --- */
 
 /* Apply the colorful gradient background to the entire body or main application container */
 body {
@@ -404,6 +404,56 @@ border-radius: 0.5rem; /* Equivalent to rounded-lg in Tailwind CSS */
 /* The display: block is already set via inline style, but can be added here for completeness */
 display: block;
 }
+
+
+/* 1. Hide the native checkbox */
+        .custom-checkbox-input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        /* 2. Style the custom visual element */
+        .animated-checkbox {
+            width: 16px;
+            height: 16px;
+            border: 2px solid black; /* Changed border color to BLACK */
+            border-radius: 3px;
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Animation for the box */
+            flex-shrink: 0;
+        }
+
+        /* 3. Style the checkmark (hidden by default) */
+        .animated-checkbox::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 8px;
+            transform: translate(-50%, -50%) rotate(45deg) scale(0); /* Scale(0) to start hidden and small */
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            opacity: 0;
+            transition: all 0.2s 0.1s ease-out; /* Delay the checkmark animation slightly */
+        }
+
+        /* 4. State when the checkbox is CHECKED */
+        .custom-checkbox-input:checked + .animated-checkbox {
+            background-color: #2563EB; /* Blue-600 */
+            border-color: #2563EB;
+            transform: scale(1.05); /* Slight pop effect */
+        }
+
+        /* 5. Checkmark VISIBLE and ANIMATED when checked */
+        .custom-checkbox-input:checked + .animated-checkbox::after {
+            transform: translate(-50%, -50%) rotate(45deg) scale(1); /* Full size and visible */
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="bg-gray-100 p-6">
@@ -470,21 +520,28 @@ display: block;
             <div id="delayReasonOptions" class="hidden mt-2">
 
                 <div class="grid grid-cols-2 gap-x-4 gap-y-1">
-                    <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
-                        <input type="checkbox" class="delay-reason-checkbox"
-                               value="Heavy and bulky bags"/>
+                    <label class="flex items-center space-x-2 p-1 rounded custom-checkbox-container">
+                        <input type="checkbox" class="delay-reason-checkbox custom-checkbox-input"
+                               id="delay-reason-1" value="Heavy and bulky bags"/>
+                        <span class="animated-checkbox"></span>
                         <span class="text-sm whitespace-nowrap">Heavy and bulky bags</span>
                     </label>
-                    <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
-                        <input type="checkbox" class="delay-reason-checkbox" value="Shortage of helpers"/>
+                    <label class="flex items-center space-x-2 p-1 rounded custom-checkbox-container">
+                        <input type="checkbox" class="delay-reason-checkbox custom-checkbox-input" 
+                               id="delay-reason-2" value="Shortage of helpers"/>
+                        <span class="animated-checkbox"></span>
                         <span class="text-sm whitespace-nowrap">Shortage of helpers</span>
                     </label>
-                    <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
-                        <input type="checkbox" class="delay-reason-checkbox" value="Clashing of flights"/>
+                    <label class="flex items-center space-x-2 p-1 rounded custom-checkbox-container">
+                        <input type="checkbox" class="delay-reason-checkbox custom-checkbox-input" 
+                               id="delay-reason-3" value="Clashing of flights"/>
+                        <span class="animated-checkbox"></span>
                         <span class="text-sm whitespace-nowrap">Clashing of flights</span>
                     </label>
-                    <label class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
-                        <input type="checkbox" class="delay-reason-checkbox" value="Trolleys received late"/>
+                    <label class="flex items-center space-x-2 p-1 rounded custom-checkbox-container">
+                        <input type="checkbox" class="delay-reason-checkbox custom-checkbox-input" 
+                               id="delay-reason-4" value="Trolleys received late"/>
+                        <span class="animated-checkbox"></span>
                         <span class="text-sm whitespace-nowrap">Trolleys received late</span>
                     </label>
                 </div>
@@ -722,11 +779,15 @@ display: block;
     </div>
 
     <script>
-const EXPIRY_TIME_MS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
+
+        const EXPIRY_TIME_MS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
 let flightToDelete = null;
 
 // [CORRECTED] Global variable to store the last cleared form data
 let lastClearedFormData = null;
+
+// NEW: Global variable to hold the function to execute after the alert modal is dismissed
+let nextActionCallback = null; // <--- NEW GLOBAL VARIABLE
 
 // New constants and functions for the "Always Clear" feature
 const ALWAYS_CLEAR_KEY = "alwaysClearForm";
@@ -883,11 +944,16 @@ function showTeamsAlertModal() {
     // Removed setTimeout - modal now waits for user to click 'OK'.
 }
 
-// MODIFIED: Function to hide the first-time Teams alert (Now calls openTeamsChat)
+// MODIFIED: Function to hide the first-time Teams alert (Now executes the stored callback)
 function hideTeamsAlertModal() {
     document.getElementById("teamsAlertModal").style.display = "none";
     localStorage.setItem(SHOW_TEAMS_ALERT_KEY, "false"); // Set preference to not show again
-    openTeamsChat(); // Proceed to open Teams after the user clicks 'OK'
+    
+    // Execute the stored callback function
+    if (typeof nextActionCallback === 'function') {
+        nextActionCallback();
+        nextActionCallback = null; // Reset the callback
+    }
 }
 
 // --- Data Saving and Loading Functions ---
@@ -1531,16 +1597,7 @@ Delay Reason: ${delayReason}`.trim();
     return allData;
 }
 
-// NEW: Function to copy to clipboard only (used for Teams pre-copy)
-async function copyToClipboardOnly() {
-    try {
-        await navigator.clipboard.writeText(getResultText());
-        showCopyFeedback("copyButton"); // Still show the 'Copied!' pop-up for visual feedback
-    } catch (err) {
-        console.error("Failed to copy: ", err);
-        // No success handler on copy failure
-    }
-}
+// REMOVED: async function copyToClipboardOnly() { ... } as it is superseded by handleTeamsAction or full copyResult
 
 // UPDATED: copyResult is now solely for the "Copy" button, and calls the success handler 
 async function copyResult() {
@@ -1572,42 +1629,68 @@ async function copyAllFlights() {
 
 function showCopyFeedback(buttonId = "copyButton") {
     const copyButton = document.getElementById(buttonId);
+    // Find the button if the ID is for the button container (e.g., shareFbButton)
+    const targetElement = copyButton || document.getElementById("copyButton"); 
+    
+    if (!targetElement) return;
+
     const popup = document.createElement("div");
     popup.className = "copy-popup";
     popup.textContent = "Copied!";
-    copyButton.parentNode.appendChild(popup);
+    targetElement.parentNode.appendChild(popup);
 
     // Show popup and change button color
     setTimeout(() => {
         popup.classList.add("show");
-        copyButton.classList.add("copy-success");
+        targetElement.classList.add("copy-success");
     }, 10); // Small delay to allow element to be rendered
 
     // Hide popup and revert button color after 1.5 seconds
     setTimeout(() => {
         popup.classList.remove("show");
-        copyButton.classList.remove("copy-success");
+        targetElement.classList.remove("copy-success");
         setTimeout(() => {
             popup.remove();
         }, 300); // Wait for transition to finish before removing from DOM
     }, 1500);
 }
 
+// --- NEW FUNCTION: Centralized handler for all Teams-related actions (Full Report, FB, LB) ---
+async function handleTeamsAction(messageGenerator) {
+    // 1. Copy data to clipboard (using the provided message generator)
+    const message = messageGenerator();
+    try {
+        await navigator.clipboard.writeText(message);
+        // We use 'teamsButton' or 'shareFbButton' etc. for visual confirmation
+        const buttonId = messageGenerator === getResultText ? "teamsButton" : "copyButton"; 
+        showCopyFeedback(buttonId); 
+    } catch (err) {
+        console.error("Failed to copy: ", err);
+        showTeamsFailModal(); // Show failure modal if copy fails
+        return; 
+    }
+
+    // 2. Define the *actual* next action (open Teams)
+    const teamsAction = openTeamsChat; 
+
+    // 3. Check alert status
+    const alertAlreadyShown = localStorage.getItem(SHOW_TEAMS_ALERT_KEY) === "false";
+
+    if (!alertAlreadyShown) {
+        // Set callback to the teams open action after alert dismissal
+        nextActionCallback = teamsAction;
+        showTeamsAlertModal();
+    } else {
+        // Alert already dismissed, proceed directly to the teams open action
+        teamsAction();
+    }
+}
+
 // UPDATED: MS Teams logic
 function generateResult(platform) {
     if (platform === "msteams") {
-        // 1. Copy data to clipboard first (using the copy-only function)
-        copyToClipboardOnly(); 
-
-        const teamsAlertShown = localStorage.getItem(SHOW_TEAMS_ALERT_KEY) === "false";
-        
-        if (!teamsAlertShown) {
-            // NEW: Show the first-time alert. The user must click 'OK' to proceed to openTeamsChat.
-            showTeamsAlertModal();
-        } else {
-            // 2. Attempt to open Teams chat directly.
-            openTeamsChat();
-        }
+        // 1. Use the new handler with getResultText as the message generator
+        handleTeamsAction(getResultText); 
     }
 }
 
@@ -1643,35 +1726,33 @@ function getTeamsDeeplink() {
     return "msteams://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D";
 }
 
+// MODIFIED: Use the new handler
 async function shareFb() {
     const flightNumber = document.getElementById("flightNumber").value.trim();
     const fbTime = document.getElementById("firstBag").value.trim();
     if (!flightNumber || !fbTime) return;
 
-    const message = `${flightNumber}\n\nFb ${fbTime}`;
-    await shareToTeams(message);
+    // Define a message generator function specific to FB
+    const messageGenerator = () => `${flightNumber}\n\nFb ${fbTime}`;
+    
+    // Use the new handler to manage copy and alert logic
+    handleTeamsAction(messageGenerator);
 }
 
+// MODIFIED: Use the new handler
 async function shareLb() {
     const flightNumber = document.getElementById("flightNumber").value.trim();
     const lbTime = document.getElementById("lastBag").value.trim();
     if (!flightNumber || !lbTime) return;
 
-    const message = `${flightNumber}\n\nLb ${lbTime}`;
-    await shareToTeams(message);
+    // Define a message generator function specific to LB
+    const messageGenerator = () => `${flightNumber}\n\nLb ${lbTime}`;
+    
+    // Use the new handler to manage copy and alert logic
+    handleTeamsAction(messageGenerator);
 }
 
-async function shareToTeams(message) {
-    try {
-        await navigator.clipboard.writeText(message);
-        showTeamsAlertModal(); // Reuse the existing modal
-        // After modal “OK”, Teams will open via hideTeamsAlertModal -> openTeamsChat()
-    } catch (err) {
-        console.error("Clipboard error:", err);
-        showTeamsFailModal();
-    }
-}
-
+// REMOVED: async function shareToTeams(message) { ... } as it is superseded by handleTeamsAction
 
 // UPDATED: shareViaUniversal calls the success handler only on success paths.
 function shareViaUniversal() {
@@ -2202,7 +2283,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateShareFbButtonVisibility();
     updateShareLbButtonVisibility();
 });
-
     </script>
 </body>
 </html>
