@@ -1315,7 +1315,7 @@ function formatDate(date) {
 }
 
 function calculateTimeDifference(startTime, endTime) {
-    if (!startTime || !endTime) return null;
+    if (!startTime || !endTime || startTime.length !== 5 || endTime.length !== 5) return null;
     const start = parseTime(startTime);
     const end = parseTime(endTime);
     if (end < start) end.setDate(end.getDate() + 1);
@@ -1323,6 +1323,7 @@ function calculateTimeDifference(startTime, endTime) {
     return Math.round(timeDifference);
 }
 
+// --- MODIFIED FUNCTION: Shorten title in plain text result ---
 function getResultText() {
     const flightNumber = document.getElementById("flightNumber").value;
     const co = document.getElementById("co").value;
@@ -1466,7 +1467,7 @@ function generateTableHTML() {
                 ${createRow("HO", ho)}
                 ${createStatusRow("First Bag", firstBag, fbAchieved)}
                 ${createStatusRow("Last Bag", lastBag, lbAchieved)}
-                ${createRow("Total Time Taken", totalTime !== null ? `${totalTime} mins` : "NA")}
+                ${createRow("Total Time", totalTime !== null ? `${totalTime} mins` : "NA")}
                 ${createRow("Flight Manager", manager)}
                 ${createRow("Arrival Staff", arrivalStaff)}
                 ${createRow("BBA Staff", bbaStaff)}
@@ -1547,6 +1548,7 @@ async function shareAsTableViaUniversal() {
     }
 }
 
+// --- MODIFIED FUNCTION: Shorten title in "Copy All" text ---
 // New function to generate a single string from all saved flights
 function getAllFlightsText() {
     const allFlightsData =
@@ -1732,7 +1734,7 @@ async function shareFb() {
     if (!flightNumber || !fbTime) return;
 
     // Define a message generator function specific to FB
-    const messageGenerator = () => `${flightNumber}\n\nFb ${fbTime}`;
+    const messageGenerator = () => `${flightNumber}\n\nFirst Bag ${fbTime}`;
     
     // Use the new handler to manage copy and alert logic
     handleTeamsAction(messageGenerator);
@@ -1745,7 +1747,7 @@ async function shareLb() {
     if (!flightNumber || !lbTime) return;
 
     // Define a message generator function specific to LB
-    const messageGenerator = () => `${flightNumber}\n\nLb ${lbTime}`;
+    const messageGenerator = () => `${flightNumber}\n\nLast Bag ${lbTime}`;
     
     // Use the new handler to manage copy and alert logic
     handleTeamsAction(messageGenerator);
@@ -2057,6 +2059,7 @@ function updateTipVisibility() {
     }
 }
 // --- END NEW FUNCTION ---
+// --- FULLY MODIFIED updateAllUI FUNCTION ---
 function updateAllUI() {
     const coInput = document.getElementById("co");
     const firstBagInput = document.getElementById("firstBag");
@@ -2077,15 +2080,18 @@ function updateAllUI() {
         countdownInterval = null;
     }
     
-    // Update First Bag status
-    firstBagStatus.innerHTML = "";
-    if (co && firstBag && co.length === 5 && firstBag.length === 5) {
-        const coTime = parseTime(co);
-        const firstBagTime = parseTime(firstBag);
-        if (firstBagTime < coTime) firstBagTime.setDate(firstBagTime.getDate() + 1);
-        const firstDiff = Math.round((firstBagTime - coTime) / 60000);
-        const fbAchieved = firstDiff <= 10;
+    // --- 1. CORE CALCULATIONS (Used by icons, buttons, and delay logic) ---
+    // Calculate time differences (in minutes, or null if invalid/missing)
+    const firstDiff = calculateTimeDifference(co, firstBag);
+    const lastDiff = calculateTimeDifference(co, lastBag);
+    
+    // Achievement Logic (Assumed targets: FB <= 10, LB <= 20)
+    const fbAchieved = firstDiff !== null && firstDiff <= 10;
+    const lbAchieved = lastDiff !== null && lastDiff <= 20;
 
+    // --- 2. Update First Bag Status Icon & Border (Unchanged) ---
+    firstBagStatus.innerHTML = "";
+    if (firstDiff !== null) { 
         firstBagStatus.innerHTML = `<span class="icon-with-text ${
             fbAchieved ? "icon-success" : "icon-failure"
         }">
@@ -2112,16 +2118,10 @@ function updateAllUI() {
         firstBagInput.classList.remove("border-success", "border-failure");
     }
 
-    // Update Last Bag status and overall UI
+    // --- 3. Update Last Bag Status Icon & Status Container ---
     lastBagStatus.innerHTML = "";
-    if (co && lastBag && co.length === 5 && lastBag.length === 5) {
-        // --- EXISTING LOGIC FOR WHEN LAST BAG IS ENTERED ---
-        const coTime = parseTime(co);
-        const lastBagTime = parseTime(lastBag);
-
-        if (lastBagTime < coTime) lastBagTime.setDate(lastBagTime.getDate() + 1);
-        const lastDiff = Math.round((lastBagTime - coTime) / 60000);
-        const lbAchieved = lastDiff <= 20;
+    if (lastDiff !== null) { // Last Bag time is entered and valid
+        // Update Last Bag Status Icon
         lastBagStatus.innerHTML = `<span class="icon-with-text ${
             lbAchieved ? "icon-success" : "icon-failure"
         }">
@@ -2144,31 +2144,75 @@ function updateAllUI() {
             lastBagInput.classList.remove("border-success");
             lastBagInput.classList.add("border-failure");
         }
+        
+        // --- MODIFIED STATUS BUTTON LOGIC (Single-Row, Minimal) ---
+        
+        // Helper function for button generation
+        const createStatusButton = (label, diffMinutes, isAchieved, type) => {
+            // Minimal button styling: small font, compact padding, just value + color
+            const baseClasses = 'inline-flex items-center justify-center text-xs font-bold px-2 py-0.5 rounded-full whitespace-nowrap shadow-none border-2 border-transparent';
+            
+            let valueText;
+            let colorClasses;
+            let actualDiff = diffMinutes; 
 
-        const firstDiff =
-            co && firstBag
-                ? Math.round((parseTime(firstBag) - parseTime(co)) / 60000)
-                : "NA";
+            if (type === 'delay') {
+                if (actualDiff === null) {
+                    valueText = 'NA';
+                    colorClasses = 'bg-red-500 text-white'; 
+                } else {
+                    // Calculate actual delay minutes
+                    const delayMins = actualDiff > 20 ? actualDiff - 20 : 0;
+                    valueText = delayMins === 0 ? '0m' : `${delayMins}m`; // Use 'm' for minutes
+                    // Green if no delay (0m), Red if there is a delay (> 0m)
+                    colorClasses = delayMins === 0 ? 'bg-green-500 text-white' : 'bg-red-500 text-white';
+                }
+            } else if (actualDiff === null) {
+                // If value is NA
+                valueText = 'NA';
+                colorClasses = 'bg-red-500 text-white'; 
+            } else {
+                // General case for First Bag, Last Bag, Total Time
+                valueText = `${actualDiff}m`; // Use 'm' for minutes
+                // Green if target achieved, Red otherwise
+                colorClasses = isAchieved ? 'bg-green-500 text-white' : 'bg-red-500 text-white';
+            }
+        
+            // The structure is flat, no inner flex-col, combined label and value in one line
+            return `<div class="${baseClasses} ${colorClasses} mr-1">${label}: ${valueText}</div>`;
+        };
+        
+        // Calculate delay minutes for the label check
+        const delayMins = lastDiff > 20 ? lastDiff - 20 : 0;
+
+        // 4. Generate the full HTML structure for the status container (single row)
         statusContainer.innerHTML = `
-            <div class="mb-2">
-                Fb - ${firstDiff} mins,
-                Lb - ${lastDiff} mins
+            <div class="flex flex-nowrap justify-center gap-1 py-1 overflow-x-auto">
+                ${createStatusButton('FB', firstDiff, fbAchieved, 'timing')}
+                ${createStatusButton('LB', lastDiff, lbAchieved, 'timing')}
+                ${createStatusButton('TTL', lastDiff, lbAchieved, 'timing')}
+                ${createStatusButton('DLY', lastDiff, lbAchieved, 'delay')}
             </div>
-            <div class="mb-2">Total time taken: ${lastDiff} minutes</div>
-            <div>Delay : NA </div>
         `;
-        if (lastDiff > 20) {
+        
+        // --- END MODIFIED STATUS BUTTON LOGIC ---
+
+        if (delayMins > 0) { // Check for actual delay (LB > 20)
             delayReasonSection.style.display = "block";
-            statusContainer.style.display = "none";
+            // *** NEW: HIDE STATUS CONTAINER ON DELAY TO MAXIMIZE SCREEN SPACE ***
+            statusContainer.style.display = "none"; 
+            
             document.getElementById("delayReason").disabled = false;
             document.getElementById("delayReason").classList.remove("disabled-field");
             document.getElementById("delayReasonLabel").innerText = `Delay Reason (${
-                lastDiff - 20
+                delayMins
             } mins delay, pick or type reason)`;
             document.getElementById("delayReasonOptions").classList.remove("hidden");
         } else {
             delayReasonSection.style.display = "none";
-            statusContainer.style.display = "block";
+            // *** SHOW STATUS CONTAINER WHEN NO DELAY ***
+            statusContainer.style.display = "block"; 
+            
             document.getElementById("delayReason").disabled = true;
             document.getElementById("delayReason").classList.add("disabled-field");
             document.getElementById("delayReasonLabel").innerText = "Delay Reason";
@@ -2184,14 +2228,13 @@ function updateAllUI() {
             }
         }
     } else if (co && co.length === 5) {
-        // --- NEW LOGIC FOR REAL-TIME COUNTDOWN WHEN LAST BAG IS EMPTY ---
+        // --- EXISTING LOGIC FOR REAL-TIME COUNTDOWN WHEN LAST BAG IS EMPTY ---
         const coTime = parseTime(co);
         // Calculate the target time (CO + 20 mins)
         let targetTime = new Date(coTime.getTime() + 20 * 60000);
         
         const now = new Date(); // Get current time
         
-        // **MODIFICATION START**
         // If the target time (CO + 20 mins) is already in the past, stop the countdown and hide all related UI elements.
         if (targetTime.getTime() <= now.getTime()) { 
             // Hide the message
@@ -2208,7 +2251,7 @@ function updateAllUI() {
             
             // Hide delay section and overall status
             delayReasonSection.style.display = "none";
-            statusContainer.style.display = "none";
+            statusContainer.style.display = "none"; // HIDES STATUS BUTTONS WHEN LB IS EMPTY AND MAX TIME IS REACHED
             
             // Ensure delay reason field is disabled/hidden
             document.getElementById("delayReason").disabled = true;
@@ -2218,7 +2261,6 @@ function updateAllUI() {
             
             return; // EXIT the function early if max time is past
         }
-        // **MODIFICATION END**
 
         const maxLbTime = formatTime(targetTime);
         
@@ -2227,7 +2269,7 @@ function updateAllUI() {
             const timeRemainingText = calculateTimeUntil(targetTime);
             
             // The display text
-            const timeDisplay = `Max LB: ${maxLbTime} (${timeRemainingText})`;
+            const timeDisplay = `Max Last Bag: ${maxLbTime} (${timeRemainingText})`;
             
             // Apply color based on status
             let colorClass = "";
@@ -2257,7 +2299,7 @@ function updateAllUI() {
         
         // Hide delay section and overall status if lastBag is empty
         delayReasonSection.style.display = "none";
-        statusContainer.style.display = "none";
+        statusContainer.style.display = "none"; // HIDES STATUS BUTTONS WHEN LAST BAG IS EMPTY (SHOWS COUNTDOWN INSTEAD)
 
     } else {
         // --- EXISTING LOGIC FOR WHEN CO IS EMPTY OR INVALID ---
@@ -2282,7 +2324,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateShareFbButtonVisibility();
     updateShareLbButtonVisibility();
 });
-
     </script>
 </body>
 </html>
