@@ -1499,7 +1499,7 @@ async function shareAsTableViaUniversal() {
         
         // Apply styles to the container to ensure good screenshot quality
         Object.assign(tempContainer.style, {
-            position: 'absolute',
+            position: 'fixed', // Changed from absolute to fixed
             top: '0',
             left: '-9999px', // Move off-screen
             width: '450px',  // Fixed width for consistent image size
@@ -1514,7 +1514,8 @@ async function shareAsTableViaUniversal() {
         // scale: 2 improves resolution/clarity
         const canvas = await html2canvas(tempContainer, {
             backgroundColor: '#ffffff',
-            scale: 2
+            scale: 2,
+            useCORS: true
         });
 
         // 4. Convert canvas to Blob and copy to Clipboard
@@ -1533,25 +1534,24 @@ async function shareAsTableViaUniversal() {
                 // Check if alert has been shown before
                 const alertAlreadyShown = localStorage.getItem(SHOW_TEAMS_ALERT_KEY) === "false";
 
-                const openTeamsFunc = () => {
-                     // Open Teams Deep Link
-                    const teamsAppUrl = `msteams://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D`;
-                    window.open(teamsAppUrl, "_self");
-                    handleSuccessfulShare(); // Handle post-share clearing
+                // Function to open Teams and then trigger the clear confirmation logic on return
+                const openTeamsAndHandleClear = () => {
+                    // Call openTeamsChat with true to enable the post-share clear confirmation
+                    openTeamsChat(true);
                 };
 
                 if (!alertAlreadyShown) {
-                    // Show modal first
-                    nextActionCallback = openTeamsFunc;
+                    // Show modal first, set callback to open Teams
+                    nextActionCallback = openTeamsAndHandleClear;
                     showTeamsAlertModal("Image copied. Paste image into teams app manually.");
                 } else {
                     // Open immediately
-                    openTeamsFunc();
+                    openTeamsAndHandleClear();
                 }
 
             } catch (writeErr) {
                 console.error("Clipboard write failed: ", writeErr);
-                document.body.removeChild(tempContainer);
+                if(document.body.contains(tempContainer)) document.body.removeChild(tempContainer);
                 showTeamsFailModal();
             }
         }, 'image/png');
