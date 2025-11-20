@@ -6,6 +6,7 @@
     <title>Flight Data Entry</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
     <style>
        /* --- NEW: Global Background and Form Transparency Styles --- */
@@ -602,7 +603,7 @@ display: block;
         </button>
 
         <button onclick="shareAsTableViaUniversal()"
-                class="icon-button-container-new icon-button-table col-span-1"
+                class="icon-button-container-new icon-button-table col-span-1 relative"
                 id="shareAsTableButton">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 448 512" fill="currentColor" class="icon-orange"><path d="M256 160l0 96 128 0 0-96-128 0zm-64 0l-128 0 0 96 128 0 0-96zM0 320L0 96C0 60.7 28.7 32 64 32l320 0c35.3 0 64 28.7 64 64l0 320c0 35.3-28.7 64-64 64L64 480c-35.3 0-64-28.7-64-64l0-96zm384 0l-128 0 0 96 128 0 0-96zM192 416l0-96-128 0 0 96 128 0z"/></svg>
             <span class="text-sm text-black icon-label">Share as Table</span>
@@ -699,7 +700,7 @@ display: block;
     <div id="teamsAlertModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
         <div class="bg-white rounded-lg shadow-lg p-4 max-w-sm w-full modal-content">
             <h2 class="text-lg font-semibold mb-3 text-center">Copy Successful</h2>
-            <p class="text-gray-700 mb-4 text-sm text-center">
+            <p id="teamsAlertMessage" class="text-gray-700 mb-4 text-sm text-center">
                 Date copied. Paste message into teams app manually.
             </p>
             <div class="text-sm text-blue-500 mb-4">
@@ -938,9 +939,13 @@ function hideTeamsFailModal() {
 }
 
 // MODIFIED: Function to show the first-time Teams alert (Removed setTimeout)
-function showTeamsAlertModal() {
+function showTeamsAlertModal(customMessage = null) {
     document.getElementById("teamsAlertModal").style.display = "flex";
-    // Removed setTimeout - modal now waits for user to click 'OK'.
+    if (customMessage) {
+        document.getElementById("teamsAlertMessage").innerText = customMessage;
+    } else {
+        document.getElementById("teamsAlertMessage").innerText = "Date copied. Paste message into teams app manually.";
+    }
 }
 
 // MODIFIED: Function to hide the first-time Teams alert (Now executes the stored callback)
@@ -1480,71 +1485,80 @@ function generateTableHTML() {
 }
 
 
-// --- MODIFIED FUNCTION: Copy HTML Only to Clipboard (No fallback) ---
-// --- UPDATED FUNCTION: Modern clipboard copy (no highlight in Teams Web) ---
-async function copyHtmlToClipboard(htmlString) {
-    try {
-        // Preferred modern API path (no selection, no highlight)
-        if (navigator.clipboard && window.ClipboardItem) {
-            const blobInput = new Blob([htmlString], { type: "text/html" });
-            const plainText = htmlString.replace(/<[^>]+>/g, ""); // Strip tags for fallback plain text
-            const item = new ClipboardItem({
-                "text/html": blobInput,
-                "text/plain": new Blob([plainText], { type: "text/plain" })
-            });
-            await navigator.clipboard.write([item]);
-            return true;
-        } 
-        // Fallback for older browsers (execCommand)
-        else {
-            const tempElement = document.createElement("div");
-            tempElement.innerHTML = htmlString;
-            tempElement.style.position = "absolute";
-            tempElement.style.left = "-9999px";
-            tempElement.style.top = "0";
-            tempElement.style.opacity = "0";
-            document.body.appendChild(tempElement);
-
-            const range = document.createRange();
-            range.selectNodeContents(tempElement);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-
-            const success = document.execCommand("copy");
-
-            // Clean selection
-            if (window.getSelection) {
-                const sel = window.getSelection();
-                if (sel.removeAllRanges) sel.removeAllRanges();
-                if (sel.empty) sel.empty();
-            }
-            document.activeElement?.blur?.();
-            document.body.removeChild(tempElement);
-
-            return success;
-        }
-    } catch (err) {
-        console.error("Clipboard copy failed:", err);
-        return false;
-    }
-}
-
-
 // --- MODIFIED FUNCTION: Action for "Share as Table" button ---
+// Uses html2canvas to take a screenshot of the rendered table and copy to clipboard
 async function shareAsTableViaUniversal() {
-    const htmlTable = generateTableHTML();
+    try {
+        // 1. Generate the HTML table string
+        const htmlContent = generateTableHTML();
 
-    // Only attempt rich-text copy
-    const success = await copyHtmlToClipboard(htmlTable); 
+        // 2. Create a temporary container to render the table
+        // We need a fixed width (e.g., 450px) to ensure it looks like a mobile screenshot
+        const tempContainer = document.createElement('div');
+        tempContainer.innerHTML = htmlContent;
+        
+        // Apply styles to the container to ensure good screenshot quality
+        Object.assign(tempContainer.style, {
+            position: 'absolute',
+            top: '0',
+            left: '-9999px', // Move off-screen
+            width: '450px',  // Fixed width for consistent image size
+            backgroundColor: '#ffffff', // White background
+            padding: '20px',
+            zIndex: '-1'
+        });
+        
+        document.body.appendChild(tempContainer);
 
-    if (success) {
-        // Show existing copy dialog (feedback + clear confirmation)
-        showCopyFeedback("shareAsTableButton");
-        handleSuccessfulShare();
-    } else {
-        // Show failure message if HTML copy failed
-        alert("Failed to copy data. Your browser may not support rich text clipboard operations.");
+        // 3. Use html2canvas to generate a canvas from the DOM element
+        // scale: 2 improves resolution/clarity
+        const canvas = await html2canvas(tempContainer, {
+            backgroundColor: '#ffffff',
+            scale: 2
+        });
+
+        // 4. Convert canvas to Blob and copy to Clipboard
+        canvas.toBlob(async (blob) => {
+            try {
+                const item = new ClipboardItem({ 'image/png': blob });
+                await navigator.clipboard.write([item]);
+                
+                // 5. Cleanup DOM
+                document.body.removeChild(tempContainer);
+
+                // 6. Trigger Success Logic
+                showCopyFeedback("shareAsTableButton"); // Visual "Copied!" tooltip
+                
+                // 7. Handle Teams Alert and Deep Link Logic
+                // Check if alert has been shown before
+                const alertAlreadyShown = localStorage.getItem(SHOW_TEAMS_ALERT_KEY) === "false";
+
+                const openTeamsFunc = () => {
+                     // Open Teams Deep Link
+                    const teamsAppUrl = `msteams://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D`;
+                    window.open(teamsAppUrl, "_self");
+                    handleSuccessfulShare(); // Handle post-share clearing
+                };
+
+                if (!alertAlreadyShown) {
+                    // Show modal first
+                    nextActionCallback = openTeamsFunc;
+                    showTeamsAlertModal("Image copied. Paste image into teams app manually.");
+                } else {
+                    // Open immediately
+                    openTeamsFunc();
+                }
+
+            } catch (writeErr) {
+                console.error("Clipboard write failed: ", writeErr);
+                document.body.removeChild(tempContainer);
+                showTeamsFailModal();
+            }
+        }, 'image/png');
+
+    } catch (err) {
+        console.error("Screenshot generation failed: ", err);
+        showTeamsFailModal();
     }
 }
 
