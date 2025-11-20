@@ -1657,7 +1657,8 @@ function showCopyFeedback(buttonId = "copyButton") {
 }
 
 // --- NEW FUNCTION: Centralized handler for all Teams-related actions (Full Report, FB, LB) ---
-async function handleTeamsAction(messageGenerator) {
+// Updated to accept a flag to control post-share clearing
+async function handleTeamsAction(messageGenerator, shouldClearAfter = true) {
     // 1. Copy data to clipboard (using the provided message generator)
     const message = messageGenerator();
     try {
@@ -1672,7 +1673,7 @@ async function handleTeamsAction(messageGenerator) {
     }
 
     // 2. Define the *actual* next action (open Teams)
-    const teamsAction = openTeamsChat; 
+    const teamsAction = () => openTeamsChat(shouldClearAfter); 
 
     // 3. Check alert status
     const alertAlreadyShown = localStorage.getItem(SHOW_TEAMS_ALERT_KEY) === "false";
@@ -1691,12 +1692,14 @@ async function handleTeamsAction(messageGenerator) {
 function generateResult(platform) {
     if (platform === "msteams") {
         // 1. Use the new handler with getResultText as the message generator
-        handleTeamsAction(getResultText); 
+        // Explicitly pass true to allow clearing for the main button
+        handleTeamsAction(getResultText, true); 
     }
 }
 
 // UPDATED: openTeamsChat now handles success/failure and calls the success handler only on success.
-function openTeamsChat() {
+// Accepts shouldClearAfter to prevent clearing form for FB/LB buttons
+function openTeamsChat(shouldClearAfter = true) {
     const teamsAppUrl = `msteams://teams.microsoft.com/l/chat/19:f5f8dfb2d8da44a4b124d430ff222ffb@thread.v2/conversations?context=%7B%22contextType%22%3A%22chat%22%7D`;
     const timeout = 1000; 
 
@@ -1713,7 +1716,9 @@ function openTeamsChat() {
         "blur",
         () => {
             clearTimeout(timeoutId); // Cancel the failure timer
-            handleSuccessfulShare(); // Call success handler
+            if (shouldClearAfter) {
+                handleSuccessfulShare(); // Call success handler only if allowed
+            }
         },
         { once: true } 
     ); 
@@ -1737,7 +1742,8 @@ async function shareFb() {
     const messageGenerator = () => `${flightNumber}\n\nFirst Bag ${fbTime}`;
     
     // Use the new handler to manage copy and alert logic
-    handleTeamsAction(messageGenerator);
+    // Pass FALSE to prevent the form clear confirmation
+    handleTeamsAction(messageGenerator, false);
 }
 
 // MODIFIED: Use the new handler
@@ -1750,7 +1756,8 @@ async function shareLb() {
     const messageGenerator = () => `${flightNumber}\n\nLast Bag ${lbTime}`;
     
     // Use the new handler to manage copy and alert logic
-    handleTeamsAction(messageGenerator);
+    // Pass FALSE to prevent the form clear confirmation
+    handleTeamsAction(messageGenerator, false);
 }
 
 // REMOVED: async function shareToTeams(message) { ... } as it is superseded by handleTeamsAction
