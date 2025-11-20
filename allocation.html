@@ -1,0 +1,2071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diamond Flight Allocator - Professional</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- GLOBAL THEME --- */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+            background-attachment: fixed;
+            background-size: cover;
+            color: #e2e8f0; 
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
+
+        /* --- GLASSMORPHISM CARD (Unified) --- */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75); 
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border-radius: 1rem;
+        }
+
+        /* --- LIGHT PANEL (For Results) --- */
+        .light-panel {
+            background: #f8fafc;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border-radius: 1rem;
+        }
+
+        /* --- STICKY HEADERS FIX --- */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .light-panel .sticky-header {
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 2px solid #e2e8f0;
+            color: #475569;
+        }
+
+        /* --- BUTTONS --- */
+        .glass-button {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 0.6rem 1rem;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            gap: 0.5rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .glass-button.primary {
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+            border: 1px solid #818cf8;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+            color: white;
+        }
+        .glass-button.primary:hover {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
+        }
+
+        .glass-button.secondary {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.4);
+            color: #fbbf24;
+        }
+        .glass-button.secondary:hover {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: #fbbf24;
+        }
+        
+        .glass-button.danger {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.4);
+            color: #fca5a5;
+        }
+        .glass-button.danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #f87171;
+        }
+
+        /* --- INPUTS --- */
+        input[type="file"] {
+            font-size: 0.85rem;
+            padding: 0.4rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 0.5rem;
+            color: #94a3b8;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        input[type="file"]:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #e2e8f0;
+        }
+        input[type="file"]::file-selector-button {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            border: none;
+            padding: 0.2rem 0.6rem;
+            border-radius: 0.25rem;
+            margin-right: 0.75rem;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.75rem;
+        }
+
+        /* --- UTILS --- */
+        .glass-modal-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+        
+        .divider-vertical {
+            width: 1px;
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.15), transparent);
+            margin: 0 1.5rem;
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* --- EDITOR STYLES --- */
+        .slot-card {
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.03);
+            transition: all 0.2s;
+        }
+        .slot-card:hover {
+            background: rgba(255,255,255,0.07);
+        }
+        .slot-card.selected {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.15);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+        }
+        .slot-card.empty-slot {
+            border: 1px dashed rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-style: italic;
+        }
+        
+        /* Drag and Drop Visuals */
+        .slot-card.dragging, .timeline-flight-card.dragging {
+            opacity: 0.5;
+            border-color: #fbbf24;
+            transform: scale(0.95);
+        }
+        .timeline-row.drag-over {
+            background: rgba(99, 102, 241, 0.1) !important;
+            border-color: #6366f1;
+        }
+        .timeline-flight-card.drag-over-flight {
+            transform: scale(1.1);
+            z-index: 50 !important;
+            border-color: #fbbf24 !important;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+        }
+
+        .unassigned-card {
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        .unassigned-card:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-6 min-h-screen flex flex-col">
+
+    <div id="customAlert" class="hidden fixed inset-0 glass-modal-overlay z-[60] flex items-center justify-center p-4 transition-opacity">
+        <div id="alertContent" class="bg-white text-slate-800 rounded-xl shadow-2xl max-w-md w-full p-6 space-y-6 text-center border border-slate-200">
+            <div id="alertIcon" class="mx-auto flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 text-indigo-600 mb-4"></div>
+            <div id="alertMessage" class="font-medium text-lg"></div>
+            <button onclick="hideAlert()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition shadow-lg">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <div id="suggestionModal" class="hidden fixed inset-0 glass-modal-overlay z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-50 rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-300">
+            <div class="bg-white px-8 py-5 flex justify-between items-center shrink-0 border-b border-slate-200">
+                <h3 class="text-slate-800 text-lg font-bold flex items-center space-x-3">
+                    <div class="p-2 bg-amber-100 rounded-lg"><i data-lucide="lightbulb" class="w-5 h-5 text-amber-600"></i></div>
+                    <span>Staffing Optimization Analysis</span>
+                </h3>
+                <button onclick="closeSuggestionModal()" class="text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-full p-2 transition">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div id="suggestionContent" class="p-8 overflow-y-auto space-y-8 custom-scrollbar text-slate-800"></div>
+            <div class="p-5 border-t border-slate-200 bg-white shrink-0 flex justify-end">
+                <button onclick="closeSuggestionModal()" class="px-6 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-bold transition">
+                    Close Analysis
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <header class="text-center mb-8 pt-2">
+        <div class="inline-flex items-center justify-center space-x-3 bg-white/5 backdrop-blur-md px-6 py-1.5 rounded-full border border-white/10 mb-3">
+            <i data-lucide="plane" class="w-4 h-4 text-indigo-400"></i>
+            <span class="text-[10px] font-bold tracking-widest text-indigo-200 uppercase">Diamond Edition</span>
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight text-glow">
+            Flight Staff Allocator
+        </h1>
+    </header>
+
+    <main class="max-w-[1600px] mx-auto space-y-6 w-full pb-12">
+        
+        <div class="glass-panel p-6">
+            <div class="flex flex-col lg:flex-row gap-6 items-start lg:items-stretch">
+                
+                <div class="flex-1 w-full">
+                    <div class="section-label"><i data-lucide="users" class="w-4 h-4"></i> Staff Data (CSV)</div>
+                    <div class="flex gap-2">
+                        <input type="file" id="staffFile" accept=".csv">
+                        <button onclick="handleStaffFileUpload()" class="glass-button shrink-0" title="Load Staff">
+                            <i data-lucide="upload" class="w-4 h-4"></i> Load
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-1.5 pl-1">Format: Name, StartTime, EndTime</p>
+                </div>
+
+                <div class="hidden lg:block divider-vertical"></div>
+
+                <div class="flex-1 w-full">
+                    <div class="flex justify-between items-center mb-1">
+                        <div class="section-label"><i data-lucide="calendar" class="w-4 h-4"></i> Flight Data (CSV)</div>
+                        <div id="bmaSuggestionOutput"></div>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="file" id="flightFile" accept=".csv">
+                        <button onclick="handleFlightFileUpload()" class="glass-button shrink-0" title="Load Flights">
+                            <i data-lucide="download-cloud" class="w-4 h-4"></i> Load
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-1.5 pl-1">Format: Flight No, STA, STD</p>
+                </div>
+
+                <div class="hidden lg:block divider-vertical"></div>
+
+                <div class="flex flex-col justify-between min-w-[200px] w-full lg:w-auto">
+                    <div class="section-label"><i data-lucide="play-circle" class="w-4 h-4"></i> Operations</div>
+                    <div class="flex gap-3 h-full">
+                        <button onclick="showStaffingSuggestions()" class="glass-button secondary flex-1 justify-center">
+                            <i data-lucide="bar-chart-2" class="w-4 h-4"></i> Analysis
+                        </button>
+                        <button onclick="generateAllocations()" class="glass-button primary flex-1 justify-center">
+                            <i data-lucide="cpu" class="w-4 h-4"></i> Allocate
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[400px]">
+            
+            <div class="glass-panel p-0 flex flex-col overflow-hidden h-full">
+                <div class="px-5 py-3 border-b border-white/10 bg-slate-900/50 flex justify-between items-center">
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i data-lucide="check-square" class="w-4 h-4 text-indigo-400"></i>
+                        Eligibility & Staff Shifts
+                    </h2>
+                    <button onclick="autoSelectStaff()" class="text-emerald-400 hover:text-emerald-300 text-xs font-bold flex items-center gap-1 px-2 py-1 rounded hover:bg-emerald-500/10 transition" title="Auto-select based on analysis">
+                        <i data-lucide="wand-2" class="w-3 h-3"></i> Auto Select
+                    </button>
+                </div>
+                <div id="staffRoleAssignment" class="flex-grow relative overflow-hidden">
+                    <div class="flex flex-col items-center justify-center h-64 text-slate-500">
+                        <i data-lucide="table" class="w-10 h-10 mb-2 opacity-20"></i>
+                        <p class="text-sm">Load staff CSV to view roster</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel p-0 flex flex-col overflow-hidden h-full">
+                <div class="px-5 py-3 border-b border-white/10 bg-slate-900/50 flex justify-between items-center">
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i data-lucide="list" class="w-4 h-4 text-indigo-400"></i>
+                        Active Flight Schedule
+                    </h2>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs text-slate-400 font-mono">Total: <span id="flightCount" class="text-white font-bold">0</span></span>
+                        <button onclick="deleteSelectedFlights()" class="text-red-400 hover:text-red-300 text-xs font-bold flex items-center gap-1 px-2 py-1 rounded hover:bg-red-500/10 transition">
+                            <i data-lucide="trash-2" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="flightListContainer" class="flex-grow relative hidden bg-black/20">
+                    <div id="currentFlightList" class="absolute inset-0 overflow-y-auto">
+                        </div>
+                </div>
+                
+                <div class="flex-grow flex flex-col items-center justify-center h-64 text-slate-500" id="flightEmptyState">
+                    <i data-lucide="plane" class="w-10 h-10 mb-2 opacity-20"></i>
+                    <p class="text-sm">Load flight CSV to view schedule</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="teamEditorSection" class="hidden glass-panel p-6">
+            <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i data-lucide="users-2" class="w-5 h-5 text-purple-400"></i>
+                        Manual Team Management
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">Drag & Drop to swap. Click & Delete to remove. Empty slots can be filled from Unassigned.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="deleteSelectedMember()" id="btnDeleteMember" class="hidden glass-button danger">
+                        <i data-lucide="trash" class="w-4 h-4"></i> Remove Member
+                    </button>
+                    <button onclick="reRunAllocationWithManual()" class="glass-button primary">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Re-Allocate with Manual Teams
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-6 h-[500px]">
+                <div class="flex-grow bg-black/20 rounded-xl border border-white/5 p-4 overflow-y-auto custom-scrollbar">
+                    <div class="text-xs font-bold text-slate-400 uppercase mb-3 sticky top-0 bg-[#13182b] z-10 py-2">Active Teams</div>
+                    <div id="teamEditorGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        </div>
+                </div>
+
+                <div class="w-full lg:w-80 bg-black/20 rounded-xl border border-white/5 p-4 flex flex-col">
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="text-xs font-bold text-slate-400 uppercase">Unassigned (Teams Only)</div>
+                        <button onclick="createNewTeam()" class="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-2 py-1 rounded hover:bg-indigo-500/30 transition" title="Create Team from Unassigned">
+                            + New Team
+                        </button>
+                    </div>
+                    <div id="unassignedPool" class="flex-grow overflow-y-auto custom-scrollbar space-y-2">
+                        </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="light-panel p-6 min-h-[200px]">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <i data-lucide="layers" class="w-5 h-5 text-indigo-600"></i>
+                    Allocation Results
+                </h2>
+                <div id="resultActions" class="hidden flex gap-2">
+                    <button onclick="openTeamEditor()" class="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold shadow-lg transition">
+                        <i data-lucide="file-edit" class="w-4 h-4"></i>
+                        Edit Teams
+                    </button>
+                    <button onclick="exportToCSV()" class="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold shadow-lg transition">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                        Export CSV
+                    </button>
+                </div>
+            </div>
+
+            <div id="allocationOutput" class="space-y-8">
+                <div class="text-center py-12 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50">
+                    <i data-lucide="monitor" class="w-12 h-12 text-slate-400 mx-auto mb-3"></i>
+                    <p class="text-slate-500 font-medium">Results dashboard will appear here after generation.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+    
+    <script>
+        const flightContainerObserver = new MutationObserver((mutations) => {
+            const container = document.getElementById('flightListContainer');
+            const emptyState = document.getElementById('flightEmptyState');
+            if (!container.classList.contains('hidden')) {
+                emptyState.style.display = 'none';
+            } else {
+                emptyState.style.display = 'flex';
+            }
+        });
+        window.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('flightListContainer');
+            if(container) flightContainerObserver.observe(container, { attributes: true, attributeFilter: ['class'] });
+            
+            // Keyboard listener for Delete key in editor
+            document.addEventListener('keydown', function(event) {
+                if (event.key === "Delete" || event.key === "Backspace") {
+                    if (State.editorSelection && !document.getElementById('teamEditorSection').classList.contains('hidden')) {
+                        deleteSelectedMember();
+                    }
+                }
+            });
+        });
+        
+        /**
+         * =============================================================================
+         * FLIGHT ALLOCATION ENGINE - DIAMOND GLASS V2
+         * =============================================================================
+         */
+
+        // --- CONFIGURATION ---
+        const CONFIG = {
+            SIMULATION_CYCLES: 1000,
+            WEIGHT_DELAY: 100000,
+            WEIGHT_VARIANCE: 100,
+            PROBABILITY_GREEDY: 0.85,
+            MAX_SHIFT_DIFF_MINS: 45 
+        };
+
+        // --- STATE MANAGEMENT ---
+        const State = {
+            rawStaff: [],
+            rawFlights: [],
+            bestAllocation: null,
+            bestScore: Infinity,
+            activeTeams: [], 
+            editorSelection: null,
+            timelineDrag: null // Holds data for timeline drag operations
+        };
+
+        // --- ICONS ---
+        function refreshIcons() {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        /**
+         * =============================================================================
+         * DATA MODELS
+         * =============================================================================
+         */
+        class TimeUtils {
+            static toMins(timeStr) {
+                if (!timeStr) return 0;
+                const [h, m] = timeStr.split(':').map(Number);
+                return h * 60 + m;
+            }
+
+            static formatMins(mins) {
+                let h = Math.floor(mins / 60) % 24;
+                let m = mins % 60;
+                return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+            }
+
+            static isShiftValid(sStart, sEnd, fStart, fEnd) {
+                let normStart = sStart;
+                let normEnd = sEnd < sStart ? sEnd + 1440 : sEnd;
+                let normFStart = fStart;
+                let normFEnd = fEnd < fStart ? fEnd + 1440 : fEnd;
+
+                if (normEnd > 1440 && normFStart < normStart) {
+                    normFStart += 1440;
+                    normFEnd += 1440;
+                }
+                return (normStart <= normFStart) && (normEnd >= normFEnd);
+            }
+
+            static getShiftIntersection(shiftA, shiftB) {
+                const normalize = (start, end) => {
+                    const normStart = start;
+                    const normEnd = end < start ? end + 1440 : end;
+                    return [normStart, normEnd];
+                };
+
+                const [aStart, aEnd] = normalize(shiftA[0], shiftA[1]);
+                const [bStart, bEnd] = normalize(shiftB[0], shiftB[1]);
+
+                const intersectStart = Math.max(aStart, bStart);
+                const intersectEnd = Math.min(aEnd, bEnd);
+
+                if (intersectStart >= intersectEnd) {
+                    return null; 
+                }
+                return [intersectStart, intersectEnd]; 
+            }
+        }
+
+        class StaffMember {
+            constructor(id, name, startStr, endStr, isTeam, isBma, isFemale) {
+                this.id = id;
+                this.name = name;
+                this.startStr = startStr;
+                this.endStr = endStr;
+                this.startMins = TimeUtils.toMins(startStr);
+                this.endMins = TimeUtils.toMins(endStr);
+                this.isTeam = isTeam;
+                this.isBma = isBma;
+                this.isFemale = isFemale;
+                this.flightsAssigned = 0;
+                this.busyUntil = -1;
+                this.assignedFlights = []; 
+                this.tempSelected = false; 
+            }
+            reset() { this.flightsAssigned = 0; this.busyUntil = -1; this.assignedFlights = []; }
+            canWork(flightStart, flightEnd) { return TimeUtils.isShiftValid(this.startMins, this.endMins, flightStart, flightEnd); }
+            logAssignment(flightNo) { this.flightsAssigned++; this.assignedFlights.push(flightNo); }
+        }
+
+        class Team {
+            constructor(id, members) {
+                this.id = id;
+                this.name = `Team ${id}`;
+                this.members = members; 
+                this.recalcShift();
+                this.flightsAssigned = 0;
+                this.delaysCaused = 0;
+                this.busyUntil = -1;
+            }
+            
+            recalcShift() {
+                const activeMembers = this.members.filter(m => m !== null);
+                if (activeMembers.length === 0) {
+                    this.startMins = 0; this.endMins = 0; return;
+                }
+                let effectiveShift = [activeMembers[0].startMins, activeMembers[0].endMins];
+                for (let i = 1; i < activeMembers.length; i++) {
+                    const currentShift = [activeMembers[i].startMins, activeMembers[i].endMins];
+                    const intersection = TimeUtils.getShiftIntersection(effectiveShift, currentShift);
+                    if (!intersection) { effectiveShift = null; break; }
+                    effectiveShift = intersection;
+                }
+                this.startMins = effectiveShift ? effectiveShift[0] : activeMembers[0].startMins;
+                this.endMins = effectiveShift ? effectiveShift[1] : activeMembers[0].endMins;
+            }
+
+            reset() { 
+                this.flightsAssigned = 0; 
+                this.delaysCaused = 0; 
+                this.busyUntil = -1; 
+                this.members.forEach(m => { if(m) m.reset(); }); 
+            }
+            
+            canWork(flightStart, flightEnd) { 
+                if(this.members.some(m => m === null)) return false; 
+                return this.members.every(m => m.canWork(flightStart, flightEnd)); 
+            }
+        }
+
+        class DynamicTeam extends Team {
+            constructor(id, members) {
+                super(id, members); 
+                this.name = `Dynamic ${id}`;
+                this.isDynamic = true;
+            }
+        }
+
+        class Flight {
+            constructor(id, flightNo, sta, std) {
+                this.id = id;
+                this.flightNo = flightNo;
+                this.staStr = sta;
+                this.stdStr = std;
+                this.staMins = TimeUtils.toMins(sta);
+                this.stdMins = TimeUtils.toMins(std);
+                this.selected = false;
+            }
+        }
+
+        // --- FILE HANDLING ---
+        function handleStaffFileUpload() {
+            const file = document.getElementById('staffFile').files[0];
+            if (!file) return showAlert("Please select a CSV file.", "alert-circle");
+            const reader = new FileReader();
+            reader.onload = (e) => { parseStaffCSV(e.target.result); showAlert(`Loaded ${State.rawStaff.length} staff members.`, "users"); };
+            reader.readAsText(file);
+        }
+
+        function handleFlightFileUpload() {
+            const file = document.getElementById('flightFile').files[0];
+            if (!file) return showAlert("Please select a CSV file.", "alert-circle");
+            const reader = new FileReader();
+            reader.onload = (e) => { parseFlightCSV(e.target.result); };
+            reader.readAsText(file);
+        }
+
+        function parseStaffCSV(csv) {
+            const lines = csv.split('\n').filter(l => l.trim());
+            State.rawStaff = [];
+            for (let i = 1; i < lines.length; i++) {
+                const col = lines[i].split(',');
+                if (col.length < 3) continue;
+                State.rawStaff.push(new StaffMember(i, col[0].trim(), col[1].trim(), col[2].trim(), true, false, false));
+            }
+            renderStaffTable();
+        }
+
+        function parseFlightCSV(csv) {
+            const lines = csv.split('\n').filter(l => l.trim());
+            let newFlights = [];
+            for (let i = 1; i < lines.length; i++) {
+                const col = lines[i].split(',');
+                if (col.length < 3) continue;
+                newFlights.push(new Flight(Date.now() + i, col[0].trim(), col[1].trim(), col[2].trim()));
+            }
+            State.rawFlights = [...State.rawFlights, ...newFlights].sort((a,b) => a.staMins - b.staMins);
+            renderFlightList();
+            document.getElementById('bmaSuggestionOutput').innerHTML = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"><i data-lucide="check" class="w-3 h-3 mr-1"></i> ${State.rawFlights.length} Flights</span>`;
+            refreshIcons();
+        }
+
+        // --- UI RENDERING ---
+        function toggleRole(index, role, isChecked) {
+            if (role === 'team') {
+                State.rawStaff[index].isTeam = isChecked;
+                if (isChecked) State.rawStaff[index].isBma = false;
+            } else if (role === 'bma') {
+                State.rawStaff[index].isBma = isChecked;
+                if (isChecked) State.rawStaff[index].isTeam = false;
+            }
+            renderStaffTable(); 
+        }
+
+        function autoSelectStaff() {
+            if (State.rawFlights.length === 0) return showAlert("Please load Flight data first.", "alert-triangle");
+            if (State.rawStaff.length === 0) return showAlert("Please load Staff data first.", "users");
+
+            State.rawStaff.forEach(s => { s.isTeam = false; s.isBma = false; s.tempSelected = false; });
+            const demandMap = new Array(1440).fill(0);
+            State.rawFlights.forEach(f => {
+                let start = f.staMins;
+                let end = f.stdMins < f.staMins ? f.stdMins + 1440 : f.stdMins;
+                for (let t = start; t < end; t++) { demandMap[t % 1440]++; }
+            });
+
+            const covers = (staff, time) => {
+                let s = staff.startMins; let e = staff.endMins;
+                if (e < s) e += 1440;
+                let t = time;
+                if (t >= s && t < e) return true;
+                if ((t + 1440) >= s && (t + 1440) < e) return true;
+                return false;
+            };
+
+            const fillCoverage = (targetType, groupSize) => {
+                let supplied = new Array(1440).fill(0);
+                let safetyLoop = 0;
+                while (safetyLoop < 1000) {
+                    safetyLoop++;
+                    let maxGap = 0; let gapTime = -1;
+                    for (let t = 0; t < 1440; t++) {
+                        if (demandMap[t] > 0) {
+                            let needed = demandMap[t];
+                            let current = supplied[t];
+                            if (current < needed) {
+                                let gap = needed - current;
+                                if (gap > maxGap) { maxGap = gap; gapTime = t; }
+                            }
+                        }
+                    }
+                    if (gapTime === -1) break; 
+                    let candidates = State.rawStaff.filter(s => !s.tempSelected && covers(s, gapTime));
+                    if (candidates.length < groupSize) { if (targetType === 'TEAM') break; }
+                    candidates.sort((a, b) => {
+                        let scoreA = 0; let scoreB = 0;
+                        for(let t=0; t<1440; t++) { if(demandMap[t] > supplied[t]) { if(covers(a, t)) scoreA++; if(covers(b, t)) scoreB++; } }
+                        return scoreB - scoreA;
+                    });
+                    for(let i=0; i<groupSize; i++) {
+                        if (i < candidates.length) {
+                            let selected = candidates[i];
+                            selected.tempSelected = true;
+                            if (targetType === 'TEAM') selected.isTeam = true;
+                            else selected.isBma = true;
+                        }
+                    }
+                    supplied.fill(0);
+                    State.rawStaff.forEach(s => {
+                        if ( (targetType === 'TEAM' && s.isTeam) || (targetType === 'BMA' && s.isBma) ) {
+                            let st = s.startMins; let en = s.endMins;
+                            if (en < st) en += 1440;
+                            for (let m = st; m < en; m++) { supplied[m % 1440] += (targetType==='TEAM' ? 0.334 : 1); }
+                        }
+                    });
+                     for(let t=0; t<1440; t++) supplied[t] = Math.floor(supplied[t]);
+                }
+            };
+            fillCoverage('TEAM', 3);
+            fillCoverage('BMA', 1);
+            renderStaffTable();
+            const teamCount = State.rawStaff.filter(s => s.isTeam).length;
+            const bmaCount = State.rawStaff.filter(s => s.isBma).length;
+            if (teamCount === 0 && bmaCount === 0) {
+                showAlert("Could not find valid staff coverage. Check shifts.", "alert-circle");
+            } else {
+                showAlert(`Smart Selected: ${teamCount} Team Staff & ${bmaCount} BMAs.`, "check-circle-2");
+            }
+        }
+
+        function renderStaffTable() {
+            const container = document.getElementById('staffRoleAssignment');
+            let html = `
+            <div class="overflow-x-auto max-h-full glass-table rounded-b-xl h-full custom-scrollbar">
+                <table class="min-w-full text-left">
+                    <thead class="sticky-header">
+                        <tr>
+                            <th class="px-4 py-3 text-slate-300 font-bold text-xs uppercase">Name</th>
+                            <th class="px-4 py-3 text-slate-300 font-bold text-xs uppercase">Shift</th>
+                            <th class="px-4 py-3 text-center text-slate-300 font-bold text-xs uppercase">Team</th>
+                            <th class="px-4 py-3 text-center text-slate-300 font-bold text-xs uppercase">BMA</th>
+                            <th class="px-4 py-3 text-center text-pink-300 font-bold text-xs uppercase">Female</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5">`;
+
+            State.rawStaff.forEach((s, idx) => {
+                const isTeamDisabled = s.isBma ? 'disabled' : '';
+                const isBmaDisabled = s.isTeam ? 'disabled' : '';
+                const disabledClass = 'disabled:opacity-30 disabled:cursor-not-allowed';
+                html += `
+                    <tr>
+                        <td class="px-4 py-2 font-medium text-white text-sm">${s.name}</td>
+                        <td class="px-4 py-2 text-slate-400 font-mono text-[10px]">${s.startStr} - ${s.endStr}</td>
+                        <td class="px-4 py-2 text-center">
+                            <input type="checkbox" 
+                                   class="rounded bg-white/10 border-white/20 checked:bg-indigo-500 h-4 w-4 cursor-pointer ${disabledClass}" 
+                                   ${s.isTeam?'checked':''} 
+                                   ${isTeamDisabled}
+                                   onchange="toggleRole(${idx}, 'team', this.checked)">
+                        </td>
+                        <td class="px-4 py-2 text-center">
+                            <input type="checkbox" 
+                                   class="rounded bg-white/10 border-white/20 checked:bg-indigo-500 h-4 w-4 cursor-pointer ${disabledClass}" 
+                                   ${s.isBma?'checked':''} 
+                                   ${isBmaDisabled}
+                                   onchange="toggleRole(${idx}, 'bma', this.checked)">
+                        </td>
+                        <td class="px-4 py-2 text-center">
+                            <input type="checkbox" 
+                                   class="rounded bg-white/10 border-white/20 checked:bg-pink-500 h-4 w-4 cursor-pointer" 
+                                   ${s.isFemale?'checked':''} 
+                                   onchange="State.rawStaff[${idx}].isFemale = this.checked">
+                        </td>
+                    </tr>`;
+            });
+            html += `</tbody></table></div>`;
+            container.innerHTML = html;
+        }
+
+        function renderFlightList() {
+            const container = document.getElementById('flightListContainer');
+            const listDiv = document.getElementById('currentFlightList');
+            document.getElementById('flightCount').innerText = State.rawFlights.length;
+            container.classList.remove('hidden');
+            let html = `
+                <table class="w-full text-sm text-left text-slate-300">
+                    <thead class="sticky-header text-xs text-slate-200 uppercase">
+                        <tr>
+                            <th class="px-4 py-3 w-10"></th>
+                            <th class="px-4 py-3">Flight</th>
+                            <th class="px-4 py-3">STA</th>
+                            <th class="px-4 py-3">STD</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5">`;
+            State.rawFlights.forEach((f, idx) => {
+                html += `
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="px-4 py-2 text-center">
+                            <input type="checkbox" class="rounded bg-white/10 border-white/20 text-indigo-500 h-4 w-4 cursor-pointer" ${f.selected ? 'checked' : ''} onchange="toggleFlightSelect(${idx})">
+                        </td>
+                        <td class="px-4 py-2 font-bold text-white">${f.flightNo}</td>
+                        <td class="px-4 py-2 font-mono text-xs text-slate-400">${f.staStr}</td>
+                        <td class="px-4 py-2 font-mono text-xs text-slate-400">${f.stdStr}</td>
+                    </tr>`;
+            });
+            html += `</tbody></table>`;
+            listDiv.innerHTML = html;
+        }
+
+        function toggleFlightSelect(index) { State.rawFlights[index].selected = !State.rawFlights[index].selected; }
+        function deleteSelectedFlights() {
+            const before = State.rawFlights.length;
+            State.rawFlights = State.rawFlights.filter(f => !f.selected);
+            renderFlightList();
+            if (before !== State.rawFlights.length) showAlert(`Deleted ${before - State.rawFlights.length} flights.`, "trash-2");
+        }
+
+        // --- STAFFING SUGGESTION ANALYSIS (Restored Features) ---
+
+        function showGraphTooltip(e, time, count, flightsStr) {
+            const tooltip = document.getElementById('graph-tooltip');
+            if (!tooltip) return;
+
+            const flights = flightsStr ? flightsStr.split(',') : [];
+            const flightListHtml = flights.map(f => `
+                <div class="flex justify-between gap-2 border-b border-gray-700 last:border-0 pb-1 mb-1">
+                    <span class="font-bold text-white">${f}</span>
+                    <span class="text-gray-400 text-[9px]">(1 Team, 1 BMA)</span>
+                </div>
+            `).join('');
+
+            tooltip.innerHTML = `
+                <div class="font-bold text-amber-400 mb-1 border-b border-gray-600 pb-1">${time}</div>
+                <div class="mb-2 font-semibold text-indigo-300">Required: ${count} Teams & BMAs</div>
+                <div class="text-left max-h-40 overflow-y-auto custom-scrollbar">
+                    ${flightListHtml || '<span class="text-gray-500 italic">No active flights</span>'}
+                </div>
+            `;
+
+            tooltip.classList.remove('hidden');
+            
+            let x = e.clientX - 112; 
+            let y = e.clientY + 20; 
+
+            if (x + 224 > window.innerWidth) x = window.innerWidth - 240;
+            if (x < 10) x = 10;
+            if (y + 200 > window.innerHeight) y = e.clientY - 200;
+
+            tooltip.style.left = `${x}px`;
+            tooltip.style.top = `${y}px`;
+        }
+        function hideGraphTooltip() { const tooltip = document.getElementById('graph-tooltip'); if (tooltip) tooltip.classList.add('hidden'); }
+
+        function showStaffingSuggestions() {
+            if (State.rawFlights.length === 0) return showAlert("Please load Flight data first.", "alert-triangle");
+            
+            const analysis = runStaffingSimulation(State.rawFlights);
+            const modalContent = document.getElementById('suggestionContent');
+            
+            let heatmapHTML = '';
+            analysis.heatmap.forEach(block => {
+                const height = Math.max(20, (block.count / analysis.maxConcurrency) * 100);
+                const color = block.count === analysis.maxConcurrency ? 'bg-red-500' : (block.count > analysis.maxConcurrency * 0.7 ? 'bg-orange-400' : 'bg-green-400');
+                const flightDataStr = block.flights.join(',');
+
+                heatmapHTML += `
+                    <div class="flex flex-col items-center justify-end space-y-1 w-12 shrink-0 group relative"
+                         onmousemove="showGraphTooltip(event, '${TimeUtils.formatMins(block.time)}', ${block.count}, '${flightDataStr}')"
+                         onmouseleave="hideGraphTooltip()">
+                        <div class="${color} w-full rounded-t-md transition-all hover:opacity-80 cursor-crosshair" style="height: ${height}px;"></div>
+                        <span class="text-[10px] text-gray-500 rotate-[-45deg] origin-top-left mt-2 whitespace-nowrap pointer-events-none">${TimeUtils.formatMins(block.time)}</span>
+                    </div>
+                `;
+            });
+
+            const suggestedTeams = analysis.maxConcurrency;
+            const suggestedBMAs = analysis.maxConcurrency; 
+            const totalStaff = (suggestedTeams * 3) + (suggestedBMAs * 1);
+
+            modalContent.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-blue-500">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="text-sm font-bold text-gray-500 uppercase">Rec. Teams</h4>
+                            <i data-lucide="users" class="text-blue-500 w-5 h-5"></i>
+                        </div>
+                        <div class="text-4xl font-extrabold text-gray-900">${suggestedTeams} <span class="text-lg text-gray-400 font-medium">Groups</span></div>
+                        <p class="text-xs text-gray-500 mt-2">Least concurrent teams needed to cover peak traffic.</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-indigo-500">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="text-sm font-bold text-gray-500 uppercase">Rec. BMA</h4>
+                            <i data-lucide="luggage" class="text-indigo-500 w-5 h-5"></i>
+                        </div>
+                        <div class="text-4xl font-extrabold text-gray-900">${suggestedBMAs} <span class="text-lg text-gray-400 font-medium">Staff</span></div>
+                        <p class="text-xs text-gray-500 mt-2">Individual staff needed for baggage handling.</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-green-500">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="text-sm font-bold text-gray-500 uppercase">Total Headcount</h4>
+                            <i data-lucide="user-check" class="text-green-500 w-5 h-5"></i>
+                        </div>
+                        <div class="text-4xl font-extrabold text-gray-900">${totalStaff} <span class="text-lg text-gray-400 font-medium">Total</span></div>
+                        <p class="text-xs text-gray-500 mt-2">Based on 3 staff/team + 1 BMA logic.</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 relative">
+                    <h4 class="font-bold text-gray-700 mb-4 flex items-center space-x-2">
+                        <i data-lucide="bar-chart-2" class="w-5 h-5 text-gray-500"></i>
+                        <span>Peak Flight Traffic Simulation (Concurrency Analysis)</span>
+                    </h4>
+                    <div class="flex items-end space-x-1 h-40 overflow-x-auto pb-6 border-b border-gray-100 px-2">
+                        ${heatmapHTML}
+                    </div>
+                    <div class="mt-4 bg-amber-50 border border-amber-200 rounded p-3 text-sm text-amber-800">
+                        <strong>Analysis:</strong> The simulation threw ${analysis.totalEvents} events across the schedule. 
+                        Your peak traffic hits <strong>${analysis.maxConcurrency} concurrent flights</strong>. 
+                        To guarantee 0 delays purely based on schedule, you need exactly <strong>${analysis.maxConcurrency} Teams</strong> active during these peaks.
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+                    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                        <h4 class="font-bold text-gray-700">Shift Coverage Suggestions & Peak Analysis</h4>
+                    </div>
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-gray-100 text-gray-600">
+                            <tr>
+                                <th class="px-6 py-3 text-left">Time Window</th>
+                                <th class="px-6 py-3 text-center">Peak Count</th>
+                                <th class="px-6 py-3 text-left">Contributing Flights (Alloc: 1 Team + 1 BMA per flight)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            ${renderShiftSuggestionRows(analysis.heatmap)}
+                        </tbody>
+                    </table>
+                </div>
+                <div id="graph-tooltip" class="fixed z-[60] hidden bg-gray-900 text-white text-xs p-3 rounded-lg w-56 text-center shadow-xl border border-gray-700 pointer-events-none transition-opacity duration-75"></div>
+            `;
+            
+            document.getElementById('suggestionModal').classList.remove('hidden');
+            refreshIcons();
+        }
+        function closeSuggestionModal() { document.getElementById('suggestionModal').classList.add('hidden'); hideGraphTooltip(); }
+
+        function runStaffingSimulation(flights) {
+            let events = [];
+            flights.forEach(f => {
+                events.push({ time: f.staMins, type: 1, flightNo: f.flightNo });
+                events.push({ time: f.stdMins, type: -1, flightNo: f.flightNo });
+            });
+            events.sort((a, b) => (a.time !== b.time) ? a.time - b.time : b.type - a.type);
+            let maxConcurrency = 0, currentConcurrency = 0, heatmap = [], activeFlights = new Set(), lastTimeRecorded = -1;
+            events.forEach(e => {
+                if (e.type === 1) { currentConcurrency++; activeFlights.add(e.flightNo); } 
+                else { currentConcurrency--; activeFlights.delete(e.flightNo); }
+                if (currentConcurrency > maxConcurrency) maxConcurrency = currentConcurrency;
+                const currentFlightsList = Array.from(activeFlights).sort();
+                if (e.time !== lastTimeRecorded) {
+                    heatmap.push({ time: e.time, count: currentConcurrency, flights: currentFlightsList });
+                    lastTimeRecorded = e.time;
+                } else {
+                    let lastEntry = heatmap[heatmap.length - 1];
+                    if (currentConcurrency > lastEntry.count) { lastEntry.count = currentConcurrency; lastEntry.flights = currentFlightsList; }
+                }
+            });
+            return { maxConcurrency, totalEvents: events.length, heatmap };
+        }
+
+        function renderShiftSuggestionRows(heatmap) {
+            const shifts = [
+                { name: 'Morning Ops (04:00 - 12:00)', start: 240, end: 720, max: 0, flights: [] },
+                { name: 'Afternoon Ops (12:00 - 18:00)', start: 720, end: 1080, max: 0, flights: [] },
+                { name: 'Evening Ops (18:00 - 00:00)', start: 1080, end: 1440, max: 0, flights: [] },
+                { name: 'Night Ops (00:00 - 04:00)', start: 0, end: 240, max: 0, flights: [] },
+            ];
+            heatmap.forEach(pt => {
+                let t = pt.time % 1440; 
+                shifts.forEach(s => {
+                    if (t >= s.start && t < s.end) {
+                        if (pt.count > s.max) { s.max = pt.count; s.flights = pt.flights; }
+                    }
+                });
+            });
+            return shifts.map(s => {
+                if (s.max === 0) return '';
+                const flightTags = s.flights.map(f => 
+                    `<span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                        ${f}
+                        <span class="ml-1.5 pl-1.5 border-l border-blue-300 text-blue-600 font-bold text-[10px]">1T, 1B</span>
+                     </span>`
+                ).join(' ');
+                return `
+                    <tr>
+                        <td class="px-6 py-3 font-medium text-gray-900 w-1/4">${s.name}</td>
+                        <td class="px-6 py-3 text-center font-bold text-indigo-600 w-1/6 text-lg">${s.max}</td>
+                        <td class="px-6 py-3"><div class="flex flex-wrap gap-2">${flightTags}</div></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // --- CORE LOGIC ---
+        function findDynamicTeams(staffList, currentTeamId) {
+            const dynamicTeams = []; const availableStaff = [...staffList]; let staffUsedIndices = new Set();
+            if (availableStaff.length < 3) return { dynamicTeams: [], remainingStaff: staffList, currentTeamId };
+            for (let i = 0; i < availableStaff.length; i++) {
+                for (let j = i + 1; j < availableStaff.length; j++) {
+                    for (let k = j + 1; k < availableStaff.length; k++) {
+                        if (staffUsedIndices.has(i) || staffUsedIndices.has(j) || staffUsedIndices.has(k)) continue;
+                        const members = [availableStaff[i], availableStaff[j], availableStaff[k]];
+                        const tempTeam = new DynamicTeam(currentTeamId, members);
+                        if (tempTeam.startMins !== 0) { 
+                            dynamicTeams.push(new DynamicTeam(currentTeamId++, members));
+                            staffUsedIndices.add(i); staffUsedIndices.add(j); staffUsedIndices.add(k); break; 
+                        }
+                    }
+                }
+            }
+            const remainingStaff = availableStaff.filter((_, index) => !Array.from(staffUsedIndices).includes(index));
+            return { dynamicTeams, currentTeamId, remainingStaff };
+        }
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        async function generateAllocations(fixedTeams = null) {
+            if (State.rawFlights.length === 0 || State.rawStaff.length === 0) return showAlert("Please load Flight and Staff data first.", "alert-triangle");
+            
+            const outputDiv = document.getElementById('allocationOutput');
+            outputDiv.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-16 space-y-4 bg-slate-50 rounded-xl shadow-inner border border-slate-200">
+                    <div class="relative">
+                        <div class="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800">Running Simulations...</h3>
+                    <p class="text-slate-500 text-sm">Optimizing schedules...</p>
+                </div>
+            `;
+            
+            await new Promise(r => setTimeout(r, 50));
+            let allTeams = [];
+            const bmaStaff = State.rawStaff.filter(s => s.isBma);
+
+            if (fixedTeams) {
+                allTeams = fixedTeams;
+            } else {
+                let teamCandidates = State.rawStaff.filter(s => s.isTeam).sort((a,b) => a.startMins - b.startMins);
+                let strictTeams = []; let tId = 1; let remainingCandidates = [];
+                const candidatesByShift = teamCandidates.reduce((groups, staff) => {
+                    const key = `${staff.startStr}-${staff.endStr}`; if (!groups[key]) groups[key] = []; groups[key].push(staff); return groups;
+                }, {});
+                for (const key in candidatesByShift) {
+                    let list = candidatesByShift[key]; shuffleArray(list); 
+                    while(list.length >= 3) strictTeams.push(new Team(tId++, list.splice(0, 3)));
+                    remainingCandidates.push(...list); 
+                }
+                const { dynamicTeams } = findDynamicTeams(remainingCandidates, tId);
+                allTeams = [...strictTeams, ...dynamicTeams];
+            }
+
+            let globalBestLog = null; 
+            let globalLowestCost = Infinity;
+            let globalBestTeams = []; 
+
+            for (let i = 0; i < CONFIG.SIMULATION_CYCLES; i++) {
+                allTeams.forEach(t => t.reset()); 
+                bmaStaff.forEach(s => s.reset());
+                const scenarioLog = runMonteCarloPass(allTeams, bmaStaff, State.rawFlights);
+                const score = calculateScore(scenarioLog, allTeams, bmaStaff);
+                if (score < globalLowestCost) {
+                    globalLowestCost = score; 
+                    globalBestLog = JSON.parse(JSON.stringify(scenarioLog));
+                    globalBestLog.stats = captureRichStats(allTeams, bmaStaff, scenarioLog);
+                    globalBestTeams = allTeams.map(t => new Team(t.id, [...t.members]));
+                }
+            }
+
+            State.bestAllocation = globalBestLog;
+            State.activeTeams = globalBestTeams; 
+            renderResults();
+            if (!fixedTeams) showAlert("Allocations Complete.", "check-circle");
+        }
+        
+        function openTeamEditor() {
+            const editor = document.getElementById('teamEditorSection');
+            editor.classList.remove('hidden');
+            editor.scrollIntoView({ behavior: 'smooth' });
+            renderTeamEditor();
+        }
+
+        function reRunAllocationWithManual() {
+            State.activeTeams.forEach(t => t.reset());
+            generateAllocations(State.activeTeams);
+            showAlert("Re-allocated with custom teams.", "refresh-cw");
+        }
+
+        /* --- TEAM EDITOR LOGIC --- */
+        function renderTeamEditor() {
+            const grid = document.getElementById('teamEditorGrid');
+            const pool = document.getElementById('unassignedPool');
+            const selection = State.editorSelection;
+            const delBtn = document.getElementById('btnDeleteMember');
+            if (selection) delBtn.classList.remove('hidden');
+            else delBtn.classList.add('hidden');
+
+            let gridHtml = '';
+            State.activeTeams.forEach((team, tIdx) => {
+                gridHtml += `<div class="bg-white/5 border border-white/10 rounded-lg p-3 hover:bg-white/10 transition relative">
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-bold text-indigo-300">${team.name}</span>
+                            <span class="text-[10px] text-slate-400 font-mono">${TimeUtils.formatMins(team.startMins)}-${TimeUtils.formatMins(team.endMins)}</span>
+                        </div>
+                        <button onclick="deleteTeam(${tIdx})" class="text-slate-500 hover:text-red-400 transition p-1" title="Delete Team">
+                             <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-2">`;
+                for(let mIdx = 0; mIdx < 3; mIdx++) {
+                    const m = team.members[mIdx];
+                    const isSelected = selection && selection.teamIndex === tIdx && selection.memberIndex === mIdx;
+                    if (m) {
+                        gridHtml += `
+                            <div draggable="true"
+                                 ondragstart="handleDragStart(event, ${tIdx}, ${mIdx})"
+                                 ondragover="handleDragOver(event)"
+                                 ondrop="handleDrop(event, ${tIdx}, ${mIdx})"
+                                 onclick="selectTeamMember(${tIdx}, ${mIdx})" 
+                                 class="slot-card p-2 rounded flex justify-between items-center cursor-pointer ${isSelected ? 'selected' : ''} group">
+                                 <div>
+                                    <div class="text-xs font-bold text-white">${m.name}</div>
+                                    <div class="text-[10px] text-slate-400">${m.startStr}-${m.endStr}</div>
+                                 </div>
+                                 <i data-lucide="grip-vertical" class="w-3 h-3 text-slate-500 opacity-0 group-hover:opacity-100 cursor-grab"></i>
+                            </div>
+                        `;
+                    } else {
+                         gridHtml += `
+                            <div ondragover="handleDragOver(event)"
+                                 ondrop="handleDrop(event, ${tIdx}, ${mIdx})"
+                                 onclick="selectTeamMember(${tIdx}, ${mIdx})" 
+                                 class="slot-card empty-slot p-2 rounded cursor-pointer ${isSelected ? 'selected' : ''}">
+                                 <span>Empty Slot</span>
+                            </div>
+                        `;
+                    }
+                }
+                gridHtml += `</div></div>`;
+            });
+            grid.innerHTML = gridHtml;
+
+            const assignedIds = new Set();
+            State.activeTeams.forEach(t => t.members.forEach(m => { if(m) assignedIds.add(m.id); }));
+            const availableStaff = State.rawStaff.filter(s => !assignedIds.has(s.id) && !s.isBma);
+            let poolHtml = '';
+            availableStaff.forEach(s => {
+                poolHtml += `
+                    <div onclick="handleUnassignedClick(${s.id})" class="unassigned-card bg-white/5 p-2 rounded flex justify-between items-center">
+                        <div class="text-xs font-medium text-slate-300">${s.name}</div>
+                        <div class="text-[10px] text-slate-500 font-mono">${s.startStr}</div>
+                    </div>
+                `;
+            });
+            if(availableStaff.length === 0) poolHtml = '<div class="text-center text-xs text-slate-500 italic py-4">No unassigned staff</div>';
+            pool.innerHTML = poolHtml;
+            refreshIcons();
+        }
+
+        function deleteTeam(teamIndex) {
+            if (!confirm("Are you sure you want to dissolve this team? Members will return to unassigned.")) return;
+            State.activeTeams.splice(teamIndex, 1);
+            if (State.editorSelection && State.editorSelection.teamIndex === teamIndex) {
+                State.editorSelection = null;
+            } else if (State.editorSelection && State.editorSelection.teamIndex > teamIndex) {
+                 State.editorSelection.teamIndex--;
+            }
+            renderTeamEditor();
+        }
+
+        function selectTeamMember(tIdx, mIdx) {
+            if (State.editorSelection && State.editorSelection.teamIndex === tIdx && State.editorSelection.memberIndex === mIdx) {
+                State.editorSelection = null; 
+            } else {
+                State.editorSelection = { teamIndex: tIdx, memberIndex: mIdx };
+            }
+            renderTeamEditor();
+        }
+        
+        function deleteSelectedMember() {
+            if (!State.editorSelection) return;
+            const { teamIndex, memberIndex } = State.editorSelection;
+            State.activeTeams[teamIndex].members[memberIndex] = null;
+            State.activeTeams[teamIndex].recalcShift();
+            State.editorSelection = null;
+            renderTeamEditor();
+        }
+
+        function createNewTeam() {
+            const assignedIds = new Set();
+            State.activeTeams.forEach(t => t.members.forEach(m => { if(m) assignedIds.add(m.id); }));
+            const availableStaff = State.rawStaff.filter(s => !assignedIds.has(s.id) && !s.isBma);
+            if (availableStaff.length < 3) return showAlert("Not enough unassigned staff to make a team of 3.", "users");
+            const newMembers = availableStaff.slice(0, 3);
+            const newId = State.activeTeams.length > 0 ? Math.max(...State.activeTeams.map(t => t.id)) + 1 : 1;
+            const newTeam = new Team(newId, newMembers);
+            if (newTeam.startMins === 0 && newTeam.endMins === 0) {
+                 showAlert("Created Team " + newId + ", but members have NO overlapping time.", "alert-triangle");
+            }
+            State.activeTeams.push(newTeam);
+            renderTeamEditor();
+        }
+
+        // --- DRAG AND DROP LOGIC (TEAM EDITOR) ---
+        let draggedItem = null; 
+        function handleDragStart(e, tIdx, mIdx) {
+            draggedItem = { tIdx, mIdx };
+            e.dataTransfer.effectAllowed = 'move';
+            e.target.classList.add('dragging');
+        }
+        function handleDragOver(e) {
+            if (e.preventDefault) e.preventDefault(); 
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+        function handleDrop(e, targetTIdx, targetMIdx) {
+            if (e.stopPropagation) e.stopPropagation();
+            if (!draggedItem) return false;
+            const sourceTIdx = draggedItem.tIdx;
+            const sourceMIdx = draggedItem.mIdx;
+            if (sourceTIdx === targetTIdx && sourceMIdx === targetMIdx) return false;
+            const sourceTeam = State.activeTeams[sourceTIdx];
+            const targetTeam = State.activeTeams[targetTIdx];
+            const sourceMember = sourceTeam.members[sourceMIdx];
+            const targetMember = targetTeam.members[targetMIdx]; 
+            if (!validateSwap(sourceMember, targetTeam, targetMIdx)) return;
+            if (targetMember && !validateSwap(targetMember, sourceTeam, sourceMIdx)) return;
+            sourceTeam.members[sourceMIdx] = targetMember;
+            targetTeam.members[targetMIdx] = sourceMember;
+            sourceTeam.recalcShift();
+            targetTeam.recalcShift();
+            State.editorSelection = null;
+            renderTeamEditor();
+            return false;
+        }
+        function validateSwap(newStaff, team, ignoreIndex) {
+            const otherMembers = team.members.filter((_, idx) => idx !== ignoreIndex && _ !== null);
+            for (let m of otherMembers) {
+                const intersect = TimeUtils.getShiftIntersection(
+                    [newStaff.startMins, newStaff.endMins], 
+                    [m.startMins, m.endMins]
+                );
+                if (!intersect) {
+                    showAlert(`${newStaff.name} has NO shift overlap with ${m.name}.`, "slash");
+                    return false;
+                }
+                let duration = intersect[1] - intersect[0];
+                if (duration < 0) duration += 1440;
+                if (duration < 30) {
+                     showAlert(`${newStaff.name} only overlaps ${duration} mins with ${m.name}. Need > 30 mins.`, "clock");
+                     return false;
+                }
+            }
+            return true;
+        }
+        function handleUnassignedClick(staffId) {
+            if (!State.editorSelection) return showAlert("Select a team member slot (or empty slot) first.", "hand");
+            const { teamIndex, memberIndex } = State.editorSelection;
+            const team = State.activeTeams[teamIndex];
+            const newStaff = State.rawStaff.find(s => s.id === staffId);
+            if (!validateSwap(newStaff, team, memberIndex)) return;
+            team.members[memberIndex] = newStaff;
+            team.recalcShift();
+            State.editorSelection = null;
+            renderTeamEditor();
+        }
+
+        // --- TIMELINE DRAG AND DROP HANDLERS ---
+        function handleTimelineDragStart(e, flightNo, entityName, type) {
+            State.timelineDrag = { flightNo, entityName, type };
+            e.dataTransfer.effectAllowed = 'move';
+            e.target.classList.add('dragging');
+        }
+
+        function handleTimelineDragOver(e) {
+            if(e.preventDefault) e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const target = e.target.closest('.timeline-row');
+            if (target) target.classList.add('drag-over');
+            
+            // Highlight specific flight swap target
+            const flightTarget = e.target.closest('.timeline-flight-card');
+            if (flightTarget) flightTarget.classList.add('drag-over-flight');
+            
+            return false;
+        }
+
+        function handleTimelineDragLeave(e) {
+             const target = e.target.closest('.timeline-row');
+             if (target) target.classList.remove('drag-over');
+             const flightTarget = e.target.closest('.timeline-flight-card');
+             if (flightTarget) flightTarget.classList.remove('drag-over-flight');
+        }
+
+        function handleTimelineDrop(e, targetEntityName, targetType) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            // Cleanup Visuals
+            document.querySelectorAll('.timeline-row').forEach(el => el.classList.remove('drag-over'));
+            document.querySelectorAll('.timeline-flight-card').forEach(el => el.classList.remove('drag-over-flight'));
+
+            if (!State.timelineDrag) return;
+            const { flightNo, entityName: sourceEntityName, type: sourceType } = State.timelineDrag;
+            State.timelineDrag = null; // Reset immediately
+
+            // 1. Type Check (Strict Team-to-Team or BMA-to-BMA)
+            if (sourceType !== targetType) {
+                return showAlert(`Cannot move a ${sourceType} flight to a ${targetType}.`, "slash");
+            }
+            
+            // 2. Check if dropped on same row
+            if (sourceEntityName === targetEntityName) return;
+
+            // 3. Identify Target Flight (SWAP Operation) vs Timeline (MOVE Operation)
+            const droppedOnFlight = e.target.closest('.timeline-flight-card');
+            
+            // Find data objects
+            const flightObj = State.rawFlights.find(f => f.flightNo == flightNo);
+            if (!flightObj) return;
+
+            // Find Target Entity Object (Team or StaffMember for BMA)
+            let targetEntityObj = null;
+            if (targetType === 'TEAM') {
+                targetEntityObj = State.activeTeams.find(t => t.name === targetEntityName);
+            } else {
+                // Extract Name from "BMA: Name" string
+                const bmaName = targetEntityName.replace('BMA: ', '');
+                targetEntityObj = State.rawStaff.find(s => s.name === bmaName && s.isBma);
+            }
+            
+            if (!targetEntityObj) return showAlert("Could not locate target staff/team data.", "alert-circle");
+
+            // 4. VALIDATION: Check Shift Coverage
+            // Team: All 3 members must cover the shift. BMA: The individual must cover.
+            if (!checkTimelineShiftValidity(targetEntityObj, flightObj, targetType)) return;
+
+            // 5. EXECUTE
+            if (droppedOnFlight) {
+                // SWAP LOGIC
+                const targetFlightNo = droppedOnFlight.getAttribute('data-flight');
+                const targetFlightObj = State.rawFlights.find(f => f.flightNo == targetFlightNo);
+                
+                // Find Source Entity Object
+                let sourceEntityObj = null;
+                if (sourceType === 'TEAM') sourceEntityObj = State.activeTeams.find(t => t.name === sourceEntityName);
+                else {
+                     const bmaName = sourceEntityName.replace('BMA: ', '');
+                     sourceEntityObj = State.rawStaff.find(s => s.name === bmaName && s.isBma);
+                }
+
+                // Validate Reverse Validity (Target Flight -> Source Team)
+                if (!checkTimelineShiftValidity(sourceEntityObj, targetFlightObj, sourceType)) return;
+                
+                performTimelineSwap(flightNo, sourceEntityName, targetFlightNo, targetEntityName, targetType);
+
+            } else {
+                // MOVE LOGIC
+                performTimelineMove(flightNo, targetEntityName, targetType);
+            }
+        }
+
+        function checkTimelineShiftValidity(entityObj, flightObj, type) {
+            const fStart = flightObj.staMins;
+            const fEnd = flightObj.stdMins;
+            
+            if (type === 'BMA') {
+                if (!entityObj.canWork(fStart, fEnd)) {
+                    showAlert(`${entityObj.name} is off-shift during flight ${flightObj.flightNo}.`, "clock");
+                    return false;
+                }
+            } else {
+                // Team: Check every member
+                for (let m of entityObj.members) {
+                    if (m && !m.canWork(fStart, fEnd)) {
+                        showAlert(`Member ${m.name} of ${entityObj.name} is off-shift during flight ${flightObj.flightNo}.`, "clock");
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        /**
+         * Sync the underlying data models (ActiveTeams/RawStaff) with the visual schedule (BestAllocation).
+         * This fixes the bug where Efficiency/Stats go to 0 after drag and drop.
+         */
+        function syncStateWithAllocation() {
+            // 1. Reset counters
+            State.activeTeams.forEach(t => t.reset());
+            State.rawStaff.forEach(s => { if(s.isBma) s.reset(); });
+
+            // 2. Iterate the Visual Log and update Models
+            State.bestAllocation.forEach(row => {
+                if (row.team) {
+                    const teamModel = State.activeTeams.find(t => t.id === row.team.id);
+                    if (teamModel) {
+                        teamModel.flightsAssigned++;
+                        // Approximate delay stats based on flag
+                        if (row.delay > 0 && (row.delaySource === 'TEAM' || row.delaySource === 'BOTH')) {
+                            teamModel.delaysCaused++;
+                        }
+                    }
+                }
+                if (row.bma) {
+                    const bmaModel = State.rawStaff.find(s => s.name === row.bma.name && s.isBma);
+                    if (bmaModel) {
+                        bmaModel.flightsAssigned++;
+                        bmaModel.assignedFlights.push(row.flight.flightNo);
+                    }
+                }
+            });
+        }
+
+        function performTimelineMove(flightNo, targetEntityName, type) {
+            const allocationEntry = State.bestAllocation.find(r => r.flight.flightNo == flightNo);
+            if (!allocationEntry) return;
+
+            // Update Data Model
+            if (type === 'TEAM') {
+                const newTeam = State.activeTeams.find(t => t.name === targetEntityName);
+                
+                // Safe Member Access (Handle potentially empty slots from manual editing)
+                const l1 = newTeam.members[0];
+                const l2 = newTeam.members[1];
+                const holds = newTeam.members[2];
+
+                // Assign new team object to entry
+                allocationEntry.team = {
+                    id: newTeam.id, 
+                    name: newTeam.name,
+                    l1: l1 ? l1.name : 'Empty', 
+                    l1IsFemale: l1 ? l1.isFemale : false,
+                    l2: l2 ? l2.name : 'Empty', 
+                    l2IsFemale: l2 ? l2.isFemale : false,
+                    holds: holds ? holds.name : 'Empty', 
+                    holdsIsFemale: holds ? holds.isFemale : false
+                };
+                
+                // Only reset delay for this specific row, keep BMA intact
+                allocationEntry.delaySource = allocationEntry.bma ? (allocationEntry.delay > 0 ? 'BMA' : 'NONE') : 'NONE'; 
+                allocationEntry.delay = 0; 
+            } else {
+                const bmaName = targetEntityName.replace('BMA: ', '');
+                const newBma = State.rawStaff.find(s => s.name === bmaName);
+                
+                allocationEntry.bma = { name: newBma.name };
+                
+                // Only reset delay for this specific row, keep Team intact
+                allocationEntry.delaySource = allocationEntry.team ? (allocationEntry.delay > 0 ? 'TEAM' : 'NONE') : 'NONE';
+                allocationEntry.delay = 0;
+            }
+            
+            // Re-Sync and Render
+            syncStateWithAllocation();
+            State.bestAllocation.stats = captureRichStats(State.activeTeams, State.rawStaff.filter(s=>s.isBma), State.bestAllocation);
+            renderResults();
+            showAlert("Flight moved successfully.", "check");
+        }
+
+        function performTimelineSwap(flightA, ownerA_Name, flightB, ownerB_Name, type) {
+            const entryA = State.bestAllocation.find(r => r.flight.flightNo == flightA);
+            const entryB = State.bestAllocation.find(r => r.flight.flightNo == flightB);
+            
+            if (!entryA || !entryB) return;
+
+            if (type === 'TEAM') {
+                // Capture teams
+                const teamA = entryA.team;
+                const teamB = entryB.team;
+                
+                // Swap
+                entryA.team = teamB;
+                entryB.team = teamA;
+                
+                // Reset delays
+                entryA.delay = 0; entryA.delaySource = 'NONE';
+                entryB.delay = 0; entryB.delaySource = 'NONE';
+            } else {
+                // Capture BMAs
+                const bmaA = entryA.bma;
+                const bmaB = entryB.bma;
+                
+                // Swap
+                entryA.bma = bmaB;
+                entryB.bma = bmaA;
+
+                // Reset delays
+                entryA.delay = 0; entryA.delaySource = 'NONE';
+                entryB.delay = 0; entryB.delaySource = 'NONE';
+            }
+
+            // Re-Sync and Render
+            syncStateWithAllocation();
+            State.bestAllocation.stats = captureRichStats(State.activeTeams, State.rawStaff.filter(s=>s.isBma), State.bestAllocation);
+            renderResults();
+            showAlert("Flights swapped successfully.", "arrow-left-right");
+        }
+
+
+        function runMonteCarloPass(teams, bmaStaff, flights) {
+            const log = [];
+            flights.forEach(flight => {
+                const entry = { flight: flight, bma: null, team: null, delay: 0, delaySource: null };
+                const flightNo = flight.flightNo; 
+                let validBMA = bmaStaff.filter(s => s.canWork(flight.staMins, flight.stdMins));
+                let bmaWait = 0;
+                if (validBMA.length > 0) {
+                    validBMA.sort((a, b) => {
+                        const aWait = Math.max(0, a.busyUntil - flight.staMins);
+                        const bWait = Math.max(0, b.busyUntil - flight.staMins);
+                        if (aWait !== bWait) return aWait - bWait;
+                        return a.flightsAssigned - b.flightsAssigned;
+                    });
+                    let selected = (validBMA.length > 1 && Math.random() > CONFIG.PROBABILITY_GREEDY) ? validBMA[1] : validBMA[0];
+                    let start = Math.max(selected.busyUntil, flight.staMins);
+                    bmaWait = Math.max(0, start - flight.staMins);
+                    selected.busyUntil = Math.max(start, flight.stdMins);
+                    selected.logAssignment(flightNo); 
+                    entry.bma = { name: selected.name };
+                }
+                let validTeams = teams.filter(t => t.canWork(flight.staMins, flight.stdMins));
+                let teamWait = 0;
+                if (validTeams.length > 0) {
+                    validTeams.sort((a, b) => {
+                        const aWait = Math.max(0, a.busyUntil - flight.staMins);
+                        const bWait = Math.max(0, b.busyUntil - flight.staMins);
+                        if (aWait !== bWait) return aWait - bWait;
+                        return a.flightsAssigned - b.flightsAssigned;
+                    });
+                    let selectedTeam = (validTeams.length > 1 && Math.random() > CONFIG.PROBABILITY_GREEDY) ? validTeams[1] : validTeams[0];
+                    let start = Math.max(selectedTeam.busyUntil, flight.staMins);
+                    teamWait = Math.max(0, start - flight.staMins);
+                    selectedTeam.busyUntil = Math.max(start, flight.stdMins);
+                    if(teamWait > 0) selectedTeam.delaysCaused++;
+                    const members = selectedTeam.members;
+                    if (members[0] && members[1] && members[2]) {
+                        const count = selectedTeam.flightsAssigned;
+                        let l1Index = count % 3; let l2Index = (count + 1) % 3; let holdsIndex = (count + 2) % 3;
+                        let l1 = members[l1Index]; let l2 = members[l2Index]; let holds = members[holdsIndex];
+                        if (l1.isFemale) {
+                            if (!l2.isFemale) { let temp=l1; l1=l2; l2=temp; } 
+                            else if (!holds.isFemale) { let temp=l1; l1=holds; holds=temp; }
+                        }
+                        selectedTeam.flightsAssigned++;
+                        l1.logAssignment(flightNo); l2.logAssignment(flightNo); holds.logAssignment(flightNo);
+                        entry.team = {
+                            id: selectedTeam.id, name: selectedTeam.name,
+                            l1: l1.name, l1IsFemale: l1.isFemale, 
+                            l2: l2.name, l2IsFemale: l2.isFemale, 
+                            holds: holds.name, holdsIsFemale: holds.isFemale 
+                        };
+                    }
+                }
+                entry.delay = Math.max(bmaWait, teamWait);
+                if (entry.delay > 0) {
+                    if (bmaWait > 0 && teamWait > 0) entry.delaySource = 'BOTH';
+                    else if (bmaWait > 0) entry.delaySource = 'BMA';
+                    else if (teamWait > 0) entry.delaySource = 'TEAM';
+                } else { entry.delaySource = 'NONE'; }
+                log.push(entry);
+            });
+            return log;
+        }
+
+        function calculateScore(log, teams, bmaStaff) {
+            let totalDelay = 0; let unassigned = 0;
+            log.forEach(l => { totalDelay += l.delay; if (!l.bma) unassigned++; if (!l.team) unassigned++; });
+            const bmaCounts = bmaStaff.map(s => s.flightsAssigned);
+            const teamCounts = teams.map(t => t.flightsAssigned);
+            const variance = getVariance(bmaCounts) + getVariance(teamCounts);
+            return (unassigned * 10000000) + (totalDelay * CONFIG.WEIGHT_DELAY) + (variance * CONFIG.WEIGHT_VARIANCE);
+        }
+        function getVariance(arr) {
+            if (arr.length === 0) return 0;
+            const mean = arr.reduce((a,b)=>a+b,0)/arr.length;
+            return arr.reduce((a,b)=>a+Math.pow(b-mean,2),0)/arr.length;
+        }
+        function captureRichStats(teams, bmaStaff, log) {
+            const staffStats = [];
+            const assignedStaffNames = new Set();
+            State.rawStaff.forEach(s => {
+                const assignments = [];
+                let isBma = false; let isTeam = false;
+                log.forEach(l => {
+                    if (l.bma && l.bma.name === s.name) { assignments.push(`${l.flight.flightNo}(BMA)`); isBma = true; }
+                    if (l.team) {
+                        if (l.team.l1 === s.name) { assignments.push(`${l.flight.flightNo}(L1)`); isTeam = true; }
+                        else if (l.team.l2 === s.name) { assignments.push(`${l.flight.flightNo}(L2)`); isTeam = true; }
+                        else if (l.team.holds === s.name) { assignments.push(`${l.flight.flightNo}(Holds)`); isTeam = true; }
+                    }
+                });
+                if (assignments.length > 0) {
+                    assignedStaffNames.add(s.name);
+                    let roleStr = isBma && isTeam ? 'BMA/Team' : (isBma ? 'BMA' : 'Team');
+                    staffStats.push({ name: s.name, role: roleStr, count: assignments.length, isFemale: s.isFemale, assignedFlights: assignments.join(', ') });
+                }
+            });
+            const teamStats = teams.map(t => ({ name: t.name, flights: t.flightsAssigned, delays: t.delaysCaused, isDynamic: t.isDynamic }));
+            const unassignedStaff = State.rawStaff.filter(s => !assignedStaffNames.has(s.name)).map(s => {
+                let status = (!s.isTeam && !s.isBma) ? "Disabled" : "Idle";
+                return { name: s.name, shift: `${s.startStr} - ${s.endStr}`, status: status };
+            });
+            let delayByBMA = 0; let delayByTeam = 0; let totalLateFlights = 0;
+            log.forEach(l => {
+                if (l.delay > 0) { totalLateFlights++; if (l.delaySource === 'BMA' || l.delaySource === 'BOTH') delayByBMA++; if (l.delaySource === 'TEAM' || l.delaySource === 'BOTH') delayByTeam++; }
+            });
+            staffStats.sort((a,b) => b.count - a.count);
+            return { staffStats, teamStats, unassignedStaff, totalDelay: log.reduce((sum, l) => sum + l.delay, 0), assignedCount: log.filter(l => l.bma && l.team).length, totalFlights: log.length, delayCounts: { bma: delayByBMA, team: delayByTeam, total: totalLateFlights } };
+        }
+
+        // --- TIMELINE PRE-PROCESSING (UPDATED SORTING) ---
+        function processAllocatedTimelines(log) {
+            const allocatedData = {};
+            log.forEach(entry => {
+                if (entry.team) {
+                    const tName = entry.team.name;
+                    if (!allocatedData[tName]) {
+                         const memberList = `${entry.team.l1}, ${entry.team.l2}, ${entry.team.holds}`;
+                         
+                         // Fetch Shift Start Time from Active Teams
+                         const teamObj = State.activeTeams.find(t => t.name === tName);
+                         const shiftStart = teamObj ? teamObj.startMins : 0;
+
+                         allocatedData[tName] = { 
+                            type: 'TEAM', 
+                            timeline: [], 
+                            members: memberList,
+                            shiftStart: shiftStart 
+                        };
+                    }
+                    allocatedData[tName].timeline.push({ flightNo: entry.flight.flightNo, startMins: entry.flight.staMins, endMins: entry.flight.stdMins, staStr: entry.flight.staStr, stdStr: entry.flight.stdStr, delay: entry.delay });
+                }
+                if (entry.bma) {
+                    const bmaName = `BMA: ${entry.bma.name}`;
+                    if (!allocatedData[bmaName]) {
+                        // Fetch Shift Start Time from Raw Staff (BMA check)
+                        const staffName = entry.bma.name;
+                        const staffObj = State.rawStaff.find(s => s.name === staffName && s.isBma);
+                        const shiftStart = staffObj ? staffObj.startMins : 0;
+
+                        allocatedData[bmaName] = { 
+                            type: 'BMA', 
+                            timeline: [],
+                            shiftStart: shiftStart 
+                        };
+                    }
+                    allocatedData[bmaName].timeline.push({ flightNo: entry.flight.flightNo, startMins: entry.flight.staMins, endMins: entry.flight.stdMins, staStr: entry.flight.staStr, stdStr: entry.flight.stdStr, delay: entry.delay });
+                }
+            });
+            const processedTimelines = [];
+            for (const entityName in allocatedData) {
+                let { type, timeline, members, shiftStart } = allocatedData[entityName];
+                timeline.sort((a, b) => a.startMins - b.startMins);
+                let lastEndTime = null;
+                const timelineWithIdle = timeline.map(flight => {
+                    let idleTime = 0;
+                    const flightDuration = (flight.endMins - flight.startMins) > 0 ? (flight.endMins - flight.startMins) : (flight.endMins - flight.startMins + 1440);
+                    if (lastEndTime !== null) {
+                        let effectiveCurrentStart = flight.startMins;
+                        if (effectiveCurrentStart < lastEndTime) effectiveCurrentStart += 1440; 
+                        idleTime = effectiveCurrentStart - lastEndTime;
+                    }
+                    lastEndTime = flight.endMins; 
+                    return { ...flight, idleTime: Math.max(0, idleTime), duration: flightDuration };
+                });
+                processedTimelines.push({ entityName: entityName, type: type, timeline: timelineWithIdle, members: members, shiftStart: shiftStart });
+            }
+            
+            // UPDATED SORTING LOGIC
+            // 1. Type: TEAM first, then BMA
+            // 2. Chronological: Early Shift Start -> Late Shift Start
+            processedTimelines.sort((a, b) => {
+                if (a.type === 'TEAM' && b.type !== 'TEAM') return -1;
+                if (a.type !== 'TEAM' && b.type === 'TEAM') return 1;
+                
+                // If types are the same, sort by Shift Start Time
+                if (a.shiftStart !== b.shiftStart) {
+                    return a.shiftStart - b.shiftStart;
+                }
+
+                // Fallback to name for stability
+                return a.entityName.localeCompare(b.entityName);
+            });
+            return processedTimelines;
+        }
+
+        // --- RENDER RESULTS ---
+        function renderResults() {
+            const container = document.getElementById('allocationOutput');
+            const data = State.bestAllocation;
+            if (!data) return;
+            
+            document.getElementById('resultActions').classList.remove('hidden');
+
+            let html = `
+                <div class="bg-white shadow-sm rounded-xl overflow-hidden border border-slate-200 mb-8">
+                    <div class="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                        <h3 class="text-slate-800 font-bold flex items-center space-x-2">
+                            <i data-lucide="list" class="w-5 h-5 text-indigo-600"></i>
+                            <span>Master Schedule</span>
+                        </h3>
+                    </div>
+                    <div class="overflow-x-auto max-h-[600px] custom-scrollbar">
+                        <table class="min-w-full text-sm text-left text-slate-600">
+                            <thead class="sticky-header text-slate-500 uppercase text-xs font-semibold tracking-wider">
+                                <tr>
+                                    <th class="p-4">Flight</th>
+                                    <th class="p-4">Time Window</th>
+                                    <th class="p-4 text-center text-indigo-600">BMA</th>
+                                    <th class="p-4 text-center text-sky-600">Team</th>
+                                    <th class="p-4 text-center">L1</th>
+                                    <th class="p-4 text-center">L2</th>
+                                    <th class="p-4 text-center">Holds</th>
+                                    <th class="p-4 text-right whitespace-nowrap">Outcome</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+            `;
+
+            data.forEach(row => {
+                let statusBadge = '';
+                if (row.delay > 0) {
+                    let culprit = row.delaySource === 'BOTH' ? 'Shared' : (row.delaySource === 'BMA' ? 'BMA' : 'Team');
+                    statusBadge = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200 whitespace-nowrap shadow-sm">
+                                    +${row.delay}m (${culprit})
+                                   </span>`;
+                } else {
+                    statusBadge = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200 whitespace-nowrap shadow-sm">
+                                    On Time
+                                   </span>`;
+                }
+                const formatStaffName = (name, isFemale) => isFemale ? `<span class="text-pink-600 font-medium">${name}</span>` : `<span class="text-slate-700">${name}</span>`;
+                html += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-4 font-bold text-slate-800">${row.flight.flightNo}</td>
+                        <td class="p-4 text-slate-500 font-mono text-xs">${row.flight.staStr} - ${row.flight.stdStr}</td>
+                        <td class="p-4 text-center text-indigo-700 font-medium">${row.bma?.name || '-'}</td>
+                        <td class="p-4 text-center text-sky-600 font-bold">${row.team?.name || '-'}</td>
+                        <td class="p-4 text-center">${row.team?.l1 ? formatStaffName(row.team.l1, row.team.l1IsFemale) : '-'}</td>
+                        <td class="p-4 text-center">${row.team?.l2 ? formatStaffName(row.team.l2, row.team.l2IsFemale) : '-'}</td>
+                        <td class="p-4 text-center">${row.team?.holds ? formatStaffName(row.team.holds, row.team.holdsIsFemale) : '-'}</td>
+                        <td class="p-4 text-right">${statusBadge}</td>
+                    </tr>
+                `;
+            });
+            html += `</tbody></table></div></div>`;
+            html += renderAdvancedDashboard(data.stats);
+            const allocatedTimelines = processAllocatedTimelines(data);
+            html += renderAllocatedTimeline(allocatedTimelines);
+            container.innerHTML = html;
+            refreshIcons();
+        }
+
+        function renderAdvancedDashboard(stats) {
+            const onTimePct = Math.round(((stats.totalFlights - stats.delayCounts.total) / stats.totalFlights) * 100) || 0;
+            const totalDelay = stats.totalDelay;
+            
+            const staffAssignmentDetails = stats.staffStats.map(s => {
+                const rowClass = s.isFemale ? 'bg-pink-50/50' : 'hover:bg-slate-50';
+                const nameClass = s.isFemale ? 'text-pink-600 font-bold' : 'text-slate-700 font-medium';
+                return `
+                    <tr class="${rowClass} transition-colors border-b border-slate-100 last:border-0">
+                        <td class="px-6 py-3 ${nameClass}">${s.name} ${s.isFemale ? '<span class="text-xs ml-1">(F)</span>' : ''}</td>
+                        <td class="px-6 py-3 text-center text-slate-500 font-mono text-xs uppercase">${s.role}</td>
+                        <td class="px-6 py-3 text-center font-bold text-slate-700">${s.count}</td>
+                        <td class="px-6 py-3 text-xs text-slate-500 font-mono leading-relaxed">${s.assignedFlights}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const getCircle = (pct, colorClass) => `
+                <svg class="w-20 h-20 transform -rotate-90">
+                    <circle cx="40" cy="40" r="36" stroke="currentColor" stroke-width="8" fill="transparent" class="text-slate-200" />
+                    <circle cx="40" cy="40" r="36" stroke="currentColor" stroke-width="8" fill="transparent" 
+                        stroke-dasharray="${226}" stroke-dashoffset="${226 - (226 * pct / 100)}" 
+                        class="${colorClass}" stroke-linecap="round" />
+                </svg>
+                <span class="absolute text-lg font-bold text-slate-700">${pct}%</span>
+            `;
+            
+            return `
+                <div class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white shadow-sm rounded-xl border border-slate-200 p-6 flex items-center justify-between">
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">On-Time Performance</h4>
+                                <p class="text-sm text-slate-700 mt-1 font-bold">${stats.totalFlights - stats.delayCounts.total} / ${stats.totalFlights} Flights</p>
+                            </div>
+                            <div class="relative flex items-center justify-center w-20 h-20">
+                                ${getCircle(onTimePct, onTimePct > 80 ? 'text-emerald-500' : 'text-rose-500')}
+                            </div>
+                        </div>
+
+                        <div class="bg-white shadow-sm rounded-xl border-l-4 p-6 ${totalDelay>0?'border-amber-400':'border-emerald-400'} border-y border-r border-slate-200">
+                            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Cumulative Delay</h4>
+                            <div class="mt-2 flex items-baseline">
+                                <span class="text-3xl font-extrabold text-slate-800">${totalDelay}</span>
+                                <span class="ml-2 text-sm text-slate-500 font-medium">minutes</span>
+                            </div>
+                            <div class="mt-3 flex gap-2">
+                                <div class="px-2 py-1 bg-slate-100 rounded text-xs text-slate-600 border border-slate-200"><strong>${stats.delayCounts.bma}</strong> due to BMA</div>
+                                <div class="px-2 py-1 bg-slate-100 rounded text-xs text-slate-600 border border-slate-200"><strong>${stats.delayCounts.team}</strong> due to Team</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white shadow-sm rounded-xl border border-slate-200 p-6">
+                            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Idle / Unassigned</h4>
+                            <div class="space-y-2 max-h-32 overflow-y-auto custom-scrollbar pr-2">
+                                ${stats.unassignedStaff.length > 0 ? 
+                                    stats.unassignedStaff.map(s => `
+                                        <div class="flex justify-between items-center bg-amber-50 p-2 rounded border border-amber-200">
+                                            <div><span class="font-bold text-amber-800 text-xs block">${s.name}</span><span class="text-amber-600 text-[10px] block">${s.shift}</span></div>
+                                            <span class="text-[10px] font-bold uppercase text-amber-600">${s.status}</span>
+                                        </div>`).join('') 
+                                    : '<div class="text-center py-4 text-emerald-600 text-sm font-medium">All hands on deck!</div>'
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white shadow-sm rounded-xl overflow-hidden border border-slate-200">
+                            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
+                                <h4 class="font-bold text-slate-700 text-sm uppercase">Workload Distribution</h4>
+                            </div>
+                            <div class="p-4 max-h-80 overflow-y-auto custom-scrollbar space-y-3">
+                                ${renderStaffBars(stats.staffStats)}
+                            </div>
+                        </div>
+                        <div class="bg-white shadow-sm rounded-xl overflow-hidden border border-slate-200">
+                            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
+                                <h4 class="font-bold text-slate-700 text-sm uppercase">Team Efficiency</h4>
+                            </div>
+                            <table class="min-w-full text-sm text-left text-slate-600">
+                                <thead class="sticky-header text-xs text-slate-500 bg-slate-100 uppercase">
+                                    <tr>
+                                        <th class="px-6 py-3">Team</th>
+                                        <th class="px-6 py-3 text-center">Load</th>
+                                        <th class="px-6 py-3 text-center">Delay Impact</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    ${stats.teamStats.map(t => `
+                                    <tr>
+                                        <td class="px-6 py-3 ${t.isDynamic?'text-purple-600 font-bold':'text-sky-600 font-bold'}">${t.name}</td>
+                                        <td class="px-6 py-3 text-center font-medium text-slate-600">${t.flights}</td>
+                                        <td class="px-6 py-3 text-center ${t.delays>0?'text-red-500 font-bold':'text-slate-400'}">${t.delays}</td>
+                                    </tr>`).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white shadow-sm rounded-xl overflow-hidden border border-slate-200 mt-6">
+                        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                            <h4 class="font-bold text-slate-700 text-sm uppercase">Detailed Staff Assignments</h4>
+                            <i data-lucide="clipboard-list" class="w-4 h-4 text-slate-400"></i>
+                        </div>
+                        <div class="overflow-x-auto max-h-96 custom-scrollbar">
+                            <table class="min-w-full text-sm text-left">
+                                <thead class="sticky-header text-xs text-slate-500 bg-slate-100 uppercase font-semibold">
+                                    <tr>
+                                        <th class="px-6 py-3">Staff Name</th>
+                                        <th class="px-6 py-3 text-center">Role</th>
+                                        <th class="px-6 py-3 text-center">Count</th>
+                                        <th class="px-6 py-3">Assigned Flight Numbers</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    ${staffAssignmentDetails}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderStaffBars(stats) {
+            if (!stats || stats.length === 0) return '';
+            const max = Math.max(...stats.map(s => s.count)) || 1;
+            return stats.map(s => {
+                const pct = (s.count / max) * 100;
+                const color = s.role.includes('BMA') ? 'bg-indigo-500' : 'bg-sky-500';
+                return `
+                    <div class="flex items-center text-xs">
+                        <div class="w-24 font-medium truncate ${s.isFemale?'text-pink-600':'text-slate-600'}">${s.name}</div>
+                        <div class="w-10 text-right mr-2 text-slate-400 font-mono">${s.role.charAt(0)}</div>
+                        <div class="flex-grow bg-slate-100 rounded-full h-2">
+                            <div class="${color} h-2 rounded-full" style="width: ${pct}%"></div>
+                        </div>
+                        <div class="w-8 text-right font-bold text-slate-700 ml-2">${s.count}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // --- RENDER TIMELINE (DYNAMIC ZOOMING & AXIS) ---
+        function renderAllocatedTimeline(processedTimelines) {
+            if (processedTimelines.length === 0) return '';
+            
+            let html = `
+                <div class="bg-white shadow-xl rounded-lg overflow-hidden border border-gray-200 mt-8">
+                    <div class="bg-gradient-to-r from-gray-700 to-gray-600 px-6 py-3">
+                        <h3 class="text-white font-bold flex items-center space-x-2">
+                            <i data-lucide="route" class="w-5 h-5"></i>
+                            <span>Allocation Timeline (Interactive)</span>
+                        </h3>
+                        <p class="text-xs text-gray-300 mt-1">Drag flights to swap or move them. Strict shift validation applied.</p>
+                    </div>
+                    <div class="p-4 space-y-10"> `;
+
+            processedTimelines.forEach(entityData => {
+                const isBMA = entityData.type === 'BMA';
+                let entityTypeColor = isBMA ? 'text-indigo-600' : (entityData.entityName.includes('Dynamic') ? 'text-purple-600' : 'text-gray-800');
+                let membersHtml = '';
+                if (entityData.type === 'TEAM' && entityData.members) {
+                    membersHtml = `<span class="text-[10px] text-slate-500 font-normal ml-2 tracking-wide">[${entityData.members}]</span>`;
+                }
+                let minMins = 24 * 60; let maxMins = 0;       
+                entityData.timeline.forEach(f => {
+                    if(f.startMins < minMins) minMins = f.startMins;
+                    let effectiveEnd = f.endMins < f.startMins ? f.endMins + 1440 : f.endMins;
+                    if(effectiveEnd > maxMins) maxMins = effectiveEnd;
+                });
+
+                const plotStart = Math.max(0, minMins - 30);
+                const plotEnd = maxMins + 30;
+                const plotDuration = plotEnd - plotStart; 
+                let gridHtml = '';
+                const tickInterval = 30; 
+                const firstTick = Math.ceil(plotStart / tickInterval) * tickInterval;
+
+                for (let t = firstTick; t <= plotEnd; t += tickInterval) {
+                    const tickPct = ((t - plotStart) / plotDuration) * 100;
+                    const timeLabel = TimeUtils.formatMins(t % 1440);
+                    if(tickPct >= 0 && tickPct <= 100) {
+                        gridHtml += `
+                            <div class="absolute top-0 h-full border-l border-slate-200" style="left: ${tickPct}%"></div>
+                            <div class="absolute -bottom-5 text-[10px] font-mono text-slate-400 transform -translate-x-1/2" style="left: ${tickPct}%">${timeLabel}</div>
+                        `;
+                    }
+                }
+
+                const startLabel = TimeUtils.formatMins(plotStart);
+                const endLabel = TimeUtils.formatMins(plotEnd % 1440);
+
+                html += `
+                    <div class="mb-8 last:mb-0">
+                        <div class="flex justify-between items-end mb-2">
+                            <h4 class="text-sm font-bold ${entityTypeColor}">${entityData.entityName} ${membersHtml} <span class="text-xs text-gray-400 font-medium ml-2">(${entityData.timeline.length} flights)</span></h4>
+                        </div>
+                        <div class="relative h-16 w-full timeline-row transition-colors rounded" 
+                             ondragover="handleTimelineDragOver(event)" 
+                             ondragleave="handleTimelineDragLeave(event)"
+                             ondrop="handleTimelineDrop(event, '${entityData.entityName}', '${entityData.type}')">
+                            <div class="absolute inset-0 w-full h-12 border-b border-slate-200 overflow-visible pointer-events-none">
+                                ${gridHtml}
+                            </div>
+                            <div class="absolute top-2 left-0 w-full h-8 flex items-center">
+                `;
+                
+                entityData.timeline.forEach((flight, index) => {
+                    const startMins = flight.startMins;
+                    let effectiveStart = startMins;
+                    if (effectiveStart < plotStart && (plotEnd > 1440)) { effectiveStart += 1440; }
+
+                    const durationMins = flight.duration;
+                    const delay = flight.delay;
+                    const startPct = ((effectiveStart - plotStart) / plotDuration) * 100;
+                    const widthPct = (durationMins / plotDuration) * 100;
+                    const visualWidthPct = Math.max(widthPct, 2); 
+
+                    if (index > 0 && flight.idleTime > 0) {
+                        const idleMins = flight.idleTime;
+                        const prevFlight = entityData.timeline[index - 1];
+                        let prevEnd = prevFlight.endMins;
+                        if (prevEnd < prevFlight.startMins) prevEnd += 1440; 
+                        if (prevEnd < plotStart && plotEnd > 1440) prevEnd += 1440;
+                        const idleStartPct = ((prevEnd - plotStart) / plotDuration) * 100;
+                        const idleWidthPct = (idleMins / plotDuration) * 100;
+                        const isLongIdle = idleMins >= 60;
+                        const idleColor = isLongIdle ? 'text-pink-600' : 'text-emerald-600';
+                        
+                        if (idleWidthPct > 4) {
+                            html += `
+                                <div class="absolute h-full flex items-center justify-center z-10 pointer-events-none" 
+                                    style="left: ${idleStartPct}%; width: ${idleWidthPct}%;"
+                                    title="Idle: ${idleMins}m">
+                                    <div class="h-[1px] w-full ${isLongIdle ? 'bg-pink-300' : 'bg-emerald-300'} absolute top-1/2"></div>
+                                    <span class="bg-white border border-slate-100 px-1 text-[9px] font-bold ${idleColor} relative z-10 rounded shadow-sm">${idleMins}m</span>
+                                </div>
+                            `;
+                        }
+                    }
+                    
+                    const flightBgColor = delay > 0 ? 'bg-rose-300 hover:bg-rose-400' : (isBMA ? 'bg-indigo-300 hover:bg-indigo-400' : 'bg-sky-300 hover:bg-sky-400');
+                    const tooltipTitle = `${flight.flightNo} (${flight.staStr} - ${flight.stdStr})`;
+                    
+                    html += `
+                        <div class="absolute h-full flex items-center justify-center ${flightBgColor} text-slate-900 text-xs font-bold rounded shadow-sm hover:shadow-md transition-all duration-200 z-20 px-2 border border-white/40 whitespace-nowrap overflow-hidden cursor-grab timeline-flight-card"
+                             style="left: ${startPct}%; width: ${visualWidthPct}%; min-width: 24px;"
+                             title="${tooltipTitle}"
+                             draggable="true"
+                             data-flight="${flight.flightNo}"
+                             ondragstart="handleTimelineDragStart(event, '${flight.flightNo}', '${entityData.entityName}', '${entityData.type}')">
+                            ${flight.flightNo}
+                        </div>
+                    `;
+                });
+                html += `</div></div></div>`;
+            });
+            html += `</div></div>`;
+            return html;
+        }
+
+        function exportToCSV() {
+            const data = State.bestAllocation;
+            if (!data) return;
+            let csv = "data:text/csv;charset=utf-8,";
+            csv += "Role/Flight," + data.map(r => r.flight.flightNo).join(",") + "\n";
+            csv += "BMA," + data.map(r => r.bma ? `"${r.bma.name}"` : "").join(",") + "\n";
+            csv += "Team Name," + data.map(r => r.team ? `"${r.team.name}"` : "").join(",") + "\n";
+            csv += "L1," + data.map(r => r.team ? `"${r.team.l1}"` : "").join(",") + "\n";
+            csv += "L2," + data.map(r => r.team ? `"${r.team.l2}"` : "").join(",") + "\n";
+            csv += "Holds," + data.map(r => r.team ? `"${r.team.holds}"` : "").join(",") + "\n";
+            csv += "Delay Status," + data.map(r => r.delay > 0 ? `"${r.delaySource} (+${r.delay}m)"` : "OnTime").join(",") + "\n";
+            const link = document.createElement("a");
+            link.setAttribute("href", encodeURI(csv));
+            link.setAttribute("download", "Allocation_Dashboard_Export.csv");
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+
+        function showAlert(msg, icon) {
+            document.getElementById('customAlert').classList.remove('hidden');
+            document.getElementById('alertMessage').innerText = msg;
+            document.getElementById('alertIcon').innerHTML = `<i data-lucide="${icon}" class="w-8 h-8"></i>`;
+            refreshIcons();
+        }
+
+        function hideAlert() { document.getElementById('customAlert').classList.add('hidden'); }
+
+        refreshIcons();
+    </script>
+</body>
+</html>
