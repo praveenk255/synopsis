@@ -1739,7 +1739,8 @@ async function shareFb() {
     if (!flightNumber || !fbTime) return;
 
     // Define a message generator function specific to FB
-    const messageGenerator = () => `${flightNumber}\n\nFirst Bag ${fbTime}`;
+    // UPDATED: Use "FB" instead of "First Bag"
+    const messageGenerator = () => `${flightNumber}\n\nFB ${fbTime}`;
     
     // Use the new handler to manage copy and alert logic
     // Pass FALSE to prevent the form clear confirmation
@@ -1753,7 +1754,8 @@ async function shareLb() {
     if (!flightNumber || !lbTime) return;
 
     // Define a message generator function specific to LB
-    const messageGenerator = () => `${flightNumber}\n\nLast Bag ${lbTime}`;
+    // UPDATED: Use "LB" instead of "Last Bag"
+    const messageGenerator = () => `${flightNumber}\n\nLB ${lbTime}`;
     
     // Use the new handler to manage copy and alert logic
     // Pass FALSE to prevent the form clear confirmation
