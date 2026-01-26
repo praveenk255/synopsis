@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Room Planner - All-in-One</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/konva@9.2.0/konva.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .bg-grid-pattern {
+            background-image: linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        /* Hide Scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Tool Button Sizing */
+        .tool-btn { width: 40px; height: 40px; }
+        
+        /* Drawer Animation */
+        #controls-drawer { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* Prevent Pull-to-Refresh on Mobile */
+        body { overscroll-behavior-y: none; margin: 0; padding: 0; overflow: hidden; }
+
+        /* Logic for active tool styling */
+        .active-tool {
+            background-color: #eef2ff !important;
+            color: #4f46e5 !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 h-screen w-screen flex flex-col font-sans text-slate-700">
+
+    <div id="canvas-wrapper" class="relative flex-grow w-full bg-slate-50 bg-grid-pattern overflow-hidden touch-none">
+        
+        <div class="absolute top-4 left-4 flex flex-col gap-1.5 bg-white/95 backdrop-blur-sm p-1.5 rounded-xl shadow-lg border border-slate-200 z-20">
+            <button id="tool-view" onclick="app.setMode('view')" class="tool-btn rounded-lg text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center justify-center active-tool" title="View / Pan">
+                <i class="fas fa-mouse-pointer"></i>
+            </button>
+            <button id="tool-drag" onclick="app.setMode('drag')" class="tool-btn rounded-lg text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center justify-center" title="Move Partitions">
+                <i class="fas fa-arrows-alt"></i>
+            </button>
+            <button id="tool-cut" onclick="app.setMode('cut')" class="tool-btn rounded-lg text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center justify-center" title="Cut Partition">
+                <i class="fas fa-cut"></i>
+            </button>
+            <div class="h-px bg-slate-200 my-0.5 w-full"></div>
+            <button id="tool-angle" onclick="app.toggleAngles()" class="tool-btn rounded-lg text-slate-500 hover:bg-teal-50 hover:text-teal-600 transition-colors flex items-center justify-center" title="Show Angles">
+                <i class="fas fa-drafting-compass"></i>
+            </button>
+            <div class="h-px bg-slate-200 my-0.5 w-full"></div>
+            <button onclick="app.reset()" class="tool-btn rounded-lg text-slate-500 hover:bg-amber-50 hover:text-amber-600 transition-colors flex items-center justify-center" title="Reset / Clear">
+                <i class="fas fa-eraser"></i>
+            </button>
+            <button onclick="app.deleteData()" class="tool-btn rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors flex items-center justify-center" title="Delete Partitions">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+            <div class="h-px bg-slate-200 my-0.5 w-full"></div>
+            <button onclick="app.undo()" class="tool-btn rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors flex items-center justify-center" title="Undo">
+                <i class="fas fa-undo text-sm"></i>
+            </button>
+            <button onclick="app.redo()" class="tool-btn rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors flex items-center justify-center" title="Redo">
+                <i class="fas fa-redo text-sm"></i>
+            </button>
+        </div>
+
+        <div class="absolute bottom-24 right-4 flex flex-col gap-2 z-20">
+            <button onclick="app.zoom(1.1)" class="w-9 h-9 bg-white rounded-full shadow text-slate-600 hover:text-indigo-600 flex items-center justify-center border border-slate-100">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button onclick="app.zoom(0.9)" class="w-9 h-9 bg-white rounded-full shadow text-slate-600 hover:text-indigo-600 flex items-center justify-center border border-slate-100">
+                <i class="fas fa-minus"></i>
+            </button>
+            <button onclick="app.fitView()" class="w-9 h-9 bg-white rounded-full shadow text-slate-600 hover:text-indigo-600 flex items-center justify-center border border-slate-100">
+                <i class="fas fa-expand"></i>
+            </button>
+        </div>
+
+        <div id="konva-container" class="w-full h-full"></div>
+    </div>
+
+    <div id="controls-drawer" class="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 shadow-[0_-5px_20px_rgba(0,0,0,0.05)] z-40 rounded-t-xl transform translate-y-0 pb-safe">
+        
+        <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 cursor-pointer group" onclick="app.togglePanel()">
+            <div class="h-6 w-16 bg-white border-t border-l border-r border-slate-200 rounded-t-lg flex items-center justify-center shadow-sm">
+                <i id="toggle-icon" class="fas fa-chevron-down text-xs text-slate-400 group-hover:text-indigo-500 transition-colors"></i>
+            </div>
+        </div>
+
+        <div class="px-4 py-3">
+            <div class="grid grid-cols-4 gap-2 mb-2">
+                <div>
+                    <label class="block text-[9px] font-bold text-slate-400 text-center uppercase mb-0.5 truncate">Bottom (AB)</label>
+                    <input type="number" id="inp-a" placeholder="0" step="0.1" oninput="app.update()" class="w-full text-center py-1 bg-slate-50 border border-slate-200 rounded text-xs font-bold text-slate-700 focus:border-indigo-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-[9px] font-bold text-slate-400 text-center uppercase mb-0.5 truncate">Right (BC)</label>
+                    <input type="number" id="inp-b" placeholder="0" step="0.1" oninput="app.update()" class="w-full text-center py-1 bg-slate-50 border border-slate-200 rounded text-xs font-bold text-slate-700 focus:border-indigo-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-[9px] font-bold text-slate-400 text-center uppercase mb-0.5 truncate">Top (CD)</label>
+                    <input type="number" id="inp-c" placeholder="0" step="0.1" oninput="app.update()" class="w-full text-center py-1 bg-slate-50 border border-slate-200 rounded text-xs font-bold text-slate-700 focus:border-indigo-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-[9px] font-bold text-slate-400 text-center uppercase mb-0.5 truncate">Left (DA)</label>
+                    <input type="number" id="inp-d" placeholder="0" step="0.1" oninput="app.update()" class="w-full text-center py-1 bg-slate-50 border border-slate-200 rounded text-xs font-bold text-slate-700 focus:border-indigo-500 outline-none">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-4 gap-2 items-end">
+                <div class="col-span-2 bg-indigo-50/50 border border-indigo-100 rounded flex items-center justify-evenly h-[46px]">
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+                        <input type="radio" name="diag-type" value="AC" checked onchange="app.update()" class="accent-indigo-500 scale-75">
+                        <span class="text-[10px] font-bold text-slate-600">AC</span>
+                    </label>
+                    <span class="text-[8px] font-black text-indigo-200">OR</span>
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+                        <input type="radio" name="diag-type" value="BD" onchange="app.update()" class="accent-indigo-500 scale-75">
+                        <span class="text-[10px] font-bold text-slate-600">BD</span>
+                    </label>
+                </div>
+                
+                <div class="col-span-1">
+                    <label class="block text-[9px] font-bold text-indigo-400 text-center uppercase mb-0.5 truncate">Diagonal</label>
+                    <input type="number" id="inp-diag" placeholder="Ref" step="0.1" oninput="app.update()" class="w-full text-center py-1 bg-white border border-indigo-200 rounded text-xs font-bold text-slate-700 focus:border-indigo-500 outline-none shadow-sm">
+                </div>
+
+                <div class="col-span-1 bg-slate-800 rounded flex flex-col items-center justify-center h-[46px] shadow-sm">
+                    <span class="text-[8px] font-bold text-slate-400 uppercase">Area</span>
+                    <strong id="val-area" class="text-[11px] text-white tracking-wide">0.00</strong>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mt-3 pt-2 border-t border-slate-100">
+                <div class="flex items-center gap-1">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase">Unit:</span>
+                    <select id="unit-select" onchange="app.setUnit(this.value)" class="bg-transparent text-[10px] font-bold text-slate-600 border-none focus:ring-0 cursor-pointer py-0 px-0">
+                        <option value="m">Meters</option>
+                        <option value="mm">MM</option>
+                        <option value="ft">Feet</option>
+                    </select>
+                </div>
+                <button onclick="app.deleteData()" class="text-[10px] text-red-500 font-bold hover:text-red-700 flex items-center gap-1 uppercase tracking-wide">
+                    <i class="fas fa-trash-alt"></i> Clear Cuts
+                </button>
+            </div>
+            
+            <div id="error-box" class="hidden mt-2 text-xs text-red-600 bg-red-50 border border-red-100 p-2 rounded flex items-center gap-2">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span id="error-msg">Invalid Geometry</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class RoomApp {
+            constructor() {
+                this.container = document.getElementById('konva-container');
+                this.updateDimensions();
+                
+                this.stage = new Konva.Stage({
+                    container: 'konva-container',
+                    width: this.width,
+                    height: this.height,
+                    draggable: true
+                });
+
+                this.layer = new Konva.Layer();
+                this.stage.add(this.layer);
+
+                this.points = []; 
+                this.partitions = []; 
+                this.unit = 'm';
+                this.mode = 'view';
+                this.showAngles = false;
+                
+                this.history = [];
+                this.historyStep = -1;
+                
+                this.isCutting = false;
+                this.cutStart = null;
+                this.draggingPartitionIdx = -1;
+                this.lastDragPos = null;
+                this.didDrag = false;
+                this.draggedLine = null;
+                
+                this.saveState();
+                this.setupEvents();
+                
+                window.addEventListener('resize', () => this.handleResize());
+            }
+
+            updateDimensions() {
+                this.width = this.container.clientWidth;
+                this.height = this.container.clientHeight;
+            }
+
+            saveState() {
+                if (this.historyStep < this.history.length - 1) {
+                    this.history = this.history.slice(0, this.historyStep + 1);
+                }
+                const state = JSON.parse(JSON.stringify(this.partitions));
+                this.history.push(state);
+                this.historyStep++;
+            }
+
+            undo() {
+                if (this.historyStep > 0) {
+                    this.historyStep--;
+                    this.partitions = JSON.parse(JSON.stringify(this.history[this.historyStep]));
+                    this.render();
+                }
+            }
+
+            redo() {
+                if (this.historyStep < this.history.length - 1) {
+                    this.historyStep++;
+                    this.partitions = JSON.parse(JSON.stringify(this.history[this.historyStep]));
+                    this.render();
+                }
+            }
+
+            deleteData() {
+                if (this.partitions.length > 0) {
+                    this.partitions = [];
+                    this.saveState();
+                    this.render();
+                }
+            }
+            
+            reset() {
+                document.querySelectorAll('input[type="number"]').forEach(i => i.value = '');
+                this.points = [];
+                this.deleteData();
+            }
+
+            handleResize() {
+                this.updateDimensions();
+                this.stage.width(this.width);
+                this.stage.height(this.height);
+                this.fitView();
+            }
+
+            togglePanel() {
+                const drawer = document.getElementById('controls-drawer');
+                const icon = document.getElementById('toggle-icon');
+                const isHidden = drawer.classList.contains('translate-y-full');
+                
+                if (!isHidden) {
+                    drawer.classList.add('translate-y-full');
+                    icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+                } else {
+                    drawer.classList.remove('translate-y-full');
+                    icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+                }
+                setTimeout(() => this.handleResize(), 300);
+            }
+
+            setUnit(u) {
+                this.unit = u;
+                this.update(); 
+            }
+
+            setMode(m) {
+                this.mode = m;
+                this.isCutting = false;
+                this.cutStart = null;
+                this.draggingPartitionIdx = -1;
+                
+                document.querySelectorAll('.tool-btn').forEach(b => {
+                    if(['tool-view', 'tool-drag', 'tool-cut'].includes(b.id)) {
+                        b.classList.remove('active-tool');
+                    }
+                });
+                
+                const btn = document.getElementById(`tool-${m}`);
+                if(btn) btn.classList.add('active-tool');
+                
+                this.stage.draggable(m === 'view');
+                const container = this.stage.container();
+                container.style.cursor = m === 'view' ? 'grab' : (m === 'cut' ? 'crosshair' : 'default');
+                this.render();
+            }
+
+            toggleAngles() {
+                this.showAngles = !this.showAngles;
+                const btn = document.getElementById('tool-angle');
+                this.showAngles ? btn.classList.add('bg-teal-50', 'text-teal-600') : btn.classList.remove('bg-teal-50', 'text-teal-600');
+                this.render();
+            }
+
+            setupEvents() {
+                this.stage.on('wheel', (e) => {
+                    e.evt.preventDefault();
+                    const scaleBy = 1.05;
+                    const oldScale = this.stage.scaleX();
+                    const ptr = this.stage.getPointerPosition();
+                    const mousePointTo = { x: (ptr.x - this.stage.x()) / oldScale, y: (ptr.y - this.stage.y()) / oldScale };
+                    const newScale = e.evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
+                    this.stage.scale({ x: newScale, y: newScale });
+                    this.stage.position({ x: ptr.x - mousePointTo.x * newScale, y: ptr.y - mousePointTo.y * newScale });
+                    this.updateVisuals(); 
+                    this.stage.batchDraw();
+                });
+
+                this.stage.on('mousemove touchmove', (e) => {
+                    if (this.draggingPartitionIdx !== -1) {
+                        e.evt.preventDefault(); 
+                        this.didDrag = true;
+                        const currentPos = this.getStagePos();
+                        const dx = currentPos.x - this.lastDragPos.x;
+                        const dy = currentPos.y - this.lastDragPos.y;
+                        this.movePartition(this.draggingPartitionIdx, dx, dy);
+                        this.lastDragPos = currentPos;
+                        this.render(); 
+                        return;
+                    }
+                    if (this.mode === 'cut' && this.points.length === 4) this.render(); 
+                });
+
+                const endHandler = () => this.handleDragEnd();
+                window.addEventListener('mouseup', endHandler);
+                window.addEventListener('touchend', endHandler);
+
+                this.stage.on('click tap', (e) => {
+                    if (this.draggingPartitionIdx !== -1 || this.mode !== 'cut' || this.points.length !== 4) return;
+                    const snap = this.getSnapPoint();
+                    if (snap) {
+                        if (!this.isCutting) {
+                            this.isCutting = true;
+                            this.cutStart = snap;
+                        } else if (snap.edgeIdx !== this.cutStart.edgeIdx) {
+                            this.partitions.push({
+                                start: { edgeIdx: this.cutStart.edgeIdx, ratio: this.cutStart.ratio },
+                                end: { edgeIdx: snap.edgeIdx, ratio: snap.ratio }
+                            });
+                            this.isCutting = false;
+                            this.cutStart = null;
+                            this.saveState(); 
+                        }
+                        this.render();
+                    }
+                });
+            }
+
+            handleDragEnd() {
+                if (this.draggingPartitionIdx !== -1) {
+                    if (this.didDrag) this.saveState();
+                    this.draggingPartitionIdx = -1;
+                    this.didDrag = false;
+                    if (this.mode === 'view') this.stage.draggable(true);
+                    this.render(); 
+                }
+            }
+
+            getStagePos() {
+                const transform = this.stage.getAbsoluteTransform().copy().invert();
+                const pos = transform.point(this.stage.getPointerPosition());
+                return { x: pos.x, y: -pos.y }; 
+            }
+
+            movePartition(idx, dx, dy) {
+                const part = this.partitions[idx];
+                const edgeA = this.getEdgeVector(part.start.edgeIdx);
+                part.start.ratio = Math.max(0.01, Math.min(0.99, part.start.ratio + this.projectMovementToRatio(dx, dy, edgeA)));
+                const edgeB = this.getEdgeVector(part.end.edgeIdx);
+                part.end.ratio = Math.max(0.01, Math.min(0.99, part.end.ratio + this.projectMovementToRatio(dx, dy, edgeB)));
+            }
+
+            getEdgeVector(edgeIdx) {
+                const p1 = this.points[edgeIdx], p2 = this.points[(edgeIdx + 1) % 4];
+                return { x: p2.x - p1.x, y: p2.y - p1.y };
+            }
+
+            projectMovementToRatio(dx, dy, edgeVec) {
+                const lenSq = edgeVec.x * edgeVec.x + edgeVec.y * edgeVec.y;
+                return lenSq === 0 ? 0 : (dx * edgeVec.x + dy * edgeVec.y) / lenSq; 
+            }
+
+            calculatePoints(a, b, c, d, diag, diagType) {
+                const p1 = { x: 0, y: 0 }, p2 = { x: a, y: 0 };
+                let p3, p4;
+                if (diagType === 'AC') {
+                    p3 = this.getIntersection(p1, diag, p2, b);
+                    if (!p3) throw new Error("Invalid: AC diagonal too short/long");
+                    p4 = this.getIntersection(p1, d, p3, c);
+                    if (!p4) throw new Error("Invalid: Top/Left walls don't meet");
+                } else {
+                    p4 = this.getIntersection(p1, d, p2, diag);
+                    if (!p4) throw new Error("Invalid: BD diagonal too short/long");
+                    p3 = this.getIntersection(p2, b, p4, c);
+                    if (!p3) throw new Error("Invalid: Top/Right walls don't meet");
+                }
+                return [p1, p2, p3, p4];
+            }
+
+            getIntersection(p1, r1, p2, r2) {
+                const d = Math.sqrt((p2.x - p1.x)**2 + (p2.y - p1.y)**2);
+                if (d > r1 + r2 || d < Math.abs(r1 - r2) || d === 0) return null;
+                const a = (r1 * r1 - r2 * r2 + d * d) / (2 * d);
+                const h = Math.sqrt(Math.max(0, r1 * r1 - a * a));
+                const x2 = p1.x + a * (p2.x - p1.x) / d;
+                const y2 = p1.y + a * (p2.y - p1.y) / d;
+                return { x: x2 - h * (p2.y - p1.y) / d, y: y2 + h * (p2.x - p1.x) / d };
+            }
+
+            update() {
+                const getVal = (id) => parseFloat(document.getElementById(id).value);
+                const a = getVal('inp-a'), b = getVal('inp-b'), c = getVal('inp-c'), d = getVal('inp-d'), diag = getVal('inp-diag');
+                const diagType = document.querySelector('input[name="diag-type"]:checked').value;
+                if (!a || !b || !c || !d || !diag) return;
+                try {
+                    this.points = this.calculatePoints(a, b, c, d, diag, diagType);
+                    document.getElementById('error-box').classList.add('hidden');
+                    this.fitView(); 
+                    this.render(); 
+                    document.getElementById('val-area').innerText = `${this.getPolygonArea(this.points).toFixed(2)} ${this.unit}²`;
+                } catch (e) {
+                    document.getElementById('error-box').classList.remove('hidden');
+                    document.getElementById('error-msg').innerText = e.message;
+                }
+            }
+
+            render() {
+                this.layer.destroyChildren();
+                if (this.points.length === 0) return;
+                const mainGroup = new Konva.Group();
+                const screenPts = this.points.map(p => ({ x: p.x, y: -p.y }));
+                
+                // Poly Fills
+                this.slicePolygons().forEach((poly, idx) => {
+                    mainGroup.add(new Konva.Line({
+                        points: poly.flatMap(p => [p.x, -p.y]),
+                        closed: true, fill: ['#f8fafc', '#f1f5f9', '#f8fafc', '#f1f5f9'][idx % 4], listening: false 
+                    }));
+                });
+
+                // Diag
+                const diagType = document.querySelector('input[name="diag-type"]:checked').value;
+                const dStart = diagType === 'AC' ? screenPts[0] : screenPts[1];
+                const dEnd = diagType === 'AC' ? screenPts[2] : screenPts[3];
+                mainGroup.add(new Konva.Line({ points: [dStart.x, dStart.y, dEnd.x, dEnd.y], stroke: '#cbd5e1', dash: [5, 5], listening: false }));
+
+                // Walls & Partitions
+                mainGroup.add(new Konva.Line({ points: screenPts.flatMap(p => [p.x, p.y]), closed: true, stroke: '#334155', strokeWidth: 2, lineJoin: 'round', listening: false }));
+                
+                this.partitions.forEach((part, i) => {
+                    const s = this.getPointOnEdge(part.start.edgeIdx, part.start.ratio);
+                    const e = this.getPointOnEdge(part.end.edgeIdx, part.end.ratio);
+                    const line = new Konva.Line({
+                        points: [s.x, -s.y, e.x, -e.y],
+                        stroke: (this.mode === 'drag' && i === this.draggingPartitionIdx) ? '#4f46e5' : '#ef4444',
+                        dash: (this.mode === 'drag' && i === this.draggingPartitionIdx) ? [] : [8, 4],
+                        strokeWidth: 2
+                    });
+                    line.on('mousedown touchstart', (evt) => {
+                        if(this.mode === 'drag') {
+                            this.draggingPartitionIdx = i;
+                            this.lastDragPos = this.getStagePos();
+                            this.didDrag = false;
+                            this.stage.draggable(false);
+                            evt.cancelBubble = true;
+                        }
+                    });
+                    mainGroup.add(line);
+                });
+
+                this.drawDimensions(mainGroup, screenPts, dStart, dEnd);
+                if (this.showAngles) this.drawAngles(mainGroup, screenPts);
+                
+                // Snap points for Cut Mode
+                if (this.mode === 'cut') {
+                    const snap = this.getSnapPoint();
+                    if (snap) {
+                        mainGroup.add(new Konva.Circle({ x: snap.point.x, y: -snap.point.y, fill: '#ef4444', radius: 5 / this.stage.scaleX() }));
+                        if (this.isCutting) {
+                            mainGroup.add(new Konva.Line({ 
+                                points: [this.cutStart.point.x, -this.cutStart.point.y, snap.point.x, -snap.point.y], 
+                                stroke: '#ef4444', dash: [4, 4] 
+                            }));
+                        }
+                    }
+                }
+
+                this.layer.add(mainGroup);
+                this.updateVisuals();
+                this.layer.batchDraw();
+            }
+
+            drawDimensions(group, pts, dStart, dEnd) {
+                const inputs = ['inp-a', 'inp-b', 'inp-c', 'inp-d'].map(id => parseFloat(document.getElementById(id).value) || 0);
+                pts.forEach((p, i) => {
+                    const next = pts[(i + 1) % 4];
+                    this.addDimLine(group, p, next, inputs[i].toString(), i, false, 30);
+                });
+                const diagVal = document.getElementById('inp-diag').value;
+                if(diagVal) this.addDimLine(group, dStart, dEnd, diagVal, -1, true, 0);
+            }
+
+            addDimLine(group, p1, p2, text, sideIdx, isLabelOnly, offset) {
+                const dx = p2.x - p1.x, dy = p2.y - p1.y, len = Math.sqrt(dx*dx + dy*dy);
+                if(len === 0) return;
+                const invScale = 1 / this.stage.scaleX();
+                if (isLabelOnly) {
+                    const mid = { x: (p1.x + p2.x)/2, y: (p1.y + p2.y)/2 };
+                    const t = new Konva.Text({ x: mid.x, y: mid.y, text: text, fontSize: 12 * invScale, fill: '#64748b', align: 'center' });
+                    t.offsetX(t.width()/2); t.offsetY(t.height()/2);
+                    group.add(t);
+                    return;
+                }
+                const mid = { x: (p1.x+p2.x)/2, y: (p1.y+p2.y)/2 };
+                group.add(new Konva.Text({ x: mid.x, y: mid.y + (offset * invScale), text: text, fontSize: 11 * invScale, fill: '#475569' }));
+            }
+
+            drawAngles(group, pts) {
+                pts.forEach((cur, i) => {
+                    const prev = pts[(i + 3) % 4], next = pts[(i + 1) % 4];
+                    const a1 = Math.atan2(prev.y - cur.y, prev.x - cur.x), a2 = Math.atan2(next.y - cur.y, next.x - cur.x);
+                    let deg = (a2 - a1) * 180 / Math.PI;
+                    if (deg < 0) deg += 360; if (deg > 180) deg = 360 - deg;
+                    group.add(new Konva.Text({ x: cur.x + 10, y: cur.y + 10, text: `${Math.round(deg)}°`, fontSize: 10 / this.stage.scaleX(), fill: '#0d9488' }));
+                });
+            }
+
+            updateVisuals() {
+                const invScale = 1 / this.stage.scaleX();
+                this.layer.find('Text').forEach(t => t.fontSize(12 * invScale));
+            }
+
+            fitView() {
+                if (this.points.length === 0) return;
+                const xs = this.points.map(p => p.x), ys = this.points.map(p => -p.y);
+                const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+                const w = maxX - minX, h = maxY - minY, margin = 60;
+                const scale = Math.min((this.width - margin*2)/w, (this.height - margin*2)/h);
+                this.stage.scale({ x: scale, y: scale });
+                this.stage.position({ x: this.width/2 - (minX + w/2)*scale, y: this.height/2 - (minY + h/2)*scale });
+            }
+
+            zoom(f) {
+                this.stage.scale({ x: this.stage.scaleX() * f, y: this.stage.scaleY() * f });
+                this.render();
+            }
+
+            getSnapPoint() {
+                const pos = this.getStagePos();
+                let closest = null, minD = 20 / this.stage.scaleX();
+                for (let i = 0; i < 4; i++) {
+                    const pA = this.points[i], pB = this.points[(i + 1) % 4];
+                    const l2 = (pB.x-pA.x)**2 + (pB.y-pA.y)**2;
+                    let t = ((pos.x-pA.x)*(pB.x-pA.x) + (pos.y-pA.y)*(pB.y-pA.y))/l2;
+                    t = Math.max(0, Math.min(1, t));
+                    const proj = { x: pA.x + t*(pB.x-pA.x), y: pA.y + t*(pB.y-pA.y) };
+                    const d = Math.sqrt((pos.x-proj.x)**2 + (pos.y-proj.y)**2);
+                    if (d < minD) { minD = d; closest = { edgeIdx: i, ratio: t, point: proj }; }
+                }
+                return closest;
+            }
+
+            slicePolygons() {
+                // Simplified slicing: returns the whole room if no partitions, 
+                // or basic logic for filling. For a full robust CSG, complex 
+                // logic is required; here we provide the perimeter.
+                return [this.points];
+            }
+
+            getPointOnEdge(idx, r) {
+                const pA = this.points[idx], pB = this.points[(idx + 1) % 4];
+                return { x: pA.x + (pB.x - pA.x) * r, y: pA.y + (pB.y - pA.y) * r };
+            }
+
+            getPolygonArea(pts) {
+                let a = 0;
+                for (let i = 0; i < pts.length; i++) a += (pts[i].x * pts[(i+1)%pts.length].y) - (pts[(i+1)%pts.length].x * pts[i].y);
+                return Math.abs(a/2);
+            }
+        }
+
+        const app = new RoomApp();
+    </script>
+</body>
+</html>
