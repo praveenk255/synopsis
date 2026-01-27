@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Room Planner - All-in-One</title>
+    <title>Room Planner - Touch Optimized</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/konva@9.2.0/konva.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
+        /* From original index.html style block */
         .bg-grid-pattern {
             background-image: linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
             background-size: 40px 40px;
@@ -24,47 +25,86 @@
         #controls-drawer { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         
         /* Prevent Pull-to-Refresh on Mobile */
-        body { overscroll-behavior-y: none; margin: 0; padding: 0; overflow: hidden; }
+        body { overscroll-behavior-y: none; }
 
-        /* Logic for active tool styling */
-        .active-tool {
-            background-color: #eef2ff !important;
-            color: #4f46e5 !important;
+        /* From style.css */
+        .bg-custom-gray { background-color: #f0f2f5; }
+        #app-container { display: flex; height: 100%; }
+        #sidebar {
+            width: 320px;
+            background: #ffffff;
+            border-right: 1px solid #d1d5db;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            z-index: 10;
+            overflow-y: auto;
+            flex-shrink: 0;
         }
+        .header h2 { margin: 0 0 20px 0; font-size: 18px; color: #1f2937; display: flex; align-items: center; gap: 10px; }
+        .separator { height: 1px; background: #e5e7eb; margin: 20px 0; }
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .input-wrapper { display: flex; flex-direction: column; }
+        .input-wrapper.full-width { width: 100%; }
+        label { font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+        input[type="number"], select { padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; background: #f9fafb; transition: 0.2s; }
+        input[type="number"]:focus, select:focus { outline: none; border-color: #3b82f6; background: #fff; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .radio-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+        .radio-group label { display: flex; align-items: center; gap: 8px; cursor: pointer; color: #374151; font-size: 14px; }
+        .control-group.highlight { background: #f3f4f6; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; }
+        .stats { margin-top: auto; background: #eff6ff; padding: 15px; border-radius: 8px; border: 1px solid #dbeafe; }
+        .stat-item { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; color: #1e40af; }
+        .btn { margin-top: 15px; width: 100%; padding: 10px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: background 0.2s; }
+        .btn:hover { background: #2563eb; }
+        .btn.danger { background: white; border: 1px solid #ef4444; color: #ef4444; }
+        .btn.danger:hover { background: #fee2e2; }
     </style>
 </head>
-<body class="bg-gray-50 h-screen w-screen flex flex-col font-sans text-slate-700">
+<body class="bg-gray-50 h-screen w-screen overflow-hidden flex flex-col font-sans text-slate-700">
 
     <div id="canvas-wrapper" class="relative flex-grow w-full bg-slate-50 bg-grid-pattern overflow-hidden touch-none">
         
-        <div class="absolute top-4 left-4 flex flex-col gap-1.5 bg-white/95 backdrop-blur-sm p-1.5 rounded-xl shadow-lg border border-slate-200 z-20">
+        <div class="absolute top-4 left-1/2 transform -translate-x-1/2 flex flex-row gap-1.5 bg-white/95 backdrop-blur-sm p-1.5 rounded-xl shadow-lg border border-slate-200 z-20">
+            
             <button id="tool-view" onclick="app.setMode('view')" class="tool-btn rounded-lg text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center justify-center active-tool" title="View / Pan">
                 <i class="fas fa-mouse-pointer"></i>
             </button>
+            
             <button id="tool-drag" onclick="app.setMode('drag')" class="tool-btn rounded-lg text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center justify-center" title="Move Partitions">
                 <i class="fas fa-arrows-alt"></i>
             </button>
+
             <button id="tool-cut" onclick="app.setMode('cut')" class="tool-btn rounded-lg text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center justify-center" title="Cut Partition">
                 <i class="fas fa-cut"></i>
             </button>
-            <div class="h-px bg-slate-200 my-0.5 w-full"></div>
+            
+            <div class="w-px bg-slate-200 mx-0.5 h-6 self-center"></div>
+            
             <button id="tool-angle" onclick="app.toggleAngles()" class="tool-btn rounded-lg text-slate-500 hover:bg-teal-50 hover:text-teal-600 transition-colors flex items-center justify-center" title="Show Angles">
                 <i class="fas fa-drafting-compass"></i>
             </button>
-            <div class="h-px bg-slate-200 my-0.5 w-full"></div>
+
+            <div class="w-px bg-slate-200 mx-0.5 h-6 self-center"></div>
+
             <button onclick="app.reset()" class="tool-btn rounded-lg text-slate-500 hover:bg-amber-50 hover:text-amber-600 transition-colors flex items-center justify-center" title="Reset / Clear">
                 <i class="fas fa-eraser"></i>
             </button>
+
             <button onclick="app.deleteData()" class="tool-btn rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors flex items-center justify-center" title="Delete Partitions">
                 <i class="fas fa-trash-alt"></i>
             </button>
-            <div class="h-px bg-slate-200 my-0.5 w-full"></div>
+
+            <div class="w-px bg-slate-200 mx-0.5 h-6 self-center"></div>
+
             <button onclick="app.undo()" class="tool-btn rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors flex items-center justify-center" title="Undo">
                 <i class="fas fa-undo text-sm"></i>
             </button>
+            
             <button onclick="app.redo()" class="tool-btn rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors flex items-center justify-center" title="Redo">
                 <i class="fas fa-redo text-sm"></i>
             </button>
+
         </div>
 
         <div class="absolute bottom-24 right-4 flex flex-col gap-2 z-20">
@@ -91,6 +131,22 @@
         </div>
 
         <div class="px-4 py-3">
+            <div class="flex justify-center mb-4">
+                <svg width="350" height="130" viewBox="-10 -20 300 140" class="opacity-80 max-w-full">
+                    <polygon points="40,90 240,90 220,10 60,10" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linejoin="round"/>
+                    <line x1="40" y1="90" x2="220" y2="10" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4,4" />
+                    <line x1="240" y1="90" x2="60" y2="10" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4,4" />
+                    <text x="30" y="95" font-family="sans-serif" font-size="12" font-weight="bold" fill="#334155">A</text>
+                    <text x="250" y="95" font-family="sans-serif" font-size="12" font-weight="bold" fill="#334155">B</text>
+                    <text x="230" y="10" font-family="sans-serif" font-size="12" font-weight="bold" fill="#334155">C</text>
+                    <text x="45" y="10" font-family="sans-serif" font-size="12" font-weight="bold" fill="#334155">D</text>
+                    <text x="140" y="105" font-family="sans-serif" font-size="9" text-anchor="middle" fill="#64748b">BOTTOM</text>
+                    <text x="250" y="55" font-family="sans-serif" font-size="9" text-anchor="middle" fill="#64748b">RIGHT</text>
+                    <text x="140" y="0" font-family="sans-serif" font-size="9" text-anchor="middle" fill="#64748b">TOP</text>
+                    <text x="30" y="55" font-family="sans-serif" font-size="9" text-anchor="middle" fill="#64748b">LEFT</text>
+                </svg>
+            </div>
+
             <div class="grid grid-cols-4 gap-2 mb-2">
                 <div>
                     <label class="block text-[9px] font-bold text-slate-400 text-center uppercase mb-0.5 truncate">Bottom (AB)</label>
@@ -159,7 +215,8 @@
         class RoomApp {
             constructor() {
                 this.container = document.getElementById('konva-container');
-                this.updateDimensions();
+                this.width = this.container.clientWidth;
+                this.height = this.container.clientHeight;
                 
                 this.stage = new Konva.Stage({
                     container: 'konva-container',
@@ -187,15 +244,12 @@
                 this.didDrag = false;
                 this.draggedLine = null;
                 
-                this.saveState();
+                this.saveState(); 
                 this.setupEvents();
                 
-                window.addEventListener('resize', () => this.handleResize());
-            }
-
-            updateDimensions() {
-                this.width = this.container.clientWidth;
-                this.height = this.container.clientHeight;
+                window.addEventListener('resize', () => {
+                   this.handleResize();
+                });
             }
 
             saveState() {
@@ -232,13 +286,14 @@
             }
             
             reset() {
-                document.querySelectorAll('input[type="number"]').forEach(i => i.value = '');
-                this.points = [];
                 this.deleteData();
             }
 
             handleResize() {
-                this.updateDimensions();
+                this.container = document.getElementById('konva-container');
+                if(!this.container) return;
+                this.width = this.container.clientWidth;
+                this.height = this.container.clientHeight;
                 this.stage.width(this.width);
                 this.stage.height(this.height);
                 this.fitView();
@@ -251,16 +306,19 @@
                 
                 if (!isHidden) {
                     drawer.classList.add('translate-y-full');
-                    icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+                    icon.classList.remove('fa-chevron-down');
+                    icon.classList.add('fa-chevron-up');
                 } else {
                     drawer.classList.remove('translate-y-full');
-                    icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+                    icon.classList.remove('fa-chevron-up');
+                    icon.classList.add('fa-chevron-down');
                 }
                 setTimeout(() => this.handleResize(), 300);
             }
 
             setUnit(u) {
                 this.unit = u;
+                document.querySelectorAll('.unit-label').forEach(el => el.innerText = u);
                 this.update(); 
             }
 
@@ -272,23 +330,37 @@
                 
                 document.querySelectorAll('.tool-btn').forEach(b => {
                     if(['tool-view', 'tool-drag', 'tool-cut'].includes(b.id)) {
-                        b.classList.remove('active-tool');
+                        b.classList.remove('active-tool', 'bg-indigo-50', 'text-indigo-600');
+                        b.classList.add('text-slate-500');
                     }
                 });
                 
                 const btn = document.getElementById(`tool-${m}`);
-                if(btn) btn.classList.add('active-tool');
+                if(btn) {
+                    btn.classList.add('active-tool', 'bg-indigo-50', 'text-indigo-600');
+                    btn.classList.remove('text-slate-500');
+                }
                 
                 this.stage.draggable(m === 'view');
+                
                 const container = this.stage.container();
-                container.style.cursor = m === 'view' ? 'grab' : (m === 'cut' ? 'crosshair' : 'default');
+                if (m === 'view') container.style.cursor = 'grab';
+                else if (m === 'cut') container.style.cursor = 'crosshair';
+                else if (m === 'drag') container.style.cursor = 'default';
+                
                 this.render();
             }
 
             toggleAngles() {
                 this.showAngles = !this.showAngles;
                 const btn = document.getElementById('tool-angle');
-                this.showAngles ? btn.classList.add('bg-teal-50', 'text-teal-600') : btn.classList.remove('bg-teal-50', 'text-teal-600');
+                if (this.showAngles) {
+                    btn.classList.add('bg-teal-50', 'text-teal-600');
+                    btn.classList.remove('text-slate-500');
+                } else {
+                    btn.classList.remove('bg-teal-50', 'text-teal-600');
+                    btn.classList.add('text-slate-500');
+                }
                 this.render();
             }
 
@@ -298,10 +370,17 @@
                     const scaleBy = 1.05;
                     const oldScale = this.stage.scaleX();
                     const ptr = this.stage.getPointerPosition();
-                    const mousePointTo = { x: (ptr.x - this.stage.x()) / oldScale, y: (ptr.y - this.stage.y()) / oldScale };
+                    const mousePointTo = {
+                        x: (ptr.x - this.stage.x()) / oldScale,
+                        y: (ptr.y - this.stage.y()) / oldScale,
+                    };
                     const newScale = e.evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
                     this.stage.scale({ x: newScale, y: newScale });
-                    this.stage.position({ x: ptr.x - mousePointTo.x * newScale, y: ptr.y - mousePointTo.y * newScale });
+                    const newPos = {
+                        x: ptr.x - mousePointTo.x * newScale,
+                        y: ptr.y - mousePointTo.y * newScale,
+                    };
+                    this.stage.position(newPos);
                     this.updateVisuals(); 
                     this.stage.batchDraw();
                 });
@@ -313,51 +392,62 @@
                         const currentPos = this.getStagePos();
                         const dx = currentPos.x - this.lastDragPos.x;
                         const dy = currentPos.y - this.lastDragPos.y;
+                        
                         this.movePartition(this.draggingPartitionIdx, dx, dy);
                         this.lastDragPos = currentPos;
                         this.render(); 
                         return;
                     }
-                    if (this.mode === 'cut' && this.points.length === 4) this.render(); 
+                    if (this.mode === 'cut' && this.points.length === 4) {
+                        this.render(); 
+                    }
                 });
 
-                const endHandler = () => this.handleDragEnd();
-                window.addEventListener('mouseup', endHandler);
-                window.addEventListener('touchend', endHandler);
+                window.addEventListener('mouseup', () => this.handleDragEnd());
+                window.addEventListener('touchend', () => this.handleDragEnd());
 
                 this.stage.on('click tap', (e) => {
-                    if (this.draggingPartitionIdx !== -1 || this.mode !== 'cut' || this.points.length !== 4) return;
-                    const snap = this.getSnapPoint();
-                    if (snap) {
-                        if (!this.isCutting) {
-                            this.isCutting = true;
-                            this.cutStart = snap;
-                        } else if (snap.edgeIdx !== this.cutStart.edgeIdx) {
-                            this.partitions.push({
-                                start: { edgeIdx: this.cutStart.edgeIdx, ratio: this.cutStart.ratio },
-                                end: { edgeIdx: snap.edgeIdx, ratio: snap.ratio }
-                            });
-                            this.isCutting = false;
-                            this.cutStart = null;
-                            this.saveState(); 
+                    if (this.draggingPartitionIdx !== -1) return; 
+                    if (this.mode === 'cut' && this.points.length === 4) {
+                        const snap = this.getSnapPoint();
+                        if (snap) {
+                            if (!this.isCutting) {
+                                this.isCutting = true;
+                                this.cutStart = snap;
+                                this.render(); 
+                            } else {
+                                if (snap.edgeIdx !== this.cutStart.edgeIdx) {
+                                    this.partitions.push({
+                                        start: { edgeIdx: this.cutStart.edgeIdx, ratio: this.cutStart.ratio },
+                                        end: { edgeIdx: snap.edgeIdx, ratio: snap.ratio }
+                                    });
+                                    this.isCutting = false;
+                                    this.cutStart = null;
+                                    this.saveState(); 
+                                    this.render();
+                                }
+                            }
                         }
-                        this.render();
                     }
                 });
             }
 
             handleDragEnd() {
                 if (this.draggingPartitionIdx !== -1) {
-                    if (this.didDrag) this.saveState();
+                    if (this.didDrag) {
+                        this.saveState();
+                    }
                     this.draggingPartitionIdx = -1;
                     this.didDrag = false;
+                    this.draggedLine = null;
                     if (this.mode === 'view') this.stage.draggable(true);
                     this.render(); 
                 }
             }
 
             getStagePos() {
-                const transform = this.stage.getAbsoluteTransform().copy().invert();
+                const transform = this.stage.getAbsoluteTransform().copy();
+                transform.invert();
                 const pos = transform.point(this.stage.getPointerPosition());
                 return { x: pos.x, y: -pos.y }; 
             }
@@ -365,40 +455,47 @@
             movePartition(idx, dx, dy) {
                 const part = this.partitions[idx];
                 const edgeA = this.getEdgeVector(part.start.edgeIdx);
-                part.start.ratio = Math.max(0.01, Math.min(0.99, part.start.ratio + this.projectMovementToRatio(dx, dy, edgeA)));
+                const ratioDeltaA = this.projectMovementToRatio(dx, dy, edgeA);
+                part.start.ratio = Math.max(0.01, Math.min(0.99, part.start.ratio + ratioDeltaA));
+
                 const edgeB = this.getEdgeVector(part.end.edgeIdx);
-                part.end.ratio = Math.max(0.01, Math.min(0.99, part.end.ratio + this.projectMovementToRatio(dx, dy, edgeB)));
+                const ratioDeltaB = this.projectMovementToRatio(dx, dy, edgeB);
+                part.end.ratio = Math.max(0.01, Math.min(0.99, part.end.ratio + ratioDeltaB));
             }
 
             getEdgeVector(edgeIdx) {
-                const p1 = this.points[edgeIdx], p2 = this.points[(edgeIdx + 1) % 4];
+                const p1 = this.points[edgeIdx];
+                const p2 = this.points[(edgeIdx + 1) % 4];
                 return { x: p2.x - p1.x, y: p2.y - p1.y };
             }
 
             projectMovementToRatio(dx, dy, edgeVec) {
                 const lenSq = edgeVec.x * edgeVec.x + edgeVec.y * edgeVec.y;
-                return lenSq === 0 ? 0 : (dx * edgeVec.x + dy * edgeVec.y) / lenSq; 
+                if(lenSq === 0) return 0;
+                const dot = dx * edgeVec.x + dy * edgeVec.y;
+                return dot / lenSq; 
             }
 
             calculatePoints(a, b, c, d, diag, diagType) {
-                const p1 = { x: 0, y: 0 }, p2 = { x: a, y: 0 };
+                const p1 = { x: 0, y: 0 };
+                const p2 = { x: a, y: 0 };
                 let p3, p4;
                 if (diagType === 'AC') {
                     p3 = this.getIntersection(p1, diag, p2, b);
-                    if (!p3) throw new Error("Invalid: AC diagonal too short/long");
+                    if (!p3) throw new Error("Triangle 1 Impossible");
                     p4 = this.getIntersection(p1, d, p3, c);
-                    if (!p4) throw new Error("Invalid: Top/Left walls don't meet");
+                    if (!p4) throw new Error("Triangle 2 Impossible");
                 } else {
                     p4 = this.getIntersection(p1, d, p2, diag);
-                    if (!p4) throw new Error("Invalid: BD diagonal too short/long");
+                    if (!p4) throw new Error("Triangle 1 Impossible");
                     p3 = this.getIntersection(p2, b, p4, c);
-                    if (!p3) throw new Error("Invalid: Top/Right walls don't meet");
+                    if (!p3) throw new Error("Triangle 2 Impossible");
                 }
                 return [p1, p2, p3, p4];
             }
 
             getIntersection(p1, r1, p2, r2) {
-                const d = Math.sqrt((p2.x - p1.x)**2 + (p2.y - p1.y)**2);
+                const d = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
                 if (d > r1 + r2 || d < Math.abs(r1 - r2) || d === 0) return null;
                 const a = (r1 * r1 - r2 * r2 + d * d) / (2 * d);
                 const h = Math.sqrt(Math.max(0, r1 * r1 - a * a));
@@ -417,7 +514,8 @@
                     document.getElementById('error-box').classList.add('hidden');
                     this.fitView(); 
                     this.render(); 
-                    document.getElementById('val-area').innerText = `${this.getPolygonArea(this.points).toFixed(2)} ${this.unit}²`;
+                    const area = this.getPolygonArea(this.points);
+                    document.getElementById('val-area').innerText = `${area.toFixed(2)} sq ${this.unit}`;
                 } catch (e) {
                     document.getElementById('error-box').classList.remove('hidden');
                     document.getElementById('error-msg').innerText = e.message;
@@ -427,158 +525,384 @@
             render() {
                 this.layer.destroyChildren();
                 if (this.points.length === 0) return;
+
                 const mainGroup = new Konva.Group();
                 const screenPts = this.points.map(p => ({ x: p.x, y: -p.y }));
-                
-                // Poly Fills
-                this.slicePolygons().forEach((poly, idx) => {
+                const subPolys = this.slicePolygons();
+                subPolys.forEach((poly, idx) => {
+                    const sp = poly.map(p => ({ x: p.x, y: -p.y }));
+                    const colors = ['#eef2ff', '#f5f3ff', '#f0f9ff', '#fff1f2'];
+                    const fill = colors[idx % colors.length];
                     mainGroup.add(new Konva.Line({
-                        points: poly.flatMap(p => [p.x, -p.y]),
-                        closed: true, fill: ['#f8fafc', '#f1f5f9', '#f8fafc', '#f1f5f9'][idx % 4], listening: false 
+                        points: sp.flatMap(p => [p.x, p.y]),
+                        closed: true, fill: fill, name: 'poly-fill', listening: false 
                     }));
                 });
 
-                // Diag
                 const diagType = document.querySelector('input[name="diag-type"]:checked').value;
-                const dStart = diagType === 'AC' ? screenPts[0] : screenPts[1];
-                const dEnd = diagType === 'AC' ? screenPts[2] : screenPts[3];
-                mainGroup.add(new Konva.Line({ points: [dStart.x, dStart.y, dEnd.x, dEnd.y], stroke: '#cbd5e1', dash: [5, 5], listening: false }));
+                let dStart, dEnd;
+                if (diagType === 'AC') { dStart = screenPts[0]; dEnd = screenPts[2]; } 
+                else { dStart = screenPts[1]; dEnd = screenPts[3]; }
+                mainGroup.add(new Konva.Line({
+                    points: [dStart.x, dStart.y, dEnd.x, dEnd.y],
+                    stroke: '#cbd5e1', dash: [5, 5], name: 'diag-line', listening: false
+                }));
 
-                // Walls & Partitions
-                mainGroup.add(new Konva.Line({ points: screenPts.flatMap(p => [p.x, p.y]), closed: true, stroke: '#334155', strokeWidth: 2, lineJoin: 'round', listening: false }));
-                
+                mainGroup.add(new Konva.Line({
+                    points: screenPts.flatMap(p => [p.x, p.y]),
+                    closed: true, stroke: '#334155', name: 'main-wall', lineCap: 'round', lineJoin: 'round', listening: false
+                }));
+
                 this.partitions.forEach((part, i) => {
-                    const s = this.getPointOnEdge(part.start.edgeIdx, part.start.ratio);
-                    const e = this.getPointOnEdge(part.end.edgeIdx, part.end.ratio);
+                    const startPt = this.getPointOnEdge(part.start.edgeIdx, part.start.ratio);
+                    const endPt = this.getPointOnEdge(part.end.edgeIdx, part.end.ratio);
+                    const isDraggingThis = (this.mode === 'drag' && i === this.draggingPartitionIdx);
                     const line = new Konva.Line({
-                        points: [s.x, -s.y, e.x, -e.y],
-                        stroke: (this.mode === 'drag' && i === this.draggingPartitionIdx) ? '#4f46e5' : '#ef4444',
-                        dash: (this.mode === 'drag' && i === this.draggingPartitionIdx) ? [] : [8, 4],
-                        strokeWidth: 2
+                        points: [startPt.x, -startPt.y, endPt.x, -endPt.y],
+                        stroke: isDraggingThis ? '#000000' : '#ef4444', 
+                        dash: isDraggingThis ? [] : [8, 6],
+                        name: 'cut-line',
+                        hitStrokeWidth: 1
                     });
-                    line.on('mousedown touchstart', (evt) => {
+                    line.on('mousedown touchstart', (e) => {
                         if(this.mode === 'drag') {
+                            e.evt.preventDefault();
                             this.draggingPartitionIdx = i;
                             this.lastDragPos = this.getStagePos();
                             this.didDrag = false;
+                            this.draggedLine = line;
+                            line.stroke('#000000');
+                            line.dash([]); 
+                            this.layer.batchDraw();
                             this.stage.draggable(false);
-                            evt.cancelBubble = true;
+                            e.cancelBubble = true;
                         }
                     });
                     mainGroup.add(line);
                 });
 
                 this.drawDimensions(mainGroup, screenPts, dStart, dEnd);
+                this.drawPartitionDimensions(mainGroup);
                 if (this.showAngles) this.drawAngles(mainGroup, screenPts);
-                
-                // Snap points for Cut Mode
-                if (this.mode === 'cut') {
+
+                subPolys.forEach((poly) => {
+                    const sp = poly.map(p => ({ x: p.x, y: -p.y }));
+                    const center = this.getCentroid(sp);
+                    const area = this.getPolygonArea(poly);
+                    const txt = new Konva.Text({
+                        x: center.x, y: center.y, text: `${area.toFixed(2)}\nsq ${this.unit}`,
+                        fill: '#4338ca', fontStyle: 'bold', align: 'center', name: 'area-label', listening: false
+                    });
+                    txt.setAttr('initialCenter', center);
+                    txt.offsetX(txt.width()/2); txt.offsetY(txt.height()/2);
+                    const scale = this.stage.scaleX() || 1;
+                    txt.y(txt.y() + (45 / scale)); 
+                    mainGroup.add(txt);
+                });
+
+                screenPts.forEach((p) => {
+                    mainGroup.add(new Konva.Circle({ 
+                        x: p.x, y: p.y, fill: 'white', stroke: '#334155', name: 'vertex-dot', listening: false
+                    }));
+                });
+                this.drawVertexLabels(mainGroup, screenPts);
+
+                if (this.mode === 'cut' && this.draggingPartitionIdx === -1) {
                     const snap = this.getSnapPoint();
                     if (snap) {
-                        mainGroup.add(new Konva.Circle({ x: snap.point.x, y: -snap.point.y, fill: '#ef4444', radius: 5 / this.stage.scaleX() }));
-                        if (this.isCutting) {
-                            mainGroup.add(new Konva.Line({ 
-                                points: [this.cutStart.point.x, -this.cutStart.point.y, snap.point.x, -snap.point.y], 
-                                stroke: '#ef4444', dash: [4, 4] 
+                        mainGroup.add(new Konva.Circle({
+                            x: snap.point.x, y: -snap.point.y,
+                            fill: '#ef4444', radius: 6 / (this.stage.scaleX() || 1), name: 'snap-dot', listening: false
+                        }));
+                        this.drawSnapDimensions(mainGroup, snap);
+                        if (this.isCutting && this.cutStart) {
+                            this.drawSnapDimensions(mainGroup, this.cutStart);
+                            const s1 = { x: this.cutStart.point.x, y: -this.cutStart.point.y };
+                            const s2 = { x: snap.point.x, y: -snap.point.y };
+                            mainGroup.add(new Konva.Line({
+                                points: [s1.x, s1.y, s2.x, s2.y], stroke: '#ef4444', dash: [5, 5], name: 'ghost-line', listening: false
                             }));
+                            const w1 = this.cutStart.point;
+                            const w2 = snap.point;
+                            const dist = Math.sqrt(Math.pow(w2.x - w1.x, 2) + Math.pow(w2.y - w1.y, 2));
+                            this.addDimLine(mainGroup, s1, s2, dist.toFixed(2), -1, true, 0);
                         }
                     }
                 }
-
                 this.layer.add(mainGroup);
-                this.updateVisuals();
-                this.layer.batchDraw();
+                this.updateVisuals(); 
+            }
+            
+            drawSnapDimensions(group, snap) {
+                const edgeIdx = snap.edgeIdx;
+                const pStart = this.points[edgeIdx];
+                const pEnd = this.points[(edgeIdx + 1) % 4];
+                const inputs = ['inp-a', 'inp-b', 'inp-c', 'inp-d'];
+                const totalLen = parseFloat(document.getElementById(inputs[edgeIdx]).value) || 0;
+                const r = snap.ratio;
+                const len1 = (totalLen * r).toFixed(2);
+                const len2 = (totalLen * (1 - r)).toFixed(2);
+                const sStart = { x: pStart.x, y: -pStart.y };
+                const sEnd = { x: pEnd.x, y: -pEnd.y };
+                const sSnap = { x: snap.point.x, y: -snap.point.y };
+                this.addDimLine(group, sStart, sSnap, len1, -1, false, 15);
+                this.addDimLine(group, sSnap, sEnd, len2, -1, false, 15);
+            }
+
+            drawVertexLabels(group, pts) {
+                const labels = ['A', 'B', 'C', 'D'];
+                const center = this.getCentroid(pts);
+                const scale = this.stage.scaleX() || 1;
+                const offset = 25 / scale; 
+                pts.forEach((p, i) => {
+                    const dx = p.x - center.x;
+                    const dy = p.y - center.y;
+                    const len = Math.sqrt(dx*dx + dy*dy);
+                    const lx = p.x + (dx/len) * offset;
+                    const ly = p.y + (dy/len) * offset;
+                    const t = new Konva.Text({
+                        x: lx, y: ly, text: labels[i], fontSize: 16, fontStyle: 'bold', fill: '#1e293b', name: 'vertex-label', listening: false
+                    });
+                    t.offsetX(t.width()/2); t.offsetY(t.height()/2);
+                    group.add(t);
+                });
             }
 
             drawDimensions(group, pts, dStart, dEnd) {
-                const inputs = ['inp-a', 'inp-b', 'inp-c', 'inp-d'].map(id => parseFloat(document.getElementById(id).value) || 0);
-                pts.forEach((p, i) => {
-                    const next = pts[(i + 1) % 4];
-                    this.addDimLine(group, p, next, inputs[i].toString(), i, false, 30);
-                });
-                const diagVal = document.getElementById('inp-diag').value;
-                if(diagVal) this.addDimLine(group, dStart, dEnd, diagVal, -1, true, 0);
+                const getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
+                const inputs = [getVal('inp-a'), getVal('inp-b'), getVal('inp-c'), getVal('inp-d')];
+                const diagVal = document.getElementById('inp-diag').value || '';
+                for (let i = 0; i < 4; i++) {
+                    const pStart = pts[i];
+                    const pEnd = pts[(i + 1) % 4];
+                    const totalLen = inputs[i];
+                    const cuts = [];
+                    this.partitions.forEach(part => {
+                        if (part.start.edgeIdx === i) cuts.push(part.start.ratio);
+                        if (part.end.edgeIdx === i) cuts.push(part.end.ratio);
+                    });
+                    const uniqueCuts = [...new Set([0, 1, ...cuts])].sort((a, b) => a - b);
+                    if (uniqueCuts.length === 2) {
+                        this.addDimLine(group, pStart, pEnd, totalLen.toString(), i, false, 35);
+                    } else {
+                        this.addDimLine(group, pStart, pEnd, totalLen.toString(), i, false, 55);
+                        for (let j = 0; j < uniqueCuts.length - 1; j++) {
+                            const r1 = uniqueCuts[j];
+                            const r2 = uniqueCuts[j+1];
+                            const sp1 = { x: pStart.x + (pEnd.x - pStart.x) * r1, y: pStart.y + (pEnd.y - pStart.y) * r1 };
+                            const sp2 = { x: pStart.x + (pEnd.x - pStart.x) * r2, y: pStart.y + (pEnd.y - pStart.y) * r2 };
+                            const segLen = (Math.abs(r2 - r1) * totalLen).toFixed(2);
+                            this.addDimLine(group, sp1, sp2, segLen, i, false, 35);
+                        }
+                    }
+                }
+                this.addDimLine(group, dStart, dEnd, diagVal, -1, true, 0);
             }
 
-            addDimLine(group, p1, p2, text, sideIdx, isLabelOnly, offset) {
-                const dx = p2.x - p1.x, dy = p2.y - p1.y, len = Math.sqrt(dx*dx + dy*dy);
+            drawPartitionDimensions(group) {
+                this.partitions.forEach(part => {
+                    const p1 = this.getPointOnEdge(part.start.edgeIdx, part.start.ratio);
+                    const p2 = this.getPointOnEdge(part.end.edgeIdx, part.end.ratio);
+                    const worldLen = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+                    const s1 = { x: p1.x, y: -p1.y };
+                    const s2 = { x: p2.x, y: -p2.y };
+                    this.addDimLine(group, s1, s2, worldLen.toFixed(2), -1, true, 0);
+                });
+            }
+
+            addDimLine(group, p1, p2, text, sideIdx, isLabelOnly, customOffset) {
+                const dx = p2.x - p1.x;
+                const dy = p2.y - p1.y;
+                const len = Math.sqrt(dx*dx + dy*dy);
                 if(len === 0) return;
-                const invScale = 1 / this.stage.scaleX();
+                let nx = -dy / len;
+                let ny = dx / len;
+                const currentScale = this.stage.scaleX() || 1;
+                const invScale = 1 / currentScale;
                 if (isLabelOnly) {
-                    const mid = { x: (p1.x + p2.x)/2, y: (p1.y + p2.y)/2 };
-                    const t = new Konva.Text({ x: mid.x, y: mid.y, text: text, fontSize: 12 * invScale, fill: '#64748b', align: 'center' });
+                    const midX = (p1.x + p2.x)/2;
+                    const midY = (p1.y + p2.y)/2;
+                    let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                    if (angle > 90 || angle < -90) angle += 180; 
+                    const labelGroup = new Konva.Group({ x: midX, y: midY, rotation: angle, name: 'invariant-label', listening: false });
+                    labelGroup.scale({ x: invScale, y: invScale });
+                    const t = new Konva.Text({ x: 0, y: 0, text: ` ${text} `, fontSize: 12, fill: '#64748b', align: 'center', verticalAlign: 'middle', listening: false });
                     t.offsetX(t.width()/2); t.offsetY(t.height()/2);
-                    group.add(t);
+                    const bg = new Konva.Rect({ x: 0, y: 0, width: t.width() + 6, height: t.height() + 2, fill: '#f1f5f9', cornerRadius: 4, listening: false });
+                    bg.offsetX(bg.width()/2); bg.offsetY(bg.height()/2);
+                    labelGroup.add(bg); labelGroup.add(t); group.add(labelGroup);
                     return;
                 }
-                const mid = { x: (p1.x+p2.x)/2, y: (p1.y+p2.y)/2 };
-                group.add(new Konva.Text({ x: mid.x, y: mid.y + (offset * invScale), text: text, fontSize: 11 * invScale, fill: '#475569' }));
+                const center = this.getCentroid(this.points.map(p => ({x:p.x, y:-p.y})));
+                const midX = (p1.x + p2.x)/2;
+                const midY = (p1.y + p2.y)/2;
+                const toCenter = { x: center.x - midX, y: center.y - midY };
+                if (nx * toCenter.x + ny * toCenter.y > 0) { nx = -nx; ny = -ny; }
+                const scOff = customOffset * invScale; 
+                const o1 = { x: p1.x + nx * scOff, y: p1.y + ny * scOff };
+                const o2 = { x: p2.x + nx * scOff, y: p2.y + ny * scOff };
+                group.add(new Konva.Line({ points: [o1.x, o1.y, o2.x, o2.y], stroke: '#94a3b8', strokeWidth: 1, name: 'dim-line', listening: false }));
+                const tickLen = 4 * invScale;
+                group.add(new Konva.Line({ points: [o1.x - nx*tickLen, o1.y - ny*tickLen, o1.x + nx*tickLen, o1.y + ny*tickLen], stroke: '#94a3b8', name: 'dim-tick', listening: false }));
+                group.add(new Konva.Line({ points: [o2.x - nx*tickLen, o2.y - ny*tickLen, o2.x + nx*tickLen, o2.y + ny*tickLen], stroke: '#94a3b8', name: 'dim-tick', listening: false }));
+                let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                if (angle > 90 || angle < -90) angle += 180;
+                const t = new Konva.Text({ x: (o1.x + o2.x)/2, y: (o1.y + o2.y)/2, text: text, fontSize: 12, fill: '#475569', rotation: angle, name: 'dim-text', listening: false });
+                t.offsetX(t.width()/2); const textPush = 8 * invScale;
+                t.x(t.x() + nx * textPush); t.y(t.y() + ny * textPush); t.offsetY(t.height()/2);
+                group.add(t);
             }
 
             drawAngles(group, pts) {
-                pts.forEach((cur, i) => {
-                    const prev = pts[(i + 3) % 4], next = pts[(i + 1) % 4];
-                    const a1 = Math.atan2(prev.y - cur.y, prev.x - cur.x), a2 = Math.atan2(next.y - cur.y, next.x - cur.x);
-                    let deg = (a2 - a1) * 180 / Math.PI;
-                    if (deg < 0) deg += 360; if (deg > 180) deg = 360 - deg;
-                    group.add(new Konva.Text({ x: cur.x + 10, y: cur.y + 10, text: `${Math.round(deg)}°`, fontSize: 10 / this.stage.scaleX(), fill: '#0d9488' }));
-                });
-            }
-
-            updateVisuals() {
-                const invScale = 1 / this.stage.scaleX();
-                this.layer.find('Text').forEach(t => t.fontSize(12 * invScale));
+                const n = pts.length;
+                for(let i=0; i<n; i++) {
+                    const cur = pts[i];
+                    const prev = pts[(i - 1 + n) % n];
+                    const next = pts[(i + 1) % n];
+                    const v1 = { x: prev.x - cur.x, y: prev.y - cur.y };
+                    const v2 = { x: next.x - cur.x, y: next.y - cur.y };
+                    const ang1 = Math.atan2(v1.y, v1.x);
+                    const ang2 = Math.atan2(v2.y, v2.x);
+                    let deg = (ang2 - ang1) * 180 / Math.PI;
+                    if (deg < 0) deg += 360; if (deg > 180) deg = 360 - deg; 
+                    const radius = 20 / this.stage.scaleX();
+                    group.add(new Konva.Arc({ x: cur.x, y: cur.y, innerRadius: 0, outerRadius: radius, angle: deg, rotation: ang1 * 180 / Math.PI, fill: 'rgba(20, 184, 166, 0.2)', stroke: '#14b8a6', strokeWidth: 1, name: 'angle-arc', listening: false }));
+                    const bisector = ang1 + (deg * Math.PI / 180) / 2;
+                    const txtDist = radius + (10 / this.stage.scaleX());
+                    const t = new Konva.Text({ x: cur.x + Math.cos(bisector) * txtDist, y: cur.y + Math.sin(bisector) * txtDist, text: `${Math.round(deg)}°`, fontSize: 11, fill: '#0d9488', fontStyle: 'bold', name: 'angle-text', listening: false });
+                    t.offsetX(t.width()/2); t.offsetY(t.height()/2); group.add(t);
+                }
             }
 
             fitView() {
                 if (this.points.length === 0) return;
-                const xs = this.points.map(p => p.x), ys = this.points.map(p => -p.y);
-                const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
-                const w = maxX - minX, h = maxY - minY, margin = 60;
-                const scale = Math.min((this.width - margin*2)/w, (this.height - margin*2)/h);
+                const xs = this.points.map(p => p.x);
+                const ys = this.points.map(p => -p.y);
+                const minX = Math.min(...xs); const maxX = Math.max(...xs);
+                const minY = Math.min(...ys); const maxY = Math.max(...ys);
+                const w = maxX - minX; const h = maxY - minY;
+                if (w === 0 || h === 0) return;
+                const margin = 80;
+                const scaleX = (this.width - margin * 2) / w;
+                const scaleY = (this.height - margin * 2) / h;
+                const scale = Math.min(scaleX, scaleY);
                 this.stage.scale({ x: scale, y: scale });
-                this.stage.position({ x: this.width/2 - (minX + w/2)*scale, y: this.height/2 - (minY + h/2)*scale });
+                const centerShapeX = minX + w/2; const centerShapeY = minY + h/2;
+                this.stage.position({ x: this.width/2 - centerShapeX * scale, y: this.height/2 - centerShapeY * scale });
+            }
+
+            updateVisuals() {
+                const scale = this.stage.scaleX();
+                const invScale = 1 / scale;
+                const STYLES = { wallWidth: 3, partWidth: 2, fontSize: 14, dimFontSize: 12, vertexRad: 4 };
+                this.layer.find('.main-wall').forEach(n => n.strokeWidth(STYLES.wallWidth * invScale));
+                this.layer.find('.cut-line').forEach(n => { 
+                    n.strokeWidth(STYLES.partWidth * invScale); 
+                    if(n.dash().length > 0) {
+                       n.dash([8 * invScale, 4 * invScale]); 
+                    }
+                });
+                this.layer.find('.vertex-dot').forEach(n => { n.radius(STYLES.vertexRad * invScale); n.strokeWidth(2 * invScale); });
+                this.layer.find('.snap-dot').forEach(n => n.radius(6 * invScale));
+                this.layer.find('.ghost-line').forEach(n => { n.strokeWidth(2 * invScale); n.dash([5 * invScale, 5 * invScale]); });
+                this.layer.find('.dim-line').forEach(n => n.strokeWidth(1 * invScale));
+                this.layer.find('.dim-tick').forEach(n => n.strokeWidth(1 * invScale));
+                this.layer.find('Text').forEach(n => {
+                    if(n.hasName('area-label')) { 
+                        n.fontSize(STYLES.fontSize * invScale); 
+                        n.offsetX(n.width()/2); n.offsetY(n.height()/2);
+                        const initialCenter = n.getAttr('initialCenter');
+                        if(initialCenter) n.y(initialCenter.y + (45 * invScale));
+                    }
+                    if(n.hasName('dim-text')) { n.fontSize(STYLES.dimFontSize * invScale); n.offsetX(n.width()/2); n.offsetY(n.height()/2); }
+                    if(n.hasName('angle-text')) { n.fontSize(11 * invScale); n.offsetX(n.width()/2); n.offsetY(n.height()/2); }
+                    if(n.hasName('vertex-label')) { n.fontSize(16 * invScale); n.offsetX(n.width()/2); n.offsetY(n.height()/2); }
+                });
+                this.layer.find('.invariant-label').forEach(g => { g.scale({ x: invScale, y: invScale }); });
+                this.layer.find('.angle-arc').forEach(n => { n.outerRadius(25 * invScale); n.strokeWidth(1 * invScale); });
+                this.layer.find('.diag-line').forEach(n => { n.strokeWidth(1 * invScale); n.dash([5 * invScale, 5 * invScale]); });
             }
 
             zoom(f) {
-                this.stage.scale({ x: this.stage.scaleX() * f, y: this.stage.scaleY() * f });
-                this.render();
+                const old = this.stage.scaleX();
+                this.stage.scale({x: old*f, y: old*f});
+                this.updateVisuals();
+                this.stage.batchDraw();
             }
 
             getSnapPoint() {
-                const pos = this.getStagePos();
-                let closest = null, minD = 20 / this.stage.scaleX();
+                const ptr = this.stage.getPointerPosition();
+                if(!ptr) return null;
+                const transform = this.stage.getAbsoluteTransform().copy().invert();
+                const pos = transform.point(ptr);
+                const cartPos = { x: pos.x, y: -pos.y }; 
+                let closest = null; let minDst = Infinity; const sensitivity = 20 / this.stage.scaleX(); 
                 for (let i = 0; i < 4; i++) {
-                    const pA = this.points[i], pB = this.points[(i + 1) % 4];
-                    const l2 = (pB.x-pA.x)**2 + (pB.y-pA.y)**2;
-                    let t = ((pos.x-pA.x)*(pB.x-pA.x) + (pos.y-pA.y)*(pB.y-pA.y))/l2;
+                    const pA = this.points[i];
+                    const pB = this.points[(i + 1) % 4];
+                    const l2 = Math.pow(pA.x - pB.x, 2) + Math.pow(pA.y - pB.y, 2);
+                    let t = ((cartPos.x - pA.x) * (pB.x - pA.x) + (cartPos.y - pA.y) * (pB.y - pA.y)) / l2;
                     t = Math.max(0, Math.min(1, t));
-                    const proj = { x: pA.x + t*(pB.x-pA.x), y: pA.y + t*(pB.y-pA.y) };
-                    const d = Math.sqrt((pos.x-proj.x)**2 + (pos.y-proj.y)**2);
-                    if (d < minD) { minD = d; closest = { edgeIdx: i, ratio: t, point: proj }; }
+                    const proj = { x: pA.x + t * (pB.x - pA.x), y: pA.y + t * (pB.y - pA.y) };
+                    const dist = Math.sqrt(Math.pow(cartPos.x - proj.x, 2) + Math.pow(cartPos.y - proj.y, 2));
+                    if (dist < minDst && dist < sensitivity) { minDst = dist; closest = { edgeIdx: i, ratio: t, point: proj }; }
                 }
                 return closest;
             }
 
             slicePolygons() {
-                // Simplified slicing: returns the whole room if no partitions, 
-                // or basic logic for filling. For a full robust CSG, complex 
-                // logic is required; here we provide the perimeter.
-                return [this.points];
+                let perimeterNodes = [];
+                for(let i=0; i<4; i++) perimeterNodes.push({ type: 'vertex', pt: this.points[i], sortVal: i });
+                this.partitions.forEach((part, i) => {
+                    perimeterNodes.push({ type: 'cut', id: i, end: 'start', pt: this.getPointOnEdge(part.start.edgeIdx, part.start.ratio), sortVal: part.start.edgeIdx + part.start.ratio });
+                    perimeterNodes.push({ type: 'cut', id: i, end: 'end', pt: this.getPointOnEdge(part.end.edgeIdx, part.end.ratio), sortVal: part.end.edgeIdx + part.end.ratio });
+                });
+                perimeterNodes.sort((a, b) => a.sortVal - b.sortVal);
+                let regions = [ perimeterNodes ]; 
+                this.partitions.forEach((part, partId) => {
+                    let targetRegionIdx = -1, idxA = -1, idxB = -1;
+                    for(let r=0; r<regions.length; r++) {
+                        const ring = regions[r];
+                        const a = ring.findIndex(n => n.type === 'cut' && n.id === partId && n.end === 'start');
+                        const b = ring.findIndex(n => n.type === 'cut' && n.id === partId && n.end === 'end');
+                        if (a !== -1 && b !== -1) { targetRegionIdx = r; idxA = a; idxB = b; break; }
+                    }
+                    if (targetRegionIdx !== -1) {
+                        const ring = regions[targetRegionIdx];
+                        const min = Math.min(idxA, idxB); const max = Math.max(idxA, idxB);
+                        const poly1 = [...ring.slice(min, max + 1)]; const poly2 = [...ring.slice(max), ...ring.slice(0, min + 1)]; 
+                        regions.splice(targetRegionIdx, 1, poly1, poly2);
+                    }
+                });
+                return regions.map(ring => ring.map(n => n.pt));
             }
 
-            getPointOnEdge(idx, r) {
-                const pA = this.points[idx], pB = this.points[(idx + 1) % 4];
-                return { x: pA.x + (pB.x - pA.x) * r, y: pA.y + (pB.y - pA.y) * r };
+            getPointOnEdge(edgeIdx, ratio) {
+                const pA = this.points[edgeIdx];
+                const pB = this.points[(edgeIdx + 1) % 4];
+                return { x: pA.x + (pB.x - pA.x) * ratio, y: pA.y + (pB.y - pA.y) * ratio };
             }
 
-            getPolygonArea(pts) {
-                let a = 0;
-                for (let i = 0; i < pts.length; i++) a += (pts[i].x * pts[(i+1)%pts.length].y) - (pts[(i+1)%pts.length].x * pts[i].y);
-                return Math.abs(a/2);
+            getPolygonArea(points) {
+                let area = 0; const n = points.length;
+                for (let i = 0; i < n; i++) area += (points[i].x * points[(i + 1) % n].y) - (points[(i + 1) % n].x * points[i].y);
+                return Math.abs(area / 2);
+            }
+
+            getCentroid(points) {
+                let cx = 0, cy = 0, signedArea = 0; const n = points.length;
+                for (let i = 0; i < n; i++) {
+                    const x0 = points[i].x, y0 = points[i].y;
+                    const x1 = points[(i + 1) % n].x, y1 = points[(i + 1) % n].y;
+                    const a = x0 * y1 - x1 * y0;
+                    signedArea += a; cx += (x0 + x1) * a; cy += (y0 + y1) * a;
+                }
+                signedArea *= 0.5;
+                if (signedArea === 0) return points[0]; 
+                cx /= (6 * signedArea); cy /= (6 * signedArea);
+                return { x: cx, y: cy };
             }
         }
-
         const app = new RoomApp();
     </script>
 </body>
