@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8" />
+    <title>Ancient History Quiz Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
+        .option-btn.correct { @apply btn-success text-white; }
+        .option-btn.incorrect { @apply btn-error text-white; }
+        .answered { pointer-events: none; opacity: 0.8; }
+        .sticky-stats { position: sticky; top: 0; z-index: 50; }
+    </style>
+</head>
+<body class="bg-base-300 text-base-content min-h-screen flex flex-col">
+
+    <div class="navbar bg-base-100 shadow-lg px-4 sticky top-0 z-50">
+        <div class="flex-1">
+            <a class="btn btn-ghost text-xl gap-2">
+                <i data-lucide="scroll-text" class="text-primary"></i>
+                <span>History Quiz <span class="badge badge-primary">PRO</span></span>
+            </a>
+        </div>
+        <div class="flex-none gap-2">
+            <button id="insightsBtn" class="btn btn-circle btn-ghost">
+                <i data-lucide="bar-chart-3"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="mainSection" class="p-6 max-w-4xl mx-auto w-full space-y-8">
+        <div class="stats shadow bg-base-100 w-full overflow-x-hidden">
+            <div class="stat">
+                <div class="stat-figure text-primary"><i data-lucide="target" class="w-8 h-8"></i></div>
+                <div class="stat-title">Overall Accuracy</div>
+                <div id="overallAccuracy" class="stat-value text-primary">0%</div>
+                <div class="stat-desc text-secondary">Based on past attempts</div>
+            </div>
+            <div class="stat">
+                <div class="stat-figure text-secondary">
+                    <div id="accuracyRadial" class="radial-progress text-primary" style="--value:0; --size:3rem;">0%</div>
+                </div>
+                <div class="stat-title">Progress</div>
+                <div id="totalQs" class="stat-value">0</div>
+                <div class="stat-desc text-secondary">Questions Available</div>
+            </div>
+        </div>
+
+        <div class="card lg:card-side bg-base-100 shadow-xl border border-primary/20">
+            <figure class="bg-primary p-8 flex items-center justify-center">
+                <i data-lucide="book-open" class="w-24 h-24 text-white"></i>
+            </figure>
+            <div class="card-body">
+                <h2 class="card-title text-2xl">Chapter 1: Historical Sources</h2>
+                [span_0](start_span)<p class="text-base-content/70">Covers Pre-Historic Period, Archaeological fathers, and Vedic literature classifications[span_0](end_span).</p>
+                <div class="card-actions justify-end mt-4">
+                    <button id="startBtn" class="btn btn-primary btn-wide">Start Session</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="quizSection" class="hidden p-4 space-y-6 flex-grow flex flex-col items-center mb-24">
+        <div class="sticky-stats w-full max-w-2xl">
+            <div class="stats stats-horizontal shadow bg-base-100 w-full border border-base-content/10">
+                <div class="stat py-2 px-4">
+                    <div class="stat-title text-xs uppercase">Attempted</div>
+                    <div id="qsAttempted" class="stat-value text-lg">0</div>
+                </div>
+                <div class="stat py-2 px-4">
+                    <div class="stat-title text-xs uppercase text-success">Correct</div>
+                    <div id="qsCorrect" class="stat-value text-lg text-success">0</div>
+                </div>
+                <div class="stat py-2 px-4">
+                    <div class="stat-title text-xs uppercase">Accuracy</div>
+                    <div id="qsAccuracy" class="stat-value text-lg text-warning">0%</div>
+                </div>
+            </div>
+        </div>
+        <div id="questionsContainer" class="space-y-6 w-full max-w-2xl"></div>
+    </div>
+
+    <div id="bottomNavBar" class="hidden fixed bottom-0 left-0 w-full bg-base-100 p-4 border-t border-base-content/10 flex justify-between items-center z-50">
+        <div class="flex items-center gap-2 font-mono text-xl text-primary">
+            <i data-lucide="timer"></i> <span id="timerDisplay">00:00</span>
+        </div>
+        <div class="flex gap-2">
+            <button id="quitBtn" class="btn btn-ghost btn-sm">Quit</button>
+            <button id="submitBtn" class="btn btn-primary btn-sm px-8">Finish</button>
+        </div>
+    </div>
+
+    <dialog id="summaryModal" class="modal">
+        <div class="modal-box text-center">
+            <h3 class="font-bold text-2xl mb-4">Quiz Summary</h3>
+            <div id="summaryRadial" class="radial-progress text-primary mx-auto my-6" style="--value:0; --size:8rem; --thickness: 8px;">0%</div>
+            <div class="grid grid-cols-2 gap-4 text-left">
+                <div class="bg-base-200 p-4 rounded-xl">
+                    <p class="text-xs uppercase opacity-50">Final Score</p>
+                    <p id="summaryScore" class="text-xl font-bold">0/0</p>
+                </div>
+                <div class="bg-base-200 p-4 rounded-xl">
+                    <p class="text-xs uppercase opacity-50">Correct</p>
+                    <p id="summaryCorrect" class="text-xl font-bold text-success">0</p>
+                </div>
+            </div>
+            <div class="modal-action flex flex-col gap-2">
+                <button class="btn btn-primary w-full" onclick="location.reload()">Back to Dashboard</button>
+            </div>
+        </div>
+    </dialog>
+
+    <script>
+        const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vShhhxNFMbdnZ1-n3P8BXhg1I7KoHhpEdcmdrJMTBdlW6zEINc4WBaXvyYQY2Fi4fyJ-H-7CG5o51Tk/pub?output=csv";
+        let questions = [], stats = { attempted: 0, correct: 0 }, timerStart, timerInterval;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            document.getElementById('startBtn').onclick = initQuiz;
+            document.getElementById('quitBtn').onclick = () => location.reload();
+            document.getElementById('submitBtn').onclick = () => document.getElementById('summaryModal').showModal();
+            updateDashboard();
+        });
+
+        async function initQuiz() {
+            try {
+                const res = await fetch(CSV_URL);
+                const text = await res.text();
+                questions = parseCSV(text);
+                
+                document.getElementById('mainSection').classList.add('hidden');
+                document.getElementById('quizSection').classList.remove('hidden');
+                document.getElementById('bottomNavBar').classList.remove('hidden');
+                
+                renderQuestions();
+                startTimer();
+            } catch (e) { alert("Failed to fetch data."); }
+        }
+
+        function parseCSV(text) {
+            return text.split('\n').filter(r => r.trim() !== "").slice(1).map(row => {
+                const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                return {
+                    q: cols[1]?.replace(/"/g, ''),
+                    opts: [cols[2], cols[3], cols[4], cols[5]].map(o => o?.replace(/"/g, '')),
+                    ans: cols[6]?.trim()
+                };
+            });
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = questions.map((q, i) => `
+                <div id="q-card-${i}" class="card bg-base-100 shadow-md border border-base-content/5">
+                    <div class="card-body p-6">
+                        <span class="badge badge-outline badge-sm mb-2 opacity-50">Q${i+1}</span>
+                        <p class="text-lg font-medium leading-relaxed">${q.q}</p>
+                        <div class="grid gap-2 mt-4">
+                            ${q.opts.map((opt, oi) => `
+                                <button class="btn btn-outline btn-ghost justify-start h-auto py-4 text-left font-normal normal-case option-btn" 
+                                        onclick="handleAnswer(${i}, this, '${oi+1}')">${opt}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function handleAnswer(qIdx, btn, choice) {
+            const card = document.getElementById(`q-card-${qIdx}`);
+            if (card.classList.contains('answered')) return;
+            card.classList.add('answered');
+
+            const correct = questions[qIdx].ans;
+            stats.attempted++;
+
+            if (choice === correct) {
+                btn.className = "btn btn-success text-white justify-start h-auto py-4 text-left font-normal normal-case option-btn";
+                stats.correct++;
+            } else {
+                btn.className = "btn btn-error text-white justify-start h-auto py-4 text-left font-normal normal-case option-btn";
+                const correctBtn = card.querySelectorAll('.option-btn')[correct - 1];
+                if(correctBtn) correctBtn.className = "btn btn-success text-white justify-start h-auto py-4 text-left font-normal normal-case option-btn";
+            }
+            updateLiveStats();
+            setTimeout(() => {
+                const next = card.nextElementSibling;
+                if(next) next.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 800);
+        }
+
+        function updateLiveStats() {
+            const acc = stats.attempted > 0 ? Math.round((stats.correct / stats.attempted) * 100) : 0;
+            document.getElementById('qsAttempted').innerText = stats.attempted;
+            document.getElementById('qsCorrect').innerText = stats.correct;
+            document.getElementById('qsAccuracy').innerText = acc + "%";
+            
+            // Sync with Summary
+            document.getElementById('summaryScore').innerText = `${stats.correct}/${questions.length}`;
+            document.getElementById('summaryCorrect').innerText = stats.correct;
+            document.getElementById('summaryRadial').style.setProperty('--value', acc);
+            document.getElementById('summaryRadial').innerText = acc + "%";
+        }
+
+        function startTimer() {
+            timerStart = Date.now();
+            timerInterval = setInterval(() => {
+                const diff = Math.floor((Date.now() - timerStart) / 1000);
+                document.getElementById('timerDisplay').innerText = 
+                    `${Math.floor(diff/60).toString().padStart(2,'0')}:${(diff%60).toString().padStart(2,'0')}`;
+            }, 1000);
+        }
+
+        function updateDashboard() {
+            const history = JSON.parse(localStorage.getItem('Ancient History: Ch 1_stats')) || { attempted: 0, total: 115 };
+            document.getElementById('totalQs').innerText = history.total;
+            // Additional dashboard logic here
+        }
+    </script>
+</body>
+</html>
