@@ -2,104 +2,112 @@
 <html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8" />
-    <title>GS Pro - 10% Black Glassmorphism</title>
+    <title>GS Pro - CSS Glassmorphism</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
     <style>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
-:root {
-    /* ========================================================
-       MASTER GLASSMORPHISM TUNER
-       Manually adjust the values below to tune the entire app
-       ======================================================== */
+        :root {
+            /* ========================================================
+               MASTER GLASSMORPHISM TUNER
+               Manually adjust the values below to tune the entire app
+               ======================================================== */
 
-    /* 1. Set the transparency (0.0 is invisible, 1.0 is solid) */
-    --glass-opacity: 0.5;
+            /* 1. Set the transparency (0.0 is invisible, 1.0 is solid) */
+            --glass-opacity: 0.76;
 
-    /* 2. Set the base color (0,0,0 is Black | 255,255,255 is White) */
-    --glass-rgb: 0, 0, 0;
+            /* 2. Set the base color (0,0,0 is Black | 255,255,255 is White) */
+            --glass-rgb: 0, 0, 0;
 
-    /* ======================================================== */
-}
+            /* ======================================================== */
+        }
 
-body {
-    font-family: 'Poppins', sans-serif;
-    color: #f1f5f9;
-    scroll-behavior: smooth;
-    background-color: #77aa77;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25' viewBox='0 0 2 1'%3E%3Cdefs%3E%3ClinearGradient id='a' gradientUnits='userSpaceOnUse' x1='0' x2='0' y1='0' y2='1'%3E%3Cstop offset='0' stop-color='%2377aa77'/%3E%3Cstop offset='1' stop-color='%234fd'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' gradientUnits='userSpaceOnUse' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23cf8' stop-opacity='0'/%3E%3Cstop offset='1' stop-color='%23cf8' stop-opacity='1'/%3E%3C/linearGradient%3E%3ClinearGradient id='c' gradientUnits='userSpaceOnUse' x1='0' y1='0' x2='2' y2='2'%3E%3Cstop offset='0' stop-color='%23cf8' stop-opacity='0'/%3E%3Cstop offset='1' stop-color='%23cf8' stop-opacity='1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='0' y='0' fill='url(%23a)' width='2' height='1'/%3E%3Cg fill-opacity='0.5'%3E%3Cpolygon fill='url(%23b)' points='0 1 0 0 2 0'/%3E%3Cpolygon fill='url(%23c)' points='2 1 2 0 0 0'/%3E%3C/g%3E%3C/svg%3E");
-    background-attachment: fixed;
-    background-size: cover;
-}
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: #f1f5f9;
+            scroll-behavior: smooth;
+            background-color: #77aa77;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25' viewBox='0 0 2 1'%3E%3Cdefs%3E%3ClinearGradient id='a' gradientUnits='userSpaceOnUse' x1='0' x2='0' y1='0' y2='1'%3E%3Cstop offset='0' stop-color='%2377aa77'/%3E%3Cstop offset='1' stop-color='%234fd'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' gradientUnits='userSpaceOnUse' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23cf8' stop-opacity='0'/%3E%3Cstop offset='1' stop-color='%23cf8' stop-opacity='1'/%3E%3C/linearGradient%3E%3ClinearGradient id='c' gradientUnits='userSpaceOnUse' x1='0' y1='0' x2='2' y2='2'%3E%3Cstop offset='0' stop-color='%23cf8' stop-opacity='0'/%3E%3Cstop offset='1' stop-color='%23cf8' stop-opacity='1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='0' y='0' fill='url(%23a)' width='2' height='1'/%3E%3Cg fill-opacity='0.5'%3E%3Cpolygon fill='url(%23b)' points='0 1 0 0 2 0'/%3E%3Cpolygon fill='url(%23c)' points='2 1 2 0 0 0'/%3E%3C/g%3E%3C/svg%3E");
+            background-attachment: fixed;
+            background-size: cover;
+        }
 
-/* Master Tunable Glass Classes */
-.tunable-glass {
-    background-color: rgba(var(--glass-rgb), var(--glass-opacity)) !important;
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
+        /* Master Tunable Glass Classes */
+        .tunable-glass {
+            background-color: rgba(var(--glass-rgb), var(--glass-opacity)) !important;
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-/* Slightly heavier background for hover states or active elements */
-.tunable-glass-heavy {
-    background-color: rgba(var(--glass-rgb), calc(var(--glass-opacity) + 0.15)) !important;
-}
+        .tunable-glass-heavy {
+            background-color: rgba(var(--glass-rgb), calc(var(--glass-opacity) + 0.15)) !important;
+        }
 
-.tunable-glass-hover:hover {
-    background-color: rgba(var(--glass-rgb), calc(var(--glass-opacity) + 0.15)) !important;
-}
+        .tunable-glass-hover:hover {
+            background-color: rgba(var(--glass-rgb), calc(var(--glass-opacity) + 0.15)) !important;
+        }
 
-/* 5-Pill Header */
-.top-stats-container { position: fixed; top: 10px; left: 0; width: 100%; display: flex; justify-content: space-evenly; align-items: center; padding: 0 4px; z-index: 50; pointer-events: none; }
-.glass-pill {
-    border-radius: 12px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    width: 18%; height: 44px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); pointer-events: auto;
-}
-.stat-label { font-size: 0.42rem; font-weight: 800; text-transform: uppercase; opacity: 0.8; color: #fff; line-height: 1; margin-bottom: 2px;}
-.stat-val { font-size: 0.72rem; font-weight: 900; line-height: 1; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        /* 5-Pill Header */
+        .top-stats-container { position: fixed; top: 10px; left: 0; width: 100%; display: flex; justify-content: space-evenly; align-items: center; padding: 0 4px; z-index: 50; pointer-events: none; }
+        .glass-pill {
+            border-radius: 12px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 18%; height: 44px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); pointer-events: auto;
+        }
+        .stat-label { font-size: 0.42rem; font-weight: 800; text-transform: uppercase; opacity: 0.8; color: #fff; line-height: 1; margin-bottom: 2px;}
+        .stat-val { font-size: 0.72rem; font-weight: 900; line-height: 1; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
 
-/* Navigation & Dashboard Cards */
-.nav-card { width: 150px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border-radius: 1.5rem; padding: 0.8rem; cursor: pointer; transition: transform 0.1s ease; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
-.nav-card:active { transform: scale(0.96); }
-.metric-card { padding: 1.25rem 0.5rem; border-radius: 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 0.25rem; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
+        /* Navigation & Dashboard Cards */
+        .nav-card {
+            width: 150px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border-radius: 1.5rem; padding: 0.8rem; cursor: pointer; transition: transform 0.1s ease; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .nav-card:active { transform: scale(0.96); }
 
-/* Table Styling for Quiz */
-.q-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.75rem; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
-.q-table td, .q-table th { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 12px; text-align: left; }
-.q-table th { font-weight: 700; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
-.q-table tr:last-child td { border-bottom: none; }
+        .metric-card {
+            padding: 1.25rem 0.5rem; border-radius: 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 0.25rem; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
 
-/* Base Option Button Alignment Fix */
-.option-btn {
-    text-align: left !important;
-    justify-content: flex-start !important;
-    width: 100%;
-}
+        /* Table Styling for Quiz */
+        .q-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.75rem; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
+        .q-table td, .q-table th { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 12px; text-align: left; }
+        .q-table th { font-weight: 700; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+        .q-table tr:last-child td { border-bottom: none; }
 
-/* Option Buttons Correct/Incorrect States */
-.option-btn.correct { background-color: #22c55e !important; color: white !important; border-color: #22c55e !important; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); }
-.option-btn.incorrect { background-color: #ef4444 !important; color: white !important; border-color: #ef4444 !important; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
-.answered { pointer-events: none; }
-.q-tag { color: #ffffff !important; font-weight: 900; font-size: 0.85rem; display: block; margin-bottom: 4px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        /* Base Option Button Alignment Fix */
+        .option-btn {
+            text-align: left !important;
+            justify-content: flex-start !important;
+            width: 100%;
+        }
 
-#loadingOverlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px); z-index: 100; display: none; align-items: center; justify-content: center; }
+        /* Option Buttons Correct/Incorrect States */
+        .option-btn.correct { background-color: #22c55e !important; color: white !important; border-color: #22c55e !important; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); }
+        .option-btn.incorrect { background-color: #ef4444 !important; color: white !important; border-color: #ef4444 !important; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
+        .answered { pointer-events: none; }
+        .q-tag { color: #ffffff !important; font-weight: 900; font-size: 0.85rem; display: block; margin-bottom: 4px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col overflow-x-hidden">
-    <div id="loadingOverlay"><span class="loading loading-spinner loading-lg text-white"></span></div>
 
-    <div id="navbar" class="navbar bg-black/10 backdrop-blur-xl border-b border-white/10 sticky top-0 z-50 px-4 shadow-sm">
+    <div id="loadingOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] hidden flex-col items-center justify-center">
+        <div class="radial-progress text-success border border-white/10 shadow-2xl" id="loadingRadial" style="--value:0; --size:100px; --thickness: 8px;">
+            <span class="text-xl font-bold text-white drop-shadow-md" id="loadingPercent">0%</span>
+        </div>
+        <p class="mt-4 text-xs font-bold text-white uppercase tracking-widest drop-shadow-md">Loading CSV</p>
+    </div>
+
+    <div id="navbar" class="navbar tunable-glass sticky top-0 z-50 px-4 shadow-sm border-none">
         <div class="flex-1">
             <button id="folderBackBtn" class="btn btn-ghost hidden text-white" onclick="goBack()"><i data-lucide="chevron-left"></i></button>
             <button class="btn btn-ghost text-lg font-bold text-white drop-shadow-md" onclick="resetToHome()">GS Pro</button>
         </div>
         <div class="flex-none gap-2">
             <button class="btn btn-sm btn-ghost rounded-full text-white" onclick="openMixModal()"><i data-lucide="shuffle" class="w-4"></i> Mix</button>
-            <button class="btn btn-sm border-none bg-black/20 hover:bg-black/30 text-white rounded-full px-5 shadow-sm" onclick="showView('insights')">Insights</button>
+            <button class="btn btn-sm border-none tunable-glass-heavy text-white rounded-full px-5 shadow-sm" onclick="showView('insights')">Insights</button>
         </div>
     </div>
 
@@ -107,408 +115,466 @@ body {
 
     <div id="insightsSection" class="view hidden p-4 space-y-6 flex-grow w-full max-w-4xl mx-auto pb-24 text-center">
         <h2 class="text-xl font-bold flex items-center justify-center gap-2 text-white drop-shadow-md"><i data-lucide="activity" class="text-white"></i> Dashboard</h2>
-        <div class="bg-black/10 backdrop-blur-xl p-6 rounded-3xl border border-white/10 flex flex-col items-center gap-8 shadow-xl">
+        <div class="tunable-glass p-6 rounded-3xl flex flex-col items-center gap-8 shadow-xl">
             <div class="flex flex-col items-center gap-2">
-                <div class="radial-progress text-slate-800 bg-black/10 border border-white/5" id="dashboardRadial" style="--value:0; --size:10rem; --thickness: 10px; box-shadow: 0 4px 15px 0 rgba(0,0,0,0.2);">
+                <div class="radial-progress text-slate-800 tunable-glass" id="dashboardRadial" style="--value:0; --size:10rem; --thickness: 10px; box-shadow: 0 4px 15px 0 rgba(0,0,0,0.2);">
                     <span class="text-3xl font-black text-white drop-shadow-md" id="radialPercent">0%</span>
                 </div>
                 <span class="text-xs font-bold opacity-90 text-white uppercase tracking-widest drop-shadow-md">Overall Accuracy</span>
             </div>
             <div class="grid grid-cols-2 gap-4 w-full">
-                <div class="metric-card"><div class="flex items-center gap-1.5 text-[10px] font-bold text-white uppercase opacity-90 drop-shadow-md"><i data-lucide="check-circle" class="w-3 text-success"></i> Correct</div><div class="text-2xl font-black text-success drop-shadow-md" id="statCorrect">0</div></div>
-                <div class="metric-card"><div class="flex items-center gap-1.5 text-[10px] font-bold text-white uppercase opacity-90 drop-shadow-md"><i data-lucide="x-circle" class="w-3 text-error"></i> Incorrect</div><div class="text-2xl font-black text-error drop-shadow-md" id="statIncorrect">0</div></div>
-                <div class="metric-card"><div class="flex items-center gap-1.5 text-[10px] font-bold text-white uppercase opacity-90 drop-shadow-md"><i data-lucide="trophy" class="w-3 text-warning"></i> Completed</div><div class="text-2xl font-black text-warning drop-shadow-md" id="statCompleted">0</div></div>
-                <div class="metric-card"><div class="flex items-center gap-1.5 text-[10px] font-bold text-white uppercase opacity-90 drop-shadow-md"><i data-lucide="list-checks" class="w-3 text-info"></i> Attempted</div><div class="text-2xl font-black text-info drop-shadow-md" id="statAttempted">0</div></div>
+                <div class="metric-card tunable-glass"><div class="flex items-center gap-1.5 text-[10px] font-bold text-white uppercase opacity-90 drop-shadow-md"><i data-lucide="check-circle" class="w-3 text-success"></i> Correct</div><div class="text-2xl font-black text-success drop-shadow-md" id="statCorrect">0</div></div>
+                <div class="metric-card tunable-glass"><div class="flex items-center gap-1.5 text-[10px] font-bold text-white uppercase opacity-90 drop-shadow-md"><i data-lucide="x-circle" class="w-3 text-error"></i> Incorrect</div><div class="text-2xl font-black text-error drop-shadow-md" id="statIncorrect">0</div></div>
+                <div class="metric-card tunable-glass"><div class="flex items-center gap-1.5 text-[10px] font-bold text-white uppercase opacity-90 drop-shadow-md"><i data-lucide="trophy" class="w-3 text-warning"></i> Completed</div><div class="text-2xl font-black text-warning drop-shadow-md" id="statCompleted">0</div></div>
+                <div class="metric-card tunable-glass"><div class="flex items-center gap-1.5 text-[10px] font-bold text-white uppercase opacity-90 drop-shadow-md"><i data-lucide="list-checks" class="w-3 text-info"></i> Attempted</div><div class="text-2xl font-black text-info drop-shadow-md" id="statAttempted">0</div></div>
             </div>
         </div>
-        <button class="btn border-none bg-black/20 hover:bg-black/30 text-white w-full rounded-xl shadow-lg backdrop-blur-md" onclick="resetToHome()">Start a new quiz</button>
+        <button class="btn border-none tunable-glass-heavy text-white w-full rounded-xl shadow-lg" onclick="resetToHome()">Start a new quiz</button>
     </div>
 
     <div id="quizSection" class="view hidden flex-grow flex flex-col items-center relative">
         <div class="top-stats-container">
-            <div class="glass-pill text-white" onclick="exitQuizMode()"><i data-lucide="chevron-left" class="w-4"></i><span class="stat-label">Back</span></div>
-            <div class="glass-pill"><span class="stat-label">Prog</span><span id="qsAttempted" class="stat-val text-white">0</span></div>
-            <div class="glass-pill"><span class="stat-label text-success">Right</span><span id="qsCorrect" class="stat-val text-success">0</span></div>
-            <div class="glass-pill"><span class="stat-label text-error">Wrong</span><span id="qsIncorrect" class="stat-val text-error">0</span></div>
-            <div class="glass-pill"><span class="stat-label text-warning">Acc</span><span id="qsAccuracy" class="stat-val text-warning">0%</span></div>
+            <div class="glass-pill tunable-glass text-white" onclick="exitQuizMode()"><i data-lucide="chevron-left" class="w-4"></i><span class="stat-label">Back</span></div>
+            <div class="glass-pill tunable-glass"><span class="stat-label">Prog</span><span id="qsAttempted" class="stat-val text-white">0</span></div>
+            <div class="glass-pill tunable-glass"><span class="stat-label text-success">Right</span><span id="qsCorrect" class="stat-val text-success">0</span></div>
+            <div class="glass-pill tunable-glass"><span class="stat-label text-error">Wrong</span><span id="qsIncorrect" class="stat-val text-error">0</span></div>
+            <div class="glass-pill tunable-glass"><span class="stat-label text-warning">Acc</span><span id="qsAccuracy" class="stat-val text-warning">0%</span></div>
         </div>
         <div id="questionsContainer" class="p-4 space-y-6 w-full max-w-2xl mt-16 pb-40"></div>
     </div>
 
     <div id="bottomNavBar" class="hidden fixed bottom-6 left-0 w-full flex justify-between items-center px-6 z-50 pointer-events-none">
-        <div class="glass-pill flex-row gap-2 text-white font-mono text-lg font-black pointer-events-auto" style="width:100px; height: 48px;"><i data-lucide="clock" class="w-4"></i><span id="timerDisplay">00:00</span></div>
-        <button class="btn glass-pill h-11 border-none px-6 text-white bg-black/20 hover:bg-black/30 font-bold uppercase pointer-events-auto shadow-xl" style="width: auto;" onclick="finishQuiz()">Finish</button>
+        <div class="glass-pill tunable-glass flex-row gap-2 text-white font-mono text-lg font-black pointer-events-auto" style="width:100px; height: 48px;"><i data-lucide="clock" class="w-4"></i><span id="timerDisplay">00:00</span></div>
+        <button class="btn glass-pill h-11 border-none px-6 text-white tunable-glass-heavy font-bold uppercase pointer-events-auto shadow-xl" style="width: auto;" onclick="finishQuiz()">Finish</button>
     </div>
 
-    <dialog id="mixQuizModal" class="modal backdrop-blur-sm bg-black/20">
-        <div class="modal-box bg-black/10 backdrop-blur-2xl border border-white/10 text-white shadow-2xl">
+    <dialog id="mixQuizModal" class="modal backdrop-blur-sm bg-black/50">
+        <div class="modal-box tunable-glass text-white shadow-2xl">
             <h3 class="font-bold text-lg mb-4 text-center drop-shadow-md">Categorical Mix</h3>
             <div id="mixCategoryList" class="space-y-4 max-h-80 overflow-y-auto p-1 bg-transparent rounded-xl"></div>
             <div class="modal-action justify-center gap-4">
-                <button class="btn border-none bg-black/20 hover:bg-black/30 text-white px-8 shadow-lg" onclick="generateMixQuiz()">Start (100 Qs)</button>
+                <button class="btn border-none tunable-glass-heavy text-white px-8 shadow-lg" onclick="generateMixQuiz()">Start (100 Qs)</button>
                 <form method="dialog"><button class="btn btn-ghost text-white">Cancel</button></form>
             </div>
         </div>
     </dialog>
 
     <script>
-const categories = [
-    { id: "hist", name: "History", icon: "book-open", sub: ["ancient", "medieval", "modern", "misc_hist"] },
-    { id: "geog", name: "Geography", icon: "globe", sub: ["world_geog", "indian_geog", "env_eco"] },
-    { id: "polity", name: "Indian Polity", icon: "landmark", sub: ["pol_chapters"] },
-    { id: "economy", name: "Indian Economy", icon: "trending-up", sub: ["eco_chapters"] },
-    { id: "science", name: "General Science", icon: "flask-conical", sub: ["physics", "chemistry", "biology", "sci_tech"] },
-    { id: "gk", name: "General Knowledge", icon: "info", sub: ["gk_chapters"] }
-];
+        const categories = [
+            { id: "hist", name: "History", icon: "book-open", sub: ["ancient", "medieval", "modern", "misc_hist"] },
+            { id: "geog", name: "Geography", icon: "globe", sub: ["world_geog", "indian_geog", "env_eco"] },
+            { id: "polity", name: "Indian Polity", icon: "landmark", sub: ["pol_chapters"] },
+            { id: "economy", name: "Indian Economy", icon: "trending-up", sub: ["eco_chapters"] },
+            { id: "science", name: "General Science", icon: "flask-conical", sub: ["physics", "chemistry", "biology", "sci_tech"] },
+            { id: "gk", name: "General Knowledge", icon: "info", sub: ["gk_chapters"] }
+        ];
 
-const quizChapters = {
-    ancient: [
-        { id: "anc1", name: "Ch 1", title: "Historical Sources and Pre-Historic Period", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vShhhxNFMbdnZ1-n3P8BXhg1I7KoHhpEdcmdrJMTBdlW6zEINc4WBaXvyYQY2Fi4fyJ-H-7CG5o51Tk/pub?output=csv" },
-        { id: "anc2", name: "Ch 2", title: "Indus Valley Civilisation", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSn8Le6mp2MsuI2MwaVdT9alO2h0LnEMAH3BCw0YoUH5D64dmlrYCy0DwwuUuVZqTSLJMrCO216l50h/pub?output=csv" },
-        { id: "anc3", name: "Ch 3", title: "The Vedic Era and Mahajanapadas", url: "" },
-        { id: "anc4", name: "Ch 4", title: "Religious Movements of 6th Century BCE", url: "" },
-        { id: "anc5", name: "Ch 5", title: "Mauryan and Post-Mauryan Period", url: "" },
-        { id: "anc6", name: "Ch 6", title: "The Gupta and the Post-Gupta Period", url: "" },
-        { id: "anc7", name: "Ch 7", title: "Early Medieval Period (800-1200 CE)", url: "" },
-        { id: "anc8", name: "Ch 8", title: "Sangam Period", url: "" }
-    ],
-    medieval: [
-        { id: "med9", name: "Ch 9", title: "Arab and Turkish Invasion", url: "" },
-        { id: "med10", name: "Ch 10", title: "Delhi Sultanate", url: "" },
-        { id: "med11", name: "Ch 11", title: "Vijaynagara and Bahmani Kingdoms", url: "" },
-        { id: "med12", name: "Ch 12", title: "Provincial Kingdoms", url: "" },
-        { id: "med13", name: "Ch 13", title: "Religious Movements of 15th-16th Century", url: "" },
-        { id: "med14", name: "Ch 14", title: "Mughal Empire", url: "" },
-        { id: "med15", name: "Ch 15", title: "Post-Mughal Period (1707-1857)", url: "" },
-        { id: "med16", name: "Ch 16", title: "The Maratha Empire", url: "" }
-    ],
-    modern: [
-        { id: "mod17", name: "Ch 17", title: "Rise of New States", url: "" },
-        { id: "mod18", name: "Ch 18", title: "Advent of European Companies", url: "" },
-        { id: "mod19", name: "Ch 19", title: "British Policies and Economic Impact", url: "" },
-        { id: "mod20", name: "Ch 20", title: "Peasants, Tribal and Trade Union Movements", url: "" },
-        { id: "mod21", name: "Ch 21", title: "Socio-Religious and Cultural Reforms", url: "" },
-        { id: "mod22", name: "Ch 22", title: "Development of Press and Education", url: "" },
-        { id: "mod23", name: "Ch 23", title: "Revolt of 1857", url: "" },
-        { id: "mod24", name: "Ch 24", title: "National Movement Phase-I (1885-1905)", url: "" },
-        { id: "mod25", name: "Ch 25", title: "National Movement Phase-II (1905-1919)", url: "" },
-        { id: "mod26", name: "Ch 26", title: "National Movement Phase-III (1919-1947)", url: "" },
-        { id: "mod27", name: "Ch 27", title: "Communalism and Leftist Politics", url: "" },
-        { id: "mod28", name: "Ch 28", title: "British Governor-Generals and Viceroys", url: "" }
-    ],
-    misc_hist: [
-        { id: "art", name: "Misc", title: "Art, Culture and Traditions", url: "" },
-        { id: "wh", name: "Misc", title: "World History", url: "" }
-    ],
-    world_geog: [
-        { id: "wg1", name: "Ch 1", title: "Universe and Solar System", url: "" },
-        { id: "wg2", name: "Ch 2", title: "The Earth", url: "" },
-        { id: "wg3", name: "Ch 3", title: "Geomorphology", url: "" },
-        { id: "wg4", name: "Ch 4", title: "Climatology", url: "" },
-        { id: "wg5", name: "Ch 5", title: "Oceanography", url: "" },
-        { id: "wg6", name: "Ch 6", title: "Biogeography", url: "" },
-        { id: "wg7", name: "Ch 7", title: "Agriculture Geography", url: "" },
-        { id: "wg8", name: "Ch 8", title: "Minerals and Energy Resources", url: "" },
-        { id: "wg9", name: "Ch 9", title: "Industry and Transport", url: "" },
-        { id: "wg10", name: "Ch 10", title: "Social and Cultural Geography", url: "" },
-        { id: "wg11", name: "Ch 11", title: "Continent and Countries", url: "" }
-    ],
-    indian_geog: [
-        { id: "ig12", name: "Ch 12", title: "General Introduction of India", url: "" },
-        { id: "ig13", name: "Ch 13", title: "Geological Structure", url: "" },
-        { id: "ig14", name: "Ch 14", title: "Physical Division", url: "" },
-        { id: "ig15", name: "Ch 15", title: "Drainage System", url: "" },
-        { id: "ig16", name: "Ch 16", title: "Climate", url: "" },
-        { id: "ig17", name: "Ch 17", title: "Natural Vegetation and Wildlife", url: "" },
-        { id: "ig18", name: "Ch 18", title: "Soils", url: "" },
-        { id: "ig19", name: "Ch 19", title: "Agriculture and Husbandry", url: "" },
-        { id: "ig20", name: "Ch 20", title: "Minerals and Energy", url: "" },
-        { id: "ig21", name: "Ch 21", title: "Industries and Research Centres", url: "" },
-        { id: "ig22", name: "Ch 22", title: "Transportation and Communication", url: "" },
-        { id: "ig23", name: "Ch 23", title: "Human Resources", url: "" },
-        { id: "ig24", name: "Ch 24", title: "States and Union Territories", url: "" }
-    ],
-    env_eco: [
-        { id: "ee25", name: "Ch 25", title: "Environment and Ecology", url: "" },
-        { id: "ee26", name: "Ch 26", title: "Pollution", url: "" },
-        { id: "ee27", name: "Ch 27", title: "Climate Change", url: "" },
-        { id: "ee28", name: "Ch 28", title: "Biodiversity", url: "" },
-        { id: "ee29", name: "Ch 29", title: "Environmental Planning", url: "" },
-        { id: "ee30", name: "Ch 30", title: "Sustainable Development", url: "" }
-    ],
-    pol_chapters: [
-        { id: "pol1", name: "Ch 1", title: "Constitutional Development", url: "" },
-        { id: "pol2", name: "Ch 2", title: "Framing of Indian Constitution", url: "" },
-        { id: "pol3", name: "Ch 3", title: "The Preamble", url: "" },
-        { id: "pol4", name: "Ch 4", title: "Citizenship and Territory", url: "" },
-        { id: "pol5", name: "Ch 5", title: "Fundamental Rights", url: "" },
-        { id: "pol6", name: "Ch 6", title: "Directive Principles (DPSP)", url: "" },
-        { id: "pol7", name: "Ch 7", title: "Fundamental Duties", url: "" },
-        { id: "pol8", name: "Ch 8", title: "Union Executive", url: "" },
-        { id: "pol9", name: "Ch 9", title: "The Union Legislature", url: "" },
-        { id: "pol10", name: "Ch 10", title: "Judiciary", url: "" },
-        { id: "pol11", name: "Ch 11", title: "State Administration", url: "" },
-        { id: "pol12", name: "Ch 12", title: "Centre-State Relationship", url: "" },
-        { id: "pol13", name: "Ch 13", title: "Local Self Government", url: "" },
-        { id: "pol14", name: "Ch 14", title: "Electoral and Party System", url: "" },
-        { id: "pol15", name: "Ch 15", title: "Constitutional Bodies", url: "" },
-        { id: "pol16", name: "Ch 16", title: "Emergency Provisions", url: "" },
-        { id: "pol17", name: "Ch 17", title: "Official Language", url: "" },
-        { id: "pol18", name: "Ch 18", title: "Amendment and Special Provisions", url: "" }
-    ],
-    eco_chapters: [
-        { id: "eco1", name: "Ch 1", title: "Basic Concepts and Structure", url: "" },
-        { id: "eco2", name: "Ch 2", title: "National Income and Development", url: "" },
-        { id: "eco3", name: "Ch 3", title: "Economic Planning", url: "" },
-        { id: "eco4", name: "Ch 4", title: "Poverty and Unemployment", url: "" },
-        { id: "eco5", name: "Ch 5", title: "Indian Agriculture", url: "" },
-        { id: "eco6", name: "Ch 6", title: "Industries and Industrial Policy", url: "" },
-        { id: "eco7", name: "Ch 7", title: "Money and Banking", url: "" },
-        { id: "eco8", name: "Ch 8", title: "Financial Market", url: "" },
-        { id: "eco9", name: "Ch 9", title: "Public Finance", url: "" },
-        { id: "eco10", name: "Ch 10", title: "Balance of Payment", url: "" },
-        { id: "eco11", name: "Ch 11", title: "International Financial Institutions", url: "" }
-    ],
-    physics: [
-        { id: "phy1", name: "Ch 1", title: "Measurement", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQfXLpWNfeCC7PJK_HBlBdeFmOZ3TI4IBeW2GJhvqCzpuW0RUAtARkF-YD5eGlLLZRPdgN1pR8D5CX0/pub?output=csv" },
-        { id: "phy2", name: "Ch 2", title: "Motion", url: "" },
-        { id: "phy3", name: "Ch 3", title: "Forces and Law of Motion", url: "" },
-        { id: "phy4", name: "Ch 4", title: "Work, Energy and Power", url: "" },
-        { id: "phy5", name: "Ch 5", title: "Gravitation", url: "" },
-        { id: "phy6", name: "Ch 6", title: "Mechanical Properties", url: "" },
-        { id: "phy7", name: "Ch 7", title: "Oscillation, Wave and Sound", url: "" },
-        { id: "phy8", name: "Ch 8", title: "Heat and Thermodynamics", url: "" },
-        { id: "phy9", name: "Ch 9", title: "Wave Optics", url: "" },
-        { id: "phy10", name: "Ch 10", title: "Electricity", url: "" },
-        { id: "phy11", name: "Ch 11", title: "Magnetism", url: "" },
-        { id: "phy12", name: "Ch 12", title: "Photoelectric Effect", url: "" },
-        { id: "phy13", name: "Ch 13", title: "Atomic and Nuclear Physics", url: "" },
-        { id: "phy14", name: "Ch 14", title: "Electronics and Semiconductors", url: "" },
-        { id: "phy15", name: "Ch 15", title: "Communication System", url: "" },
-        { id: "phy16", name: "Ch 16", title: "Nano Technology", url: "" }
-    ],
-    chemistry: [
-        { id: "chm1", name: "Ch 1", title: "Atomic Structure and Radioactivity", url: "" },
-        { id: "chm2", name: "Ch 2", title: "Chemical Bonding", url: "" },
-        { id: "chm3", name: "Ch 3", title: "State of Matter", url: "" },
-        { id: "chm4", name: "Ch 4", title: "Acids, Bases and Salts", url: "" },
-        { id: "chm5", name: "Ch 5", title: "Chemical Reactions", url: "" },
-        { id: "chm6", name: "Ch 6", title: "Solutions and Surface Chemistry", url: "" },
-        { id: "chm7", name: "Ch 7", title: "Thermochemistry", url: "" },
-        { id: "chm8", name: "Ch 8", title: "Periodic Classification", url: "" },
-        { id: "chm9", name: "Ch 9", title: "Metal and Its Compounds", url: "" },
-        { id: "chm10", name: "Ch 10", title: "Non-metal and Its Compounds", url: "" },
-        { id: "chm11", name: "Ch 11", title: "Metallurgy", url: "" },
-        { id: "chm12", name: "Ch 12", title: "Organic Chemistry", url: "" },
-        { id: "chm13", name: "Ch 13", title: "Biomolecules and Polymers", url: "" },
-        { id: "chm14", name: "Ch 14", title: "Environmental Chemistry", url: "" },
-        { id: "chm15", name: "Ch 15", title: "Chemistry in Everyday Life", url: "" }
-    ],
-    biology: [
-        { id: "bio1", name: "Ch 1", title: "Classification of Organisms", url: "" },
-        { id: "bio2", name: "Ch 2", title: "Cell Biology", url: "" },
-        { id: "bio3", name: "Ch 3", title: "Structural Organisation", url: "" },
-        { id: "bio4", name: "Ch 4", title: "Plant Physiology", url: "" },
-        { id: "bio5", name: "Ch 5", title: "Animal and Human Physiology", url: "" },
-        { id: "bio6", name: "Ch 6", title: "Genetics and Heredity", url: "" },
-        { id: "bio7", name: "Ch 7", title: "Origin of Life", url: "" },
-        { id: "bio8", name: "Ch 8", title: "Health and Disease", url: "" },
-        { id: "bio9", name: "Ch 9", title: "Economic Botany", url: "" },
-        { id: "bio10", name: "Ch 10", title: "Animal Husbandry", url: "" },
-        { id: "bio11", name: "Ch 11", title: "Biotechnology", url: "" }
-    ],
-    sci_tech: [
-        { id: "st1", name: "Ch 1", title: "Space Technology", url: "" },
-        { id: "st2", name: "Ch 2", title: "Nuclear Energy", url: "" },
-        { id: "st3", name: "Ch 3", title: "Defence", url: "" },
-        { id: "st4", name: "Ch 4", title: "Introduction to Computer", url: "" },
-        { id: "st5", name: "Ch 5", title: "Network and Internet", url: "" },
-        { id: "st6", name: "Ch 6", title: "Telecommunications", url: "" }
-    ],
-    gk_chapters: [
-        { id: "gk1", name: "Ch 1", title: "India and World", url: "" },
-        { id: "gk2", name: "Ch 2", title: "Days and Dates", url: "" },
-        { id: "gk3", name: "Ch 3", title: "Abbreviations and Acronyms", url: "" },
-        { id: "gk4", name: "Ch 4", title: "Books and Authors", url: "" },
-        { id: "gk5", name: "Ch 5", title: "Prominent Personalities", url: "" },
-        { id: "gk6", name: "Ch 6", title: "Awards and Honours", url: "" },
-        { id: "gk7", name: "Ch 7", title: "Organisations and Institutions", url: "" },
-        { id: "gk8", name: "Ch 8", title: "Commissions and Committees", url: "" },
-        { id: "gk9", name: "Ch 9", title: "Sports", url: "" }
-    ]
-};
+        const quizChapters = {
+            ancient: [
+                { id: "anc1", name: "Ch 1", title: "Historical Sources and Pre-Historic Period", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vShhhxNFMbdnZ1-n3P8BXhg1I7KoHhpEdcmdrJMTBdlW6zEINc4WBaXvyYQY2Fi4fyJ-H-7CG5o51Tk/pub?output=csv" },
+                { id: "anc2", name: "Ch 2", title: "Indus Valley Civilisation", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSn8Le6mp2MsuI2MwaVdT9alO2h0LnEMAH3BCw0YoUH5D64dmlrYCy0DwwuUuVZqTSLJMrCO216l50h/pub?output=csv" },
+                { id: "anc3", name: "Ch 3", title: "The Vedic Era and Mahajanapadas", url: "" },
+                { id: "anc4", name: "Ch 4", title: "Religious Movements of 6th Century BCE", url: "" },
+                { id: "anc5", name: "Ch 5", title: "Mauryan and Post-Mauryan Period", url: "" },
+                { id: "anc6", name: "Ch 6", title: "The Gupta and the Post-Gupta Period", url: "" },
+                { id: "anc7", name: "Ch 7", title: "Early Medieval Period (800-1200 CE)", url: "" },
+                { id: "anc8", name: "Ch 8", title: "Sangam Period", url: "" }
+            ],
+            medieval: [
+                { id: "med9", name: "Ch 9", title: "Arab and Turkish Invasion", url: "" },
+                { id: "med10", name: "Ch 10", title: "Delhi Sultanate", url: "" },
+                { id: "med11", name: "Ch 11", title: "Vijaynagara and Bahmani Kingdoms", url: "" },
+                { id: "med12", name: "Ch 12", title: "Provincial Kingdoms", url: "" },
+                { id: "med13", name: "Ch 13", title: "Religious Movements of 15th-16th Century", url: "" },
+                { id: "med14", name: "Ch 14", title: "Mughal Empire", url: "" },
+                { id: "med15", name: "Ch 15", title: "Post-Mughal Period (1707-1857)", url: "" },
+                { id: "med16", name: "Ch 16", title: "The Maratha Empire", url: "" }
+            ],
+            modern: [
+                { id: "mod17", name: "Ch 17", title: "Rise of New States", url: "" },
+                { id: "mod18", name: "Ch 18", title: "Advent of European Companies", url: "" },
+                { id: "mod19", name: "Ch 19", title: "British Policies and Economic Impact", url: "" },
+                { id: "mod20", name: "Ch 20", title: "Peasants, Tribal and Trade Union Movements", url: "" },
+                { id: "mod21", name: "Ch 21", title: "Socio-Religious and Cultural Reforms", url: "" },
+                { id: "mod22", name: "Ch 22", title: "Development of Press and Education", url: "" },
+                { id: "mod23", name: "Ch 23", title: "Revolt of 1857", url: "" },
+                { id: "mod24", name: "Ch 24", title: "National Movement Phase-I (1885-1905)", url: "" },
+                { id: "mod25", name: "Ch 25", title: "National Movement Phase-II (1905-1919)", url: "" },
+                { id: "mod26", name: "Ch 26", title: "National Movement Phase-III (1919-1947)", url: "" },
+                { id: "mod27", name: "Ch 27", title: "Communalism and Leftist Politics", url: "" },
+                { id: "mod28", name: "Ch 28", title: "British Governor-Generals and Viceroys", url: "" }
+            ],
+            misc_hist: [
+                { id: "art", name: "Misc", title: "Art, Culture and Traditions", url: "" },
+                { id: "wh", name: "Misc", title: "World History", url: "" }
+            ],
+            world_geog: [
+                { id: "wg1", name: "Ch 1", title: "Universe and Solar System", url: "" },
+                { id: "wg2", name: "Ch 2", title: "The Earth", url: "" },
+                { id: "wg3", name: "Ch 3", title: "Geomorphology", url: "" },
+                { id: "wg4", name: "Ch 4", title: "Climatology", url: "" },
+                { id: "wg5", name: "Ch 5", title: "Oceanography", url: "" },
+                { id: "wg6", name: "Ch 6", title: "Biogeography", url: "" },
+                { id: "wg7", name: "Ch 7", title: "Agriculture Geography", url: "" },
+                { id: "wg8", name: "Ch 8", title: "Minerals and Energy Resources", url: "" },
+                { id: "wg9", name: "Ch 9", title: "Industry and Transport", url: "" },
+                { id: "wg10", name: "Ch 10", title: "Social and Cultural Geography", url: "" },
+                { id: "wg11", name: "Ch 11", title: "Continent and Countries", url: "" }
+            ],
+            indian_geog: [
+                { id: "ig12", name: "Ch 12", title: "General Introduction of India", url: "" },
+                { id: "ig13", name: "Ch 13", title: "Geological Structure", url: "" },
+                { id: "ig14", name: "Ch 14", title: "Physical Division", url: "" },
+                { id: "ig15", name: "Ch 15", title: "Drainage System", url: "" },
+                { id: "ig16", name: "Ch 16", title: "Climate", url: "" },
+                { id: "ig17", name: "Ch 17", title: "Natural Vegetation and Wildlife", url: "" },
+                { id: "ig18", name: "Ch 18", title: "Soils", url: "" },
+                { id: "ig19", name: "Ch 19", title: "Agriculture and Husbandry", url: "" },
+                { id: "ig20", name: "Ch 20", title: "Minerals and Energy", url: "" },
+                { id: "ig21", name: "Ch 21", title: "Industries and Research Centres", url: "" },
+                { id: "ig22", name: "Ch 22", title: "Transportation and Communication", url: "" },
+                { id: "ig23", name: "Ch 23", title: "Human Resources", url: "" },
+                { id: "ig24", name: "Ch 24", title: "States and Union Territories", url: "" }
+            ],
+            env_eco: [
+                { id: "ee25", name: "Ch 25", title: "Environment and Ecology", url: "" },
+                { id: "ee26", name: "Ch 26", title: "Pollution", url: "" },
+                { id: "ee27", name: "Ch 27", title: "Climate Change", url: "" },
+                { id: "ee28", name: "Ch 28", title: "Biodiversity", url: "" },
+                { id: "ee29", name: "Ch 29", title: "Environmental Planning", url: "" },
+                { id: "ee30", name: "Ch 30", title: "Sustainable Development", url: "" }
+            ],
+            pol_chapters: [
+                { id: "pol1", name: "Ch 1", title: "Constitutional Development", url: "" },
+                { id: "pol2", name: "Ch 2", title: "Framing of Indian Constitution", url: "" },
+                { id: "pol3", name: "Ch 3", title: "The Preamble", url: "" },
+                { id: "pol4", name: "Ch 4", title: "Citizenship and Territory", url: "" },
+                { id: "pol5", name: "Ch 5", title: "Fundamental Rights", url: "" },
+                { id: "pol6", name: "Ch 6", title: "Directive Principles (DPSP)", url: "" },
+                { id: "pol7", name: "Ch 7", title: "Fundamental Duties", url: "" },
+                { id: "pol8", name: "Ch 8", title: "Union Executive", url: "" },
+                { id: "pol9", name: "Ch 9", title: "The Union Legislature", url: "" },
+                { id: "pol10", name: "Ch 10", title: "Judiciary", url: "" },
+                { id: "pol11", name: "Ch 11", title: "State Administration", url: "" },
+                { id: "pol12", name: "Ch 12", title: "Centre-State Relationship", url: "" },
+                { id: "pol13", name: "Ch 13", title: "Local Self Government", url: "" },
+                { id: "pol14", name: "Ch 14", title: "Electoral and Party System", url: "" },
+                { id: "pol15", name: "Ch 15", title: "Constitutional Bodies", url: "" },
+                { id: "pol16", name: "Ch 16", title: "Emergency Provisions", url: "" },
+                { id: "pol17", name: "Ch 17", title: "Official Language", url: "" },
+                { id: "pol18", name: "Ch 18", title: "Amendment and Special Provisions", url: "" }
+            ],
+            eco_chapters: [
+                { id: "eco1", name: "Ch 1", title: "Basic Concepts and Structure", url: "" },
+                { id: "eco2", name: "Ch 2", title: "National Income and Development", url: "" },
+                { id: "eco3", name: "Ch 3", title: "Economic Planning", url: "" },
+                { id: "eco4", name: "Ch 4", title: "Poverty and Unemployment", url: "" },
+                { id: "eco5", name: "Ch 5", title: "Indian Agriculture", url: "" },
+                { id: "eco6", name: "Ch 6", title: "Industries and Industrial Policy", url: "" },
+                { id: "eco7", name: "Ch 7", title: "Money and Banking", url: "" },
+                { id: "eco8", name: "Ch 8", title: "Financial Market", url: "" },
+                { id: "eco9", name: "Ch 9", title: "Public Finance", url: "" },
+                { id: "eco10", name: "Ch 10", title: "Balance of Payment", url: "" },
+                { id: "eco11", name: "Ch 11", title: "International Financial Institutions", url: "" }
+            ],
+            physics: [
+                { id: "phy1", name: "Ch 1", title: "Measurement", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQfXLpWNfeCC7PJK_HBlBdeFmOZ3TI4IBeW2GJhvqCzpuW0RUAtARkF-YD5eGlLLZRPdgN1pR8D5CX0/pub?output=csv" },
+                { id: "phy2", name: "Ch 2", title: "Motion", url: "" },
+                { id: "phy3", name: "Ch 3", title: "Forces and Law of Motion", url: "" },
+                { id: "phy4", name: "Ch 4", title: "Work, Energy and Power", url: "" },
+                { id: "phy5", name: "Ch 5", title: "Gravitation", url: "" },
+                { id: "phy6", name: "Ch 6", title: "Mechanical Properties", url: "" },
+                { id: "phy7", name: "Ch 7", title: "Oscillation, Wave and Sound", url: "" },
+                { id: "phy8", name: "Ch 8", title: "Heat and Thermodynamics", url: "" },
+                { id: "phy9", name: "Ch 9", title: "Wave Optics", url: "" },
+                { id: "phy10", name: "Ch 10", title: "Electricity", url: "" },
+                { id: "phy11", name: "Ch 11", title: "Magnetism", url: "" },
+                { id: "phy12", name: "Ch 12", title: "Photoelectric Effect", url: "" },
+                { id: "phy13", name: "Ch 13", title: "Atomic and Nuclear Physics", url: "" },
+                { id: "phy14", name: "Ch 14", title: "Electronics and Semiconductors", url: "" },
+                { id: "phy15", name: "Ch 15", title: "Communication System", url: "" },
+                { id: "phy16", name: "Ch 16", title: "Nano Technology", url: "" }
+            ],
+            chemistry: [
+                { id: "chm1", name: "Ch 1", title: "Atomic Structure and Radioactivity", url: "" },
+                { id: "chm2", name: "Ch 2", title: "Chemical Bonding", url: "" },
+                { id: "chm3", name: "Ch 3", title: "State of Matter", url: "" },
+                { id: "chm4", name: "Ch 4", title: "Acids, Bases and Salts", url: "" },
+                { id: "chm5", name: "Ch 5", title: "Chemical Reactions", url: "" },
+                { id: "chm6", name: "Ch 6", title: "Solutions and Surface Chemistry", url: "" },
+                { id: "chm7", name: "Ch 7", title: "Thermochemistry", url: "" },
+                { id: "chm8", name: "Ch 8", title: "Periodic Classification", url: "" },
+                { id: "chm9", name: "Ch 9", title: "Metal and Its Compounds", url: "" },
+                { id: "chm10", name: "Ch 10", title: "Non-metal and Its Compounds", url: "" },
+                { id: "chm11", name: "Ch 11", title: "Metallurgy", url: "" },
+                { id: "chm12", name: "Ch 12", title: "Organic Chemistry", url: "" },
+                { id: "chm13", name: "Ch 13", title: "Biomolecules and Polymers", url: "" },
+                { id: "chm14", name: "Ch 14", title: "Environmental Chemistry", url: "" },
+                { id: "chm15", name: "Ch 15", title: "Chemistry in Everyday Life", url: "" }
+            ],
+            biology: [
+                { id: "bio1", name: "Ch 1", title: "Classification of Organisms", url: "" },
+                { id: "bio2", name: "Ch 2", title: "Cell Biology", url: "" },
+                { id: "bio3", name: "Ch 3", title: "Structural Organisation", url: "" },
+                { id: "bio4", name: "Ch 4", title: "Plant Physiology", url: "" },
+                { id: "bio5", name: "Ch 5", title: "Animal and Human Physiology", url: "" },
+                { id: "bio6", name: "Ch 6", title: "Genetics and Heredity", url: "" },
+                { id: "bio7", name: "Ch 7", title: "Origin of Life", url: "" },
+                { id: "bio8", name: "Ch 8", title: "Health and Disease", url: "" },
+                { id: "bio9", name: "Ch 9", title: "Economic Botany", url: "" },
+                { id: "bio10", name: "Ch 10", title: "Animal Husbandry", url: "" },
+                { id: "bio11", name: "Ch 11", title: "Biotechnology", url: "" }
+            ],
+            sci_tech: [
+                { id: "st1", name: "Ch 1", title: "Space Technology", url: "" },
+                { id: "st2", name: "Ch 2", title: "Nuclear Energy", url: "" },
+                { id: "st3", name: "Ch 3", title: "Defence", url: "" },
+                { id: "st4", name: "Ch 4", title: "Introduction to Computer", url: "" },
+                { id: "st5", name: "Ch 5", title: "Network and Internet", url: "" },
+                { id: "st6", name: "Ch 6", title: "Telecommunications", url: "" }
+            ],
+            gk_chapters: [
+                { id: "gk1", name: "Ch 1", title: "India and World", url: "" },
+                { id: "gk2", name: "Ch 2", title: "Days and Dates", url: "" },
+                { id: "gk3", name: "Ch 3", title: "Abbreviations and Acronyms", url: "" },
+                { id: "gk4", name: "Ch 4", title: "Books and Authors", url: "" },
+                { id: "gk5", name: "Ch 5", title: "Prominent Personalities", url: "" },
+                { id: "gk6", name: "Ch 6", title: "Awards and Honours", url: "" },
+                { id: "gk7", name: "Ch 7", title: "Organisations and Institutions", url: "" },
+                { id: "gk8", name: "Ch 8", title: "Commissions and Committees", url: "" },
+                { id: "gk9", name: "Ch 9", title: "Sports", url: "" }
+            ]
+        };
     </script>
     <script>
-const CACHE_KEY = "global_gs_smart_v2";
-let questions = [], activeChapter = null, currentSubKey = null, score = 0, wrong = 0, attempted = 0, timerId, startTime;
+        const CACHE_KEY = "global_gs_smart_v2";
+        let questions = [], activeChapter = null, currentSubKey = null, score = 0, wrong = 0, attempted = 0, timerId, startTime;
 
-document.addEventListener('DOMContentLoaded', () => { resetToHome(); preFetchAllData(); });
+        document.addEventListener('DOMContentLoaded', () => { resetToHome(); });
 
-async function preFetchAllData() {
-    const cache = JSON.parse(localStorage.getItem(CACHE_KEY)) || {};
-    const now = Date.now();
-    let updated = false;
-    for (const sub in quizChapters) {
-        for (const ch of quizChapters[sub]) {
-            if (ch.url && (!cache[ch.id] || (now - cache[ch.id].timestamp > 3600000))) {
-                try {
-                    const res = await fetch(ch.url);
-                    if (res.ok) {
-                        const text = await res.text();
-                        cache[ch.id] = { data: parseCSV(text), timestamp: now };
-                        updated = true;
-                    }
-                } catch (e) {}
+        function parseCSV(text) {
+            const lines = text.split('\n').filter(l => l.trim() !== "");
+            if (lines.length < 2) return [];
+
+            const headers = lines[0].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(h => h.replace(/^"|"$/g, '').trim().toLowerCase());
+            const hasTableColumn = headers.some(h => h.includes('table'));
+
+            return lines.slice(1).map(row => {
+                const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c ? c.replace(/^"|"$/g, '').trim() : '');
+
+                if (hasTableColumn || cols.length >= 8) {
+                    return {
+                        q: cols[1] || '',
+                        tbl: cols[2] || '',
+                        opts: [cols[3] || '', cols[4] || '', cols[5] || '', cols[6] || ''],
+                        ans: cols[7] || ''
+                    };
+                } else {
+                    return {
+                        q: cols[1] || '',
+                        tbl: '',
+                        opts: [cols[2] || '', cols[3] || '', cols[4] || '', cols[5] || ''],
+                        ans: cols[6] || ''
+                    };
+                }
+            });
+        }
+
+        function renderCategories() {
+            document.getElementById('folderBackBtn').classList.add('hidden');
+            const container = document.getElementById('mainSection');
+            container.innerHTML = categories.map(cat => `
+                <div class="nav-card text-white tunable-glass tunable-glass-hover" onclick="showSubChapters('${cat.id}')">
+                    <i data-lucide="${cat.icon}" class="w-10 h-10 mb-2 drop-shadow-md"></i>
+                    <h2 class="text-[12px] font-bold uppercase tracking-widest drop-shadow-sm">${cat.name}</h2>
+                </div>`).join('');
+            lucide.createIcons();
+        }
+
+        function showSubChapters(catId) {
+            const cat = categories.find(c => c.id === catId);
+            document.getElementById('folderBackBtn').classList.remove('hidden');
+            const container = document.getElementById('mainSection');
+            const cache = JSON.parse(localStorage.getItem(CACHE_KEY)) || {};
+
+            container.innerHTML = cat.sub.flatMap(subKey => (quizChapters[subKey] || []).map(ch => {
+                const s = JSON.parse(localStorage.getItem(ch.id + '_stats')) || { correct: 0, attempted: 0 };
+                const actualTotal = cache[ch.id] ? cache[ch.id].data.length : "?";
+
+                // Progress Logic
+                const accPct = s.attempted > 0 ? Math.round((s.correct / s.attempted) * 100) : 0;
+                const progressPct = actualTotal !== "?" && actualTotal > 0 ? Math.round((s.attempted / actualTotal) * 100) : 0;
+
+                return `
+                <div class="nav-card text-white tunable-glass tunable-glass-hover" onclick="initiateChapter('${subKey}', '${ch.id}')">
+                    <h3 class="text-[9px] font-black uppercase opacity-90 mb-1 drop-shadow-md">${ch.name}</h3>
+                    <h2 class="text-[10px] font-bold mb-2 truncate w-full px-1 drop-shadow-sm">${ch.title}</h2>
+
+                    <div class="w-full px-2 mt-auto">
+                        <div class="flex justify-between text-[8px] font-bold opacity-90 mb-1">
+                            <span>Acc: ${accPct}%</span>
+                            <span>${s.correct}/${actualTotal}</span>
+                        </div>
+                        <div class="w-full bg-white/20 rounded-full h-1.5 mb-1">
+                            <div class="bg-success h-1.5 rounded-full" style="width: ${progressPct}%"></div>
+                        </div>
+                    </div>
+                </div>`;
+            })).join('');
+            currentSubKey = catId;
+        }
+
+        // 100px Custom Loading Handlers
+        function showLoadingOverlay(show) {
+            const overlay = document.getElementById('loadingOverlay');
+            if (show) {
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+                updateLoadingProgress(0);
+            } else {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
             }
         }
-    }
-    if (updated) { localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); if(currentSubKey) showSubChapters(currentSubKey); }
-}
 
-function parseCSV(text) {
-    const lines = text.split('\n').filter(l => l.trim() !== "");
-    if (lines.length < 2) return [];
-
-    const headers = lines[0].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(h => h.replace(/^"|"$/g, '').trim().toLowerCase());
-    const hasTableColumn = headers.some(h => h.includes('table'));
-
-    return lines.slice(1).map(row => {
-        const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c ? c.replace(/^"|"$/g, '').trim() : '');
-
-        if (hasTableColumn || cols.length >= 8) {
-            return {
-                q: cols[1] || '',
-                tbl: cols[2] || '',
-                opts: [cols[3] || '', cols[4] || '', cols[5] || '', cols[6] || ''],
-                ans: cols[7] || ''
-            };
-        } else {
-            return {
-                q: cols[1] || '',
-                tbl: '',
-                opts: [cols[2] || '', cols[3] || '', cols[4] || '', cols[5] || ''],
-                ans: cols[6] || ''
-            };
+        function updateLoadingProgress(pct) {
+            document.getElementById('loadingRadial').style.setProperty('--value', pct);
+            document.getElementById('loadingPercent').innerText = pct + '%';
         }
-    });
-}
 
-function renderCategories() {
-    document.getElementById('folderBackBtn').classList.add('hidden');
-    const container = document.getElementById('mainSection');
-    container.innerHTML = categories.map(cat => `
-        <div class="nav-card text-white" onclick="showSubChapters('${cat.id}')">
-            <i data-lucide="${cat.icon}" class="w-10 h-10 mb-2 drop-shadow-md"></i>
-            <h2 class="text-[12px] font-bold uppercase tracking-widest drop-shadow-sm">${cat.name}</h2>
-        </div>`).join('');
-    lucide.createIcons();
-}
+        async function initiateChapter(subKey, chId) {
+            const chapter = quizChapters[subKey].find(c => c.id === chId);
+            if (!chapter.url) return alert("Content coming soon!");
 
-function showSubChapters(catId) {
-    const cat = categories.find(c => c.id === catId);
-    document.getElementById('folderBackBtn').classList.remove('hidden');
-    const container = document.getElementById('mainSection');
-    const cache = JSON.parse(localStorage.getItem(CACHE_KEY)) || {};
+            const cache = JSON.parse(localStorage.getItem(CACHE_KEY)) || {};
+            const now = Date.now();
 
-    container.innerHTML = cat.sub.flatMap(subKey => (quizChapters[subKey] || []).map(ch => {
-        const s = JSON.parse(localStorage.getItem(ch.id + '_stats')) || { correct: 0, attempted: 0 };
-        const actualTotal = cache[ch.id] ? cache[ch.id].data.length : "?";
-        const acc = s.attempted > 0 ? Math.round((s.correct / s.attempted) * 100) : 0;
-        return `
-        <div class="nav-card text-white" onclick="initiateChapter('${subKey}', '${ch.id}')">
-            <h3 class="text-[9px] font-black uppercase opacity-90 mb-1 drop-shadow-md">${ch.name}</h3>
-            <h2 class="text-[10px] font-bold mb-2 truncate w-full px-1 drop-shadow-sm">${ch.title}</h2>
-            <div class="flex flex-col items-center mb-2 space-y-0.5">
-                <p class="text-[9px] font-bold opacity-100 drop-shadow-md">Prog: <span class="text-white drop-shadow-lg">${s.correct}/${actualTotal}</span></p>
-                <p class="text-[9px] font-bold opacity-100 drop-shadow-md">Acc: <span class="text-white drop-shadow-lg">${acc}%</span></p>
-            </div>
-        </div>`;
-    })).join('');
-    currentSubKey = catId;
-}
+            if (cache[chId] && (now - cache[chId].timestamp < 3600000)) {
+                questions = cache[chId].data;
+                activeChapter = chapter;
+                startQuiz();
+            } else {
+                showLoadingOverlay(true);
+                let simProgress = 0;
 
-async function initiateChapter(subKey, chId) {
-    const chapter = quizChapters[subKey].find(c => c.id === chId);
-    if (!chapter.url) return alert("Content coming soon!");
-    const cache = JSON.parse(localStorage.getItem(CACHE_KEY)) || {};
-    if (cache[chId]) { questions = cache[chId].data; activeChapter = chapter; startQuiz(); }
-    else { alert("Loading data..."); }
-}
+                // Simulating progress while waiting for header/response (since Google Sheets doesn't send exact content-length)
+                let pInterval = setInterval(() => {
+                    simProgress += Math.floor(Math.random() * 15) + 5;
+                    if (simProgress > 95) simProgress = 95;
+                    updateLoadingProgress(simProgress);
+                }, 150);
 
-function startQuiz() {
-    score = 0; wrong = 0; attempted = 0;
-    showView('quiz');
-    document.getElementById('questionsContainer').innerHTML = questions.map((q, i) => `
-        <div id="q-${i}" class="bg-black/10 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-xl text-white">
-            <span class="q-tag text-white drop-shadow-md">Q${i+1}</span>
-            <p class="font-medium mb-4 leading-relaxed text-sm drop-shadow-md">${q.q}</p>
-            ${q.tbl ? `<div class="overflow-x-auto">${q.tbl}</div>` : ''}
-            <div class="grid gap-2">${q.opts.map((opt, oi) => `<button class="btn btn-ghost justify-start h-auto py-4 px-4 text-left border border-white/10 text-xs option-btn text-white hover:bg-black/20 drop-shadow-md" onclick="handleTap(${i}, this, '${oi+1}')">${opt}</button>`).join('')}</div>
-        </div>`).join('');
-    startTime = Date.now();
-    timerId = setInterval(() => { const d = Math.floor((Date.now()-startTime)/1000); document.getElementById('timerDisplay').innerText = `${Math.floor(d/60).toString().padStart(2,'0')}:${(d%60).toString().padStart(2,'0')}`; }, 1000);
-}
+                try {
+                    const res = await fetch(chapter.url);
+                    if (res.ok) {
+                        const text = await res.text();
+                        clearInterval(pInterval);
+                        updateLoadingProgress(100);
 
-function handleTap(idx, btn, choice) {
-    const card = document.getElementById(`q-${idx}`);
-    if (card.classList.contains('answered')) return;
-    card.classList.add('answered');
-    const q = questions[idx]; attempted++;
-    if (choice === q.ans) { btn.classList.add('correct'); score++; }
-    else { btn.classList.add('incorrect'); wrong++; const b = card.querySelectorAll('.option-btn'); if (b[q.ans-1]) b[q.ans-1].classList.add('correct'); }
-    document.getElementById('qsAttempted').innerText = attempted;
-    document.getElementById('qsCorrect').innerText = score;
-    document.getElementById('qsIncorrect').innerText = wrong;
-    document.getElementById('qsAccuracy').innerText = attempted > 0 ? Math.round((score/attempted)*100) + "%" : "0%";
-    setTimeout(() => { const next = card.nextElementSibling; if(next) next.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 800);
-}
+                        cache[chId] = { data: parseCSV(text), timestamp: now };
+                        localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
 
-function finishQuiz() {
-    localStorage.setItem(activeChapter.id + '_stats', JSON.stringify({ correct: score, attempted: attempted }));
-    exitQuizMode();
-}
+                        setTimeout(() => {
+                            showLoadingOverlay(false);
+                            questions = cache[chId].data;
+                            activeChapter = chapter;
+                            startQuiz();
+                        }, 400);
+                    } else {
+                        throw new Error("Failed");
+                    }
+                } catch (e) {
+                    clearInterval(pInterval);
+                    showLoadingOverlay(false);
+                    alert("Failed to load chapter data.");
+                }
+            }
+        }
 
-function exitQuizMode() { clearInterval(timerId); showView('main'); if (currentSubKey) showSubChapters(currentSubKey); else renderCategories(); }
-function resetToHome() { currentSubKey = null; showView('main'); renderCategories(); }
-function goBack() { if(currentSubKey) resetToHome(); }
+        function startQuiz() {
+            score = 0; wrong = 0; attempted = 0;
+            showView('quiz');
 
-function showView(v) {
-    document.querySelectorAll('.view').forEach(e => e.classList.add('hidden'));
-    document.getElementById(v + 'Section').classList.remove('hidden');
-    document.getElementById('navbar').style.display = (v === 'quiz') ? 'none' : 'flex';
-    document.getElementById('bottomNavBar').classList.toggle('hidden', v !== 'quiz');
-    if(v === 'insights') updateInsights();
-    setTimeout(() => lucide.createIcons(), 50);
-}
+            document.getElementById('questionsContainer').innerHTML = questions.map((q, i) => `
+                <div id="q-${i}" class="tunable-glass p-6 rounded-3xl shadow-xl text-white">
+                    <span class="q-tag text-white drop-shadow-md">Q${i + 1}</span>
+                    <p class="font-medium mb-4 leading-relaxed text-sm drop-shadow-md">${q.q}</p>
+                    ${q.tbl ? `<div class="overflow-x-auto">${q.tbl}</div>` : ''}
+                    <div class="grid gap-2">${q.opts.map((opt, oi) => `<button class="btn btn-ghost justify-start h-auto py-4 px-4 text-left border border-white/10 text-xs option-btn text-white tunable-glass-hover drop-shadow-md" onclick="handleTap(${i}, this, '${oi + 1}')">${opt}</button>`).join('')}</div>
+                </div>`).join('');
+            startTime = Date.now();
+            timerId = setInterval(() => {
+                const d = Math.floor((Date.now() - startTime) / 1000);
+                document.getElementById('timerDisplay').innerText = `${Math.floor(d / 60).toString().padStart(2, '0')}:${(d % 60).toString().padStart(2, '0')}`;
+            }, 1000);
+        }
 
-function updateInsights() {
-    const s = JSON.parse(localStorage.getItem("_historical_sessions")) || [];
-    let totalC = 0, totalA = 0;
-    s.forEach(h => { totalC += h.correct; totalA += h.attempted; });
-    const acc = totalA > 0 ? Math.round((totalC / totalA) * 100) : 0;
-    document.getElementById('dashboardRadial').style.setProperty('--value', acc);
-    document.getElementById('radialPercent').innerText = acc + "%";
-    document.getElementById('statCorrect').innerText = totalC;
-    document.getElementById('statIncorrect').innerText = totalA - totalC;
-    document.getElementById('statAttempted').innerText = totalA;
-}
+        function handleTap(idx, btn, choice) {
+            const card = document.getElementById(`q-${idx}`);
+            if (card.classList.contains('answered')) return;
+            card.classList.add('answered');
+            const q = questions[idx]; attempted++;
+            if (choice === q.ans) { btn.classList.add('correct'); score++; }
+            else { btn.classList.add('incorrect'); wrong++; const b = card.querySelectorAll('.option-btn'); if (b[q.ans - 1]) b[q.ans - 1].classList.add('correct'); }
+            document.getElementById('qsAttempted').innerText = attempted;
+            document.getElementById('qsCorrect').innerText = score;
+            document.getElementById('qsIncorrect').innerText = wrong;
+            document.getElementById('qsAccuracy').innerText = attempted > 0 ? Math.round((score / attempted) * 100) + "%" : "0%";
+            setTimeout(() => { const next = card.nextElementSibling; if (next) next.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 800);
+        }
 
-function openMixModal() {
-    const list = document.getElementById('mixCategoryList');
-    list.innerHTML = categories.map(cat => `<div class="bg-black/10 border border-white/5 p-4 rounded-xl mb-4"><h4 class="font-bold text-sm mb-2 opacity-90 text-white drop-shadow-md uppercase">${cat.name}</h4>${cat.sub.flatMap(s => (quizChapters[s] || []).map(ch => `<div class="flex items-center gap-3 py-1"><input type="checkbox" value="${ch.id}" class="checkbox checkbox-primary border-white/40 checkbox-sm mix-ch-check"><span class="text-xs drop-shadow-md">${ch.title}</span></div>`)).join('')}</div>`).join('');
-    document.getElementById('mixQuizModal').showModal();
-}
+        function finishQuiz() {
+            localStorage.setItem(activeChapter.id + '_stats', JSON.stringify({ correct: score, attempted: attempted }));
+            exitQuizMode();
+        }
 
-function generateMixQuiz() {
-    const selected = Array.from(document.querySelectorAll('.mix-ch-check:checked'));
-    if(selected.length === 0) return alert("Select at least one!");
-    document.getElementById('mixQuizModal').close();
-    let mixed = []; const cache = JSON.parse(localStorage.getItem(CACHE_KEY));
-    for(const el of selected) { if (cache[el.value]) mixed.push(...cache[el.value].data); }
-    questions = mixed.sort(() => 0.5 - Math.random()).slice(0, 100);
-    activeChapter = { id: "mix", title: "Mixed Session", total: questions.length };
-    startQuiz();
-}
+        function exitQuizMode() { clearInterval(timerId); showView('main'); if (currentSubKey) showSubChapters(currentSubKey); else renderCategories(); }
+        function resetToHome() { currentSubKey = null; showView('main'); renderCategories(); }
+        function goBack() { if (currentSubKey) resetToHome(); }
+
+        function showView(v) {
+            document.querySelectorAll('.view').forEach(e => e.classList.add('hidden'));
+            document.getElementById(v + 'Section').classList.remove('hidden');
+            document.getElementById('navbar').style.display = (v === 'quiz') ? 'none' : 'flex';
+            document.getElementById('bottomNavBar').classList.toggle('hidden', v !== 'quiz');
+            if (v === 'insights') updateInsights();
+            setTimeout(() => lucide.createIcons(), 50);
+        }
+
+        function updateInsights() {
+            const s = JSON.parse(localStorage.getItem("_historical_sessions")) || [];
+            let totalC = 0, totalA = 0;
+            s.forEach(h => { totalC += h.correct; totalA += h.attempted; });
+            const acc = totalA > 0 ? Math.round((totalC / totalA) * 100) : 0;
+            document.getElementById('dashboardRadial').style.setProperty('--value', acc);
+            document.getElementById('radialPercent').innerText = acc + "%";
+            document.getElementById('statCorrect').innerText = totalC;
+            document.getElementById('statIncorrect').innerText = totalA - totalC;
+            document.getElementById('statAttempted').innerText = totalA;
+        }
+
+        function openMixModal() {
+            const list = document.getElementById('mixCategoryList');
+            list.innerHTML = categories.map(cat => `<div class="tunable-glass p-4 rounded-xl mb-4"><h4 class="font-bold text-sm mb-2 opacity-90 text-white drop-shadow-md uppercase">${cat.name}</h4>${cat.sub.flatMap(s => (quizChapters[s] || []).map(ch => `<div class="flex items-center gap-3 py-1"><input type="checkbox" value="${ch.id}" class="checkbox checkbox-primary border-white/40 checkbox-sm mix-ch-check"><span class="text-xs drop-shadow-md">${ch.title}</span></div>`)).join('')}</div>`).join('');
+            document.getElementById('mixQuizModal').showModal();
+        }
+
+        function generateMixQuiz() {
+            const selected = Array.from(document.querySelectorAll('.mix-ch-check:checked'));
+            if (selected.length === 0) return alert("Select at least one!");
+            document.getElementById('mixQuizModal').close();
+            let mixed = []; const cache = JSON.parse(localStorage.getItem(CACHE_KEY)) || {};
+
+            for (const el of selected) {
+                if (cache[el.value]) mixed.push(...cache[el.value].data);
+            }
+
+            if (mixed.length === 0) return alert("Selected chapters have not been loaded yet! Tap them first.");
+
+            questions = mixed.sort(() => 0.5 - Math.random()).slice(0, 100);
+            activeChapter = { id: "mix", title: "Mixed Session", total: questions.length };
+            startQuiz();
+        }
     </script>
 </body>
 </html>
