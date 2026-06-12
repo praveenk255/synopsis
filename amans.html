@@ -5,204 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Resume Builder Studio</title>
     
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Cropper.js -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
-        * {
-            box-sizing: border-box;
-            font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #f1f5f9;
-            color: #0f172a;
-        }
-
-        /* --- BUILDER UI (SCREEN ONLY) --- */
-        @media screen {
-            .print-only {
-                display: none !important;
-            }
-
-            .builder-wrapper {
-                max-width: 600px;
-                margin: 0 auto;
-                background: #ffffff;
-                min-height: 100vh;
-                box-shadow: 0 0 20px rgba(0,0,0,0.05);
-            }
-
-            .builder-header {
-                padding: 25px 20px;
-                background: #1e293b;
-                color: #ffffff;
-            }
-
-            .builder-header h2 {
-                margin: 0 0 5px 0;
-                font-size: 22px;
-                color: #ffffff;
-                border: none;
-            }
-            
-            .builder-header p {
-                margin: 0;
-                font-size: 13px;
-                color: #94a3b8;
-            }
-
-            .btn-clear { 
-                background: #fef2f2; 
-                color: #ef4444; 
-                border: 1px solid #f87171; 
-                padding: 12px;
-                font-weight: 700; 
-                border-radius: 6px; 
-                cursor: pointer; 
-                transition: 0.2s; 
-                font-size: 14px;
-                width: 100%;
-                margin-top: 15px;
-            }
-            .btn-clear:hover { background: #fee2e2; }
-
-            .form-section {
-                padding: 25px 20px;
-                border-bottom: 8px solid #f1f5f9;
-            }
-
-            .form-section h3 {
-                margin-top: 0;
-                color: #0284c7;
-                font-size: 15px;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                margin-bottom: 20px;
-                padding-bottom: 10px;
-                border-bottom: 2px solid #e2e8f0;
-            }
-
-            .input-group {
-                margin-bottom: 15px;
-            }
-
-            .input-group label {
-                display: block;
-                font-size: 13px;
-                font-weight: 600;
-                color: #475569;
-                margin-bottom: 6px;
-            }
-
-            .input-group input, .input-group textarea, .input-group select {
-                width: 100%;
-                padding: 12px;
-                font-size: 15px; 
-                border: 1px solid #cbd5e1;
-                border-radius: 8px;
-                background-color: #f8fafc;
-                outline: none;
-                transition: 0.2s;
-            }
-
-            .input-group input:focus, .input-group textarea:focus, .input-group select:focus {
-                border-color: #0284c7;
-                background-color: #ffffff;
-                box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
-            }
-
-            .input-group textarea {
-                min-height: 80px;
-                resize: vertical;
-            }
-
-            .row-inputs {
-                display: flex;
-                gap: 12px;
-            }
-
-            .photo-upload-btn {
-                background: #f0f9ff;
-                border: 2px dashed #7dd3fc;
-                color: #0284c7;
-                padding: 20px;
-                border-radius: 8px;
-                text-align: center;
-                font-weight: 600;
-                font-size: 14px;
-                cursor: pointer;
-                transition: 0.2s;
-            }
-
-            .photo-upload-btn:hover {
-                background: #e0f2fe;
-                border-color: #38bdf8;
-            }
-
-            .dynamic-block {
-                border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px;
-                margin-bottom: 15px; position: relative; background: #f8fafc;
-            }
-            
-            .remove-btn {
-                position: absolute; top: 10px; right: 10px; background: #fee2e2; color: #ef4444;
-                border: none; border-radius: 4px; padding: 4px 8px; font-size: 12px; font-weight: bold; cursor: pointer;
-            }
-
-            .add-btn {
-                background: #e0f2fe; color: #0284c7; border: 1px dashed #0284c7; padding: 12px;
-                width: 100%; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;
-            }
-
-            .bottom-action-area {
-                padding: 30px 20px 40px 20px;
-                background: #ffffff;
-            }
-
-            .btn-download { 
-                background: #0284c7; 
-                color: #ffffff; 
-                border: none; 
-                padding: 16px; 
-                font-weight: 700; 
-                border-radius: 8px; 
-                cursor: pointer; 
-                transition: 0.2s; 
-                font-size: 16px;
-                width: 100%;
-                box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.4);
-            }
-            .btn-download:hover { background: #0369a1; }
-
-            /* Cropper Modal */
-            .cropper-modal {
-                display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(15, 23, 42, 0.95); z-index: 9999; justify-content: center; align-items: center; padding: 15px;
-            }
-            .cropper-container-box { background: #ffffff; padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; }
-            .cropper-container-box h4 { margin-top: 0; font-size: 18px; margin-bottom: 15px; }
-            .img-container { width: 100%; max-height: 50vh; margin-bottom: 20px; background: #e2e8f0; display: block; }
-            .img-container img { max-width: 100%; display: block; }
-            .modal-actions { display: flex; gap: 10px; }
-            .modal-actions button { flex: 1; padding: 12px; font-weight: bold; border-radius: 8px; border: none; font-size: 15px; cursor:pointer;}
-            .btn-cancel { background: #e2e8f0; color: #475569; }
-            .btn-apply { background: #0284c7; color: #fff; }
-        }
-
         /* --- PRINT READY RESUME SHEET (PRINT ONLY) --- */
         @media print {
             .screen-only { display: none !important; }
             .print-only { display: block !important; position: static !important; visibility: visible !important; }
             
             @page { size: A4; margin: 0; }
-            body { background-color: #ffffff; padding: 0; margin: 0; }
+            body { background-color: #ffffff; padding: 0; margin: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 
             .resume-sheet {
                 width: 210mm;
-                height: 297mm; /* Enforce single A4 page */
+                height: 297mm;
                 margin: 0;
                 padding: 0;
                 background: #ffffff;
@@ -218,7 +42,7 @@
                 width: 33%;
                 background-color: #f4f6f8 !important;
                 color: #1a252f;
-                padding: 20px 15px 20px 25px; /* Added left padding (25px) */
+                padding: 20px 15px 20px 25px;
                 vertical-align: top;
                 border-right: 1px solid #e1e4e6;
             }
@@ -226,7 +50,7 @@
             .right-column {
                 display: table-cell;
                 width: 67%;
-                padding: 15px 30px 20px 25px; /* Added right padding (30px) */
+                padding: 15px 30px 20px 25px;
                 vertical-align: top;
             }
 
@@ -246,7 +70,6 @@
                 margin: 15px 0;
             }
 
-            /* Headings & Header */
             .name-field { font-size: 24pt; font-weight: 800; color: #1a252f; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 4px 0; line-height: 1.1; }
             .title-field { font-size: 12.5pt; font-weight: 600; color: #4a5568; margin: 0 0 10px 0; }
             
@@ -256,189 +79,280 @@
             }
             .left-column h2 { border-bottom: 2px solid #1a252f !important; margin-top: 12px; }
 
-            /* Contact */
             .contact-info-bar { font-size: 9.5pt; color: #4a5568; line-height: 1.5; border-top: 1px solid #e2e8f0; padding-top: 8px; display: flex; flex-direction: column; gap: 5px; }
             .contact-inline-item { display: flex; align-items: flex-start; }
             .contact-icon { color: #02061b !important; margin-right: 8px; width: 12px; height: 12px; display: inline-block; margin-top: 2px; }
 
-            /* Sidebar Info */
             .left-list { padding-left: 18px; margin: 0; font-size: 9.5pt; color: #2c3e50; line-height: 1.4; }
             .left-list li { margin-bottom: 5px; }
             
             .sidebar-location-box { display: flex; flex-direction: column; gap: 6px; font-size: 9.5pt; color: #2c3e50; margin-bottom: 12px; }
             .sidebar-location-item { display: flex; align-items: flex-start; }
             
-            /* Language Bars */
             .lang-item { margin-bottom: 10px; }
             .lang-name { font-size: 9.5pt; font-weight: 600; color: #1a252f; display: block; margin-bottom: 3px; }
             .rating-bars { display: flex; width: 100%; height: 5px; gap: 4px; }
             .bar { flex: 1; height: 100%; background-color: #cbd5e0 !important; border-radius: 2px; }
             .bar.filled { background-color: #1a252f !important; }
 
-            /* Entries */
             .entry { margin-bottom: 12px; }
             .entry-row { display: table; width: 100%; }
             .entry-cell-main { display: table-cell; font-weight: bold; color: #1a252f; font-size: 10.5pt; }
             .entry-cell-date { display: table-cell; text-align: right; color: #718096; font-size: 9.5pt; width: 140px; }
             .entry-subtitle { font-style: italic; color: #4a5568; margin: 1px 0 4px 0; font-size: 9.5pt; }
             
-            /* Personal Details */
             .details-grid { display: table; width: 100%; font-size: 9.5pt; line-height: 1.4; color: #2c3e50; margin-bottom: 12px; }
             .details-row { display: table-row; }
             .details-label { display: table-cell; font-weight: 700; width: 130px; padding-bottom: 3px; color: #1a252f; }
             .details-value { display: table-cell; padding-bottom: 3px; }
 
-            /* Text & Lists */
             .summary-text { text-align: justify; margin-top: 0; margin-bottom: 12px; font-size: 9.5pt; line-height: 1.4; color: #2c3e50; }
             .dotted-list { padding-left: 0; list-style: none; margin: 4px 0; }
             .dotted-list li { position: relative; padding-left: 15px; margin-bottom: 5px; font-size: 9.5pt; line-height: 1.4; text-align: justify; color: #2c3e50; }
             .dotted-list li::before { content: "•"; position: absolute; left: 0; top: 0; color: #2980b9 !important; font-weight: bold; }
-            
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+
+        @media screen {
+            .print-only { display: none !important; }
         }
     </style>
 </head>
-<body>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased">
 
-    <div class="screen-only builder-wrapper">
+    <div class="screen-only max-w-2xl mx-auto bg-white min-h-screen shadow-2xl">
         
-        <div class="builder-header">
-            <h2>Resume Builder</h2>
-            <p>Fill in the form to populate your document.</p>
-            <button class="btn-clear" onclick="clearAllFields()">🗑️ Clear All Data</button>
-        </div>
-
-        <div class="form-section">
-            <h3>Profile & Info</h3>
-            <div class="input-group">
-                <div id="upload-btn-ui" class="photo-upload-btn" onclick="document.getElementById('file-input').click()">
-                    📸 Tap to Upload & Crop Photo
+        <!-- Profile Section -->
+        <div class="p-8 border-b border-slate-100">
+            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-5 pb-2 border-b border-slate-100 flex items-center gap-2">
+                <i data-lucide="user" class="w-4 h-4"></i> Profile & Contact Info
+            </h3>
+            
+            <div class="mb-6">
+                <div id="upload-btn-ui" class="w-full py-8 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 text-slate-500 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-all flex flex-col items-center justify-center gap-2 cursor-pointer font-medium text-sm" onclick="document.getElementById('file-input').click()">
+                    <i data-lucide="camera" class="w-6 h-6"></i>
+                    <span>Tap to Upload & Crop Photo</span>
                 </div>
-                <input type="file" id="file-input" accept="image/*" onchange="loadProfilePicture(event)" style="display:none;">
+                <input type="file" id="file-input" accept="image/*" onchange="loadProfilePicture(event)" class="hidden">
             </div>
-            <div class="input-group"><label>Full Name</label><input type="text" id="in-name" value="Aman Srivastava" oninput="updateField('out-name', this.value)"></div>
-            <div class="input-group"><label>Job Title</label><input type="text" id="in-title" value="Sr. Security Executive" oninput="updateField('out-title', this.value)"></div>
-            <div class="input-group"><label>Email Address</label><input type="text" id="in-email" value="srivastav.aman546@gmail.com" oninput="updateField('out-email', this.value)"></div>
-            <div class="input-group"><label>Primary Phone</label><input type="text" id="in-phone1" value="+91 8423424581" oninput="updateField('out-phone1', this.value)"></div>
-            <div class="input-group"><label>Secondary Phone</label><input type="text" id="in-phone2" value="+91-8896870650" oninput="updateField('out-phone2', this.value)"></div>
-            <div class="input-group"><label>Full Address</label><input type="text" id="in-address" value="153/32 A Civil lines Fatehpur, 212601, India" oninput="updateField('out-address', this.value)"></div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Full Name</label>
+                    <input type="text" id="in-name" value="Aman Srivastava" oninput="updateField('out-name', this.value)" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Job Title</label>
+                    <input type="text" id="in-title" value="Sr. Security Executive" oninput="updateField('out-title', this.value)" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm">
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Email Address</label>
+                <input type="email" id="in-email" value="srivastav.aman546@gmail.com" oninput="updateField('out-email', this.value)" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Primary Phone</label>
+                    <input type="text" id="in-phone1" value="+91 8423424581" oninput="updateField('out-phone1', this.value)" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Secondary Phone</label>
+                    <input type="text" id="in-phone2" value="+91-8896870650" oninput="updateField('out-phone2', this.value)" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Full Address</label>
+                <input type="text" id="in-address" value="153/32 A Civil lines Fatehpur, 212601, India" oninput="updateField('out-address', this.value)" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm">
+            </div>
         </div>
 
-        <div class="form-section">
-            <h3>Section Headings</h3>
-            <div class="row-inputs">
-                <div class="input-group"><label>Skills</label><input type="text" id="in-h-skills" value="SKILLS" oninput="updateField('out-h-skills', this.value)"></div>
-                <div class="input-group"><label>Languages</label><input type="text" id="in-h-lang" value="LANGUAGES" oninput="updateField('out-h-lang', this.value)"></div>
+        <!-- Section Headings -->
+        <div class="p-8 border-b border-slate-100 bg-slate-50/50">
+            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-5 pb-2 border-b border-slate-100 flex items-center gap-2">
+                <i data-lucide="type" class="w-4 h-4"></i> Document Headings
+            </h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Skills</label>
+                    <input type="text" id="in-h-skills" value="SKILLS" oninput="updateField('out-h-skills', this.value)" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Languages</label>
+                    <input type="text" id="in-h-lang" value="LANGUAGES" oninput="updateField('out-h-lang', this.value)" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Summary</label>
+                    <input type="text" id="in-h-sum" value="SUMMARY" oninput="updateField('out-h-sum', this.value)" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Experience</label>
+                    <input type="text" id="in-h-exp" value="EXPERIENCE" oninput="updateField('out-h-exp', this.value)" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Education</label>
+                    <input type="text" id="in-h-edu" value="EDUCATION" oninput="updateField('out-h-edu', this.value)" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Details</label>
+                    <input type="text" id="in-h-pd" value="PERSONAL DETAILS" oninput="updateField('out-h-pd', this.value)" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm">
+                </div>
+                <div class="col-span-2 md:col-span-3">
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Certifications</label>
+                    <input type="text" id="in-h-cert" value="CERTIFICATIONS & LICENSES" oninput="updateField('out-h-cert', this.value)" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm">
+                </div>
             </div>
-            <div class="row-inputs">
-                <div class="input-group"><label>Summary</label><input type="text" id="in-h-sum" value="SUMMARY" oninput="updateField('out-h-sum', this.value)"></div>
-                <div class="input-group"><label>Experience</label><input type="text" id="in-h-exp" value="EXPERIENCE" oninput="updateField('out-h-exp', this.value)"></div>
-            </div>
-            <div class="row-inputs">
-                <div class="input-group"><label>Education</label><input type="text" id="in-h-edu" value="EDUCATION" oninput="updateField('out-h-edu', this.value)"></div>
-                <div class="input-group"><label>Details</label><input type="text" id="in-h-pd" value="PERSONAL DETAILS" oninput="updateField('out-h-pd', this.value)"></div>
-            </div>
-            <div class="input-group"><label>Certifications</label><input type="text" id="in-h-cert" value="CERTIFICATIONS & LICENSES" oninput="updateField('out-h-cert', this.value)"></div>
         </div>
 
-        <div class="form-section">
-            <h3>Sidebar Details</h3>
-            <div class="input-group">
-                <label>Skills (One per line)</label>
-                <textarea id="in-skills" oninput="updateList('out-skills', this.value)">Strong decision-maker
+        <!-- Sidebar Details -->
+        <div class="p-8 border-b border-slate-100">
+            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-5 pb-2 border-b border-slate-100 flex items-center gap-2">
+                <i data-lucide="layout-template" class="w-4 h-4"></i> Sidebar Content
+            </h3>
+            
+            <div class="mb-5">
+                <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Skills (One per line)</label>
+                <textarea id="in-skills" oninput="updateList('out-skills', this.value)" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm min-h-[100px] resize-y">Strong decision-maker
 Service-Focused
 Team management
 Innovative
 Passenger Convenient</textarea>
             </div>
-            <div class="row-inputs">
-                <div class="input-group" style="flex:1;">
-                    <label>Language 1</label>
-                    <input type="text" id="in-lang1-name" value="Hindi" oninput="updateField('out-lang1-name', this.value)">
+
+            <div class="space-y-4 mb-6">
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Language 1</label>
+                        <input type="text" id="in-lang1-name" value="Hindi" oninput="updateField('out-lang1-name', this.value)" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm">
+                    </div>
+                    <div class="w-24">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Lvl (1-5)</label>
+                        <select id="in-lang1-lvl" onchange="updateBars('out-lang1-lvl', this.value)" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm">
+                            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="input-group" style="width: 80px;">
-                    <label>Lvl (1-5)</label>
-                    <select id="in-lang1-lvl" onchange="updateBars('out-lang1-lvl', this.value)">
-                        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option>
-                    </select>
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Language 2</label>
+                        <input type="text" id="in-lang2-name" value="English" oninput="updateField('out-lang2-name', this.value)" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm">
+                    </div>
+                    <div class="w-24">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Lvl (1-5)</label>
+                        <select id="in-lang2-lvl" onchange="updateBars('out-lang2-lvl', this.value)" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm">
+                            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option>
+                        </select>
+                    </div>
                 </div>
             </div>
-            <div class="row-inputs">
-                <div class="input-group" style="flex:1;">
-                    <label>Language 2</label>
-                    <input type="text" id="in-lang2-name" value="English" oninput="updateField('out-lang2-name', this.value)">
+
+            <div class="space-y-4">
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Label</label>
+                        <input type="text" id="in-res-lbl" value="Residential location:" oninput="updateField('out-res-lbl', this.value)" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm">
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Value</label>
+                        <input type="text" id="in-res-loc" value="Fatehpur" oninput="updateField('out-res-loc', this.value)" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm">
+                    </div>
                 </div>
-                <div class="input-group" style="width: 80px;">
-                    <label>Lvl (1-5)</label>
-                    <select id="in-lang2-lvl" onchange="updateBars('out-lang2-lvl', this.value)">
-                        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option>
-                    </select>
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Label</label>
+                        <input type="text" id="in-cur-lbl" value="Current location:" oninput="updateField('out-cur-lbl', this.value)" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm">
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Value</label>
+                        <input type="text" id="in-cur-loc" value="Varanasi" oninput="updateField('out-cur-loc', this.value)" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm">
+                    </div>
                 </div>
             </div>
-            <div class="row-inputs">
-                <div class="input-group" style="flex:1;"><label>Label</label><input type="text" id="in-res-lbl" value="Residential location:" oninput="updateField('out-res-lbl', this.value)"></div>
-                <div class="input-group" style="flex:1;"><label>Value</label><input type="text" id="in-res-loc" value="Fatehpur" oninput="updateField('out-res-loc', this.value)"></div>
-            </div>
-            <div class="row-inputs">
-                <div class="input-group" style="flex:1;"><label>Label</label><input type="text" id="in-cur-lbl" value="Current location:" oninput="updateField('out-cur-lbl', this.value)"></div>
-                <div class="input-group" style="flex:1;"><label>Value</label><input type="text" id="in-cur-loc" value="Varanasi" oninput="updateField('out-cur-loc', this.value)"></div>
-            </div>
         </div>
 
-        <div class="form-section">
-            <h3>Summary</h3>
-            <div class="input-group">
-                <textarea id="in-summary" oninput="updateField('out-summary', this.value)">To contribute to the success and future of an organization by dedicated professional skills keeping the view of best policies and always try to give our best to make the organization aggrandize and on acme.</textarea>
-            </div>
+        <!-- Summary -->
+        <div class="p-8 border-b border-slate-100">
+            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-5 pb-2 border-b border-slate-100 flex items-center gap-2">
+                <i data-lucide="file-text" class="w-4 h-4"></i> Professional Summary
+            </h3>
+            <textarea id="in-summary" oninput="updateField('out-summary', this.value)" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm min-h-[100px] resize-y">To contribute to the success and future of an organization by dedicated professional skills keeping the view of best policies and always try to give our best to make the organization aggrandize and on acme.</textarea>
         </div>
 
-        <div class="form-section">
-            <h3>Experience</h3>
-            <div id="exp-container"></div>
-            <button class="add-btn" onclick="addExperience('', '', '', 'Department:', '', '')">+ Add Experience</button>
+        <!-- Experience -->
+        <div class="p-8 border-b border-slate-100">
+            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-5 pb-2 border-b border-slate-100 flex items-center gap-2">
+                <i data-lucide="briefcase" class="w-4 h-4"></i> Experience
+            </h3>
+            <div id="exp-container" class="space-y-4 mb-4"></div>
+            <button onclick="addExperience('', '', '', 'Department:', '', '')" class="w-full py-3 bg-blue-50 text-blue-600 hover:bg-blue-100 font-semibold rounded-lg border-2 border-dashed border-blue-200 transition-colors flex items-center justify-center gap-2 text-sm">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Add Experience
+            </button>
         </div>
 
-        <div class="form-section">
-            <h3>Education</h3>
-            <div id="edu-container"></div>
-            <button class="add-btn" onclick="addEducation()">+ Add Education</button>
+        <!-- Education -->
+        <div class="p-8 border-b border-slate-100">
+            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-5 pb-2 border-b border-slate-100 flex items-center gap-2">
+                <i data-lucide="graduation-cap" class="w-4 h-4"></i> Education
+            </h3>
+            <div id="edu-container" class="space-y-4 mb-4"></div>
+            <button onclick="addEducation()" class="w-full py-3 bg-blue-50 text-blue-600 hover:bg-blue-100 font-semibold rounded-lg border-2 border-dashed border-blue-200 transition-colors flex items-center justify-center gap-2 text-sm">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Add Education
+            </button>
         </div>
 
-        <div class="form-section">
-            <h3>Personal Details</h3>
-            <div id="pd-container"></div>
-            <button class="add-btn" onclick="addPersonalDetail()">+ Add Detail</button>
+        <!-- Personal Details -->
+        <div class="p-8 border-b border-slate-100">
+            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-5 pb-2 border-b border-slate-100 flex items-center gap-2">
+                <i data-lucide="contact" class="w-4 h-4"></i> Personal Details
+            </h3>
+            <div id="pd-container" class="space-y-4 mb-4"></div>
+            <button onclick="addPersonalDetail()" class="w-full py-3 bg-blue-50 text-blue-600 hover:bg-blue-100 font-semibold rounded-lg border-2 border-dashed border-blue-200 transition-colors flex items-center justify-center gap-2 text-sm">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Add Detail
+            </button>
         </div>
 
-        <div class="form-section">
-            <h3>Certifications</h3>
-            <div class="input-group">
-                <label>Enter each certification on a new line (Auto-bulleted on PDF)</label>
-                <textarea id="in-certs" style="min-height: 150px;" oninput="updateCertifications(this.value)">BCAS-certified XBIS (X-ray Baggage Inspection System) security screener certification.
+        <!-- Certifications -->
+        <div class="p-8 border-b border-slate-100">
+            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-5 pb-2 border-b border-slate-100 flex items-center gap-2">
+                <i data-lucide="award" class="w-4 h-4"></i> Certifications & Licenses
+            </h3>
+            <label class="block text-xs font-semibold text-slate-500 mb-2 uppercase">Enter each certification on a new line</label>
+            <textarea id="in-certs" oninput="updateCertifications(this.value)" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-sm min-h-[150px] resize-y">BCAS-certified XBIS (X-ray Baggage Inspection System) security screener certification.
 Basic Aviation security certification.
 Dangerous Goods Regulations Training (CAT12).
 Access Control Supervision Training.
 Security Management CCTV video footage investigation and auditing.</textarea>
-            </div>
         </div>
         
-        <div class="bottom-action-area">
-            <button class="btn-download" onclick="window.print()">Download Premium PDF</button>
+        <!-- Bottom Actions -->
+        <div class="p-8 bg-slate-50 rounded-b-xl">
+            <button onclick="window.print()" class="w-full py-4 bg-slate-900 hover:bg-black text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all text-lg tracking-wide flex items-center justify-center gap-2">
+                <i data-lucide="download" class="w-5 h-5"></i>
+                Download PDF
+            </button>
         </div>
 
-        <div id="cropper-modal" class="cropper-modal">
-            <div class="cropper-container-box">
-                <h4>Crop Photo</h4>
-                <div class="img-container"><img id="image-to-crop" src=""></div>
-                <div class="modal-actions">
-                    <button class="btn-cancel" onclick="closeCropper()">Cancel</button>
-                    <button class="btn-apply" onclick="applyCrop()">Apply</button>
+        <!-- Cropper Modal -->
+        <div id="cropper-modal" class="hidden fixed inset-0 bg-slate-900/95 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div class="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl">
+                <h4 class="text-xl font-bold text-slate-800 mb-4">Crop Photo</h4>
+                <div class="w-full bg-slate-100 rounded-lg overflow-hidden mb-6 max-h-[50vh] flex items-center justify-center">
+                    <img id="image-to-crop" src="" class="max-w-full block">
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeCropper()" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors">Cancel</button>
+                    <button onclick="applyCrop()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transition-colors">Apply</button>
                 </div>
             </div>
         </div>
 
     </div>
 
+    <!-- The actual print template starts here -->
     <div class="print-only resume-sheet">
         <div class="layout-table">
             <div class="layout-row">
@@ -558,23 +472,46 @@ Security Management CCTV video footage investigation and auditing.</textarea>
             container.innerHTML = html;
         }
 
-        // Dynamic Blocks Generators
+        // Dynamic Blocks Generators 
         function addExperience(title='', date='', company='', deptLbl='', dept='', desc='') {
             const container = document.getElementById('exp-container');
             const block = document.createElement('div');
-            block.className = 'dynamic-block exp-block';
+            block.className = 'relative bg-slate-50 p-5 rounded-xl border border-slate-200 exp-block';
             block.innerHTML = `
-                <button class="remove-btn" onclick="this.parentElement.remove(); renderExperience();">X Remove</button>
-                <div class="input-group"><input type="text" class="e-title" placeholder="Job Title" value="${title}" oninput="renderExperience()"></div>
-                <div class="input-group"><input type="text" class="e-date" placeholder="Dates" value="${date}" oninput="renderExperience()"></div>
-                <div class="input-group"><input type="text" class="e-comp" placeholder="Company" value="${company}" oninput="renderExperience()"></div>
-                <div class="row-inputs">
-                    <div class="input-group" style="width:40%;"><input type="text" class="e-dlbl" placeholder="Dept Label" value="${deptLbl}" oninput="renderExperience()"></div>
-                    <div class="input-group" style="width:60%;"><input type="text" class="e-dept" placeholder="Dept Name" value="${dept}" oninput="renderExperience()"></div>
+                <button class="absolute top-3 right-3 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-md text-xs font-bold transition-colors flex items-center gap-1" onclick="this.parentElement.remove(); renderExperience();">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Remove
+                </button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 mt-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Job Title</label>
+                        <input type="text" class="e-title w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm" placeholder="Job Title" value="${title}" oninput="renderExperience()">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Dates</label>
+                        <input type="text" class="e-date w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm" placeholder="Dates" value="${date}" oninput="renderExperience()">
+                    </div>
                 </div>
-                <div class="input-group"><textarea class="e-desc" placeholder="Responsibilities (One per line)" oninput="renderExperience()">${desc}</textarea></div>
+                <div class="mb-4">
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Company</label>
+                    <input type="text" class="e-comp w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm" placeholder="Company" value="${company}" oninput="renderExperience()">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div class="md:col-span-1">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Dept Label</label>
+                        <input type="text" class="e-dlbl w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm" placeholder="Dept Label" value="${deptLbl}" oninput="renderExperience()">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Dept Name</label>
+                        <input type="text" class="e-dept w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm" placeholder="Dept Name" value="${dept}" oninput="renderExperience()">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Responsibilities (One per line)</label>
+                    <textarea class="e-desc w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm min-h-[80px]" placeholder="Responsibilities" oninput="renderExperience()">${desc}</textarea>
+                </div>
             `;
             container.appendChild(block);
+            lucide.createIcons();
             renderExperience();
         }
 
@@ -619,14 +556,28 @@ Security Management CCTV video footage investigation and auditing.</textarea>
         function addEducation(degree='', date='', school='') {
             const container = document.getElementById('edu-container');
             const block = document.createElement('div');
-            block.className = 'dynamic-block edu-block';
+            block.className = 'relative bg-slate-50 p-5 rounded-xl border border-slate-200 edu-block';
             block.innerHTML = `
-                <button class="remove-btn" onclick="this.parentElement.remove(); renderEducation();">X Remove</button>
-                <div class="input-group"><input type="text" class="ed-deg" placeholder="Degree" value="${degree}" oninput="renderEducation()"></div>
-                <div class="input-group"><input type="text" class="ed-date" placeholder="Year" value="${date}" oninput="renderEducation()"></div>
-                <div class="input-group"><input type="text" class="ed-sch" placeholder="Institution" value="${school}" oninput="renderEducation()"></div>
+                <button class="absolute top-3 right-3 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-md text-xs font-bold transition-colors flex items-center gap-1" onclick="this.parentElement.remove(); renderEducation();">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Remove
+                </button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 mt-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Degree</label>
+                        <input type="text" class="ed-deg w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm" placeholder="Degree" value="${degree}" oninput="renderEducation()">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Year</label>
+                        <input type="text" class="ed-date w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm" placeholder="Year" value="${date}" oninput="renderEducation()">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Institution</label>
+                    <input type="text" class="ed-sch w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm" placeholder="Institution" value="${school}" oninput="renderEducation()">
+                </div>
             `;
             container.appendChild(block);
+            lucide.createIcons();
             renderEducation();
         }
 
@@ -653,15 +604,24 @@ Security Management CCTV video footage investigation and auditing.</textarea>
         function addPersonalDetail(label='', val='') {
             const container = document.getElementById('pd-container');
             const block = document.createElement('div');
-            block.className = 'dynamic-block pd-block';
+            block.className = 'relative bg-slate-50 p-5 rounded-xl border border-slate-200 pd-block';
             block.innerHTML = `
-                <button class="remove-btn" onclick="this.parentElement.remove(); renderPersonalDetails();">X Remove</button>
-                <div class="row-inputs">
-                    <div class="input-group" style="width:40%;"><input type="text" class="pd-lbl" placeholder="Label" value="${label}" oninput="renderPersonalDetails()"></div>
-                    <div class="input-group" style="width:60%;"><input type="text" class="pd-val" placeholder="Value" value="${val}" oninput="renderPersonalDetails()"></div>
+                <button class="absolute top-3 right-3 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-md text-xs font-bold transition-colors flex items-center gap-1 z-10" onclick="this.parentElement.remove(); renderPersonalDetails();">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Remove
+                </button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Label</label>
+                        <input type="text" class="pd-lbl w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm" placeholder="Label" value="${label}" oninput="renderPersonalDetails()">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Value</label>
+                        <input type="text" class="pd-val w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm" placeholder="Value" value="${val}" oninput="renderPersonalDetails()">
+                    </div>
                 </div>
             `;
             container.appendChild(block);
+            lucide.createIcons();
             renderPersonalDetails();
         }
 
@@ -683,69 +643,6 @@ Security Management CCTV video footage investigation and auditing.</textarea>
             outContainer.innerHTML = html;
         }
 
-        // --- CLEAR ALL COMMAND ---
-        function clearAllFields() {
-            if(!confirm("Are you sure you want to clear all data? This cannot be undone.")) return;
-
-            // 1. Clear Profile & Info
-            document.getElementById('in-name').value = '';
-            document.getElementById('in-title').value = '';
-            document.getElementById('in-email').value = '';
-            document.getElementById('in-phone1').value = '';
-            document.getElementById('in-phone2').value = '';
-            document.getElementById('in-address').value = '';
-
-            // 2. Clear Sidebar values (Preserves labels like 'Residential location:')
-            document.getElementById('in-skills').value = '';
-            document.getElementById('in-res-loc').value = ''; 
-            document.getElementById('in-cur-loc').value = ''; 
-            document.getElementById('in-lang1-name').value = '';
-            document.getElementById('in-lang1-lvl').value = '1';
-            document.getElementById('in-lang2-name').value = '';
-            document.getElementById('in-lang2-lvl').value = '1';
-
-            // 3. Clear Summary & Certifications
-            document.getElementById('in-summary').value = '';
-            document.getElementById('in-certs').value = '';
-
-            // 4. Clear Dynamic Blocks (Experience, Education, Personal Details)
-            // This clears the data values but preserves the existing blocks and their labels
-            
-            document.querySelectorAll('.exp-block').forEach(block => {
-                block.querySelector('.e-title').value = '';
-                block.querySelector('.e-date').value = '';
-                block.querySelector('.e-comp').value = '';
-                block.querySelector('.e-dept').value = '';
-                block.querySelector('.e-desc').value = '';
-                // Note: .e-dlbl ('Department:') is safely preserved
-            });
-
-            document.querySelectorAll('.edu-block').forEach(block => {
-                block.querySelector('.ed-deg').value = '';
-                block.querySelector('.ed-date').value = '';
-                block.querySelector('.ed-sch').value = '';
-            });
-
-            document.querySelectorAll('.pd-block').forEach(block => {
-                block.querySelector('.pd-val').value = '';
-                // Note: .pd-lbl ('Mother's Name:', 'DOB:', etc.) is safely preserved
-            });
-
-            // 5. Clear Photo
-            document.getElementById('out-photo').src = '';
-            document.getElementById('out-photo').style.display = 'none';
-            document.getElementById('photo-separator').style.display = 'none';
-            
-            const btnUi = document.getElementById('upload-btn-ui');
-            btnUi.innerHTML = '📸 Tap to Upload Photo';
-            btnUi.style.backgroundColor = '#f0f9ff'; 
-            btnUi.style.borderColor = '#7dd3fc'; 
-            btnUi.style.color = '#0284c7';
-
-            // Sync all changes to the UI
-            initSync();
-        }
-
         // Photo Upload & Cropping Logic
         let cropper;
         function loadProfilePicture(event) {
@@ -756,7 +653,7 @@ Security Management CCTV video footage investigation and auditing.</textarea>
                 reader.onload = function(e) {
                     const modal = document.getElementById('cropper-modal');
                     const imageToCrop = document.getElementById('image-to-crop');
-                    modal.style.display = 'flex';
+                    modal.classList.remove('hidden');
                     imageToCrop.src = e.target.result;
                     setTimeout(() => {
                         if (cropper) cropper.destroy();
@@ -769,7 +666,7 @@ Security Management CCTV video footage investigation and auditing.</textarea>
         }
 
         function closeCropper() {
-            document.getElementById('cropper-modal').style.display = 'none';
+            document.getElementById('cropper-modal').classList.add('hidden');
             if (cropper) { cropper.destroy(); cropper = null; }
         }
 
@@ -782,8 +679,13 @@ Security Management CCTV video footage investigation and auditing.</textarea>
             document.getElementById('photo-separator').style.display = 'block';
 
             const btnUi = document.getElementById('upload-btn-ui');
-            btnUi.innerHTML = '✅ Photo Uploaded (Tap to Change)';
-            btnUi.style.backgroundColor = '#f0fdf4'; btnUi.style.borderColor = '#22c55e'; btnUi.style.color = '#15803d';
+            btnUi.innerHTML = `
+                <i data-lucide="check-circle-2" class="w-6 h-6 text-green-600"></i>
+                <span class="text-green-700">Photo Uploaded (Tap to Change)</span>
+            `;
+            btnUi.classList.remove('bg-slate-50', 'border-slate-300', 'text-slate-500', 'hover:border-blue-500', 'hover:text-blue-600', 'hover:bg-blue-50');
+            btnUi.classList.add('bg-green-50', 'border-green-400', 'hover:border-green-500', 'hover:bg-green-100');
+            lucide.createIcons();
             closeCropper();
         }
 
@@ -813,10 +715,10 @@ Security Management CCTV video footage investigation and auditing.</textarea>
             updateBars('out-lang2-lvl', document.getElementById('in-lang2-lvl').value);
             updateCertifications(document.getElementById('in-certs').value);
             
-            // Re-render blocks
             renderExperience();
             renderEducation();
             renderPersonalDetails();
+            lucide.createIcons();
         }
 
         // Launch
