@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Resume Builder Studio</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+
+        /* --- BUILDER UI (SCREEN ONLY) --- */
+        @media screen {
+            .print-only {
+                display: none !important;
+            }
+
+            .builder-wrapper {
+                max-width: 600px;
+                margin: 0 auto;
+                background: #ffffff;
+                min-height: 100vh;
+                box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            }
+
+            .builder-header {
+                padding: 25px 20px;
+                background: #1e293b;
+                color: #ffffff;
+            }
+
+            .builder-header h2 {
+                margin: 0 0 5px 0;
+                font-size: 22px;
+                color: #ffffff;
+                border: none;
+            }
+            
+            .builder-header p {
+                margin: 0;
+                font-size: 13px;
+                color: #94a3b8;
+            }
+
+            .btn-clear { 
+                background: #fef2f2; 
+                color: #ef4444; 
+                border: 1px solid #f87171; 
+                padding: 12px;
+                font-weight: 700; 
+                border-radius: 6px; 
+                cursor: pointer; 
+                transition: 0.2s; 
+                font-size: 14px;
+                width: 100%;
+                margin-top: 15px;
+            }
+            .btn-clear:hover { background: #fee2e2; }
+
+            .form-section {
+                padding: 25px 20px;
+                border-bottom: 8px solid #f1f5f9;
+            }
+
+            .form-section h3 {
+                margin-top: 0;
+                color: #0284c7;
+                font-size: 15px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #e2e8f0;
+            }
+
+            .input-group {
+                margin-bottom: 15px;
+            }
+
+            .input-group label {
+                display: block;
+                font-size: 13px;
+                font-weight: 600;
+                color: #475569;
+                margin-bottom: 6px;
+            }
+
+            .input-group input, .input-group textarea, .input-group select {
+                width: 100%;
+                padding: 12px;
+                font-size: 15px; 
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                background-color: #f8fafc;
+                outline: none;
+                transition: 0.2s;
+            }
+
+            .input-group input:focus, .input-group textarea:focus, .input-group select:focus {
+                border-color: #0284c7;
+                background-color: #ffffff;
+                box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+            }
+
+            .input-group textarea {
+                min-height: 80px;
+                resize: vertical;
+            }
+
+            .row-inputs {
+                display: flex;
+                gap: 12px;
+            }
+
+            .photo-upload-btn {
+                background: #f0f9ff;
+                border: 2px dashed #7dd3fc;
+                color: #0284c7;
+                padding: 20px;
+                border-radius: 8px;
+                text-align: center;
+                font-weight: 600;
+                font-size: 14px;
+                cursor: pointer;
+                transition: 0.2s;
+            }
+
+            .photo-upload-btn:hover {
+                background: #e0f2fe;
+                border-color: #38bdf8;
+            }
+
+            .dynamic-block {
+                border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px;
+                margin-bottom: 15px; position: relative; background: #f8fafc;
+            }
+            
+            .remove-btn {
+                position: absolute; top: 10px; right: 10px; background: #fee2e2; color: #ef4444;
+                border: none; border-radius: 4px; padding: 4px 8px; font-size: 12px; font-weight: bold; cursor: pointer;
+            }
+
+            .add-btn {
+                background: #e0f2fe; color: #0284c7; border: 1px dashed #0284c7; padding: 12px;
+                width: 100%; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;
+            }
+
+            .bottom-action-area {
+                padding: 30px 20px 40px 20px;
+                background: #ffffff;
+            }
+
+            .btn-download { 
+                background: #0284c7; 
+                color: #ffffff; 
+                border: none; 
+                padding: 16px; 
+                font-weight: 700; 
+                border-radius: 8px; 
+                cursor: pointer; 
+                transition: 0.2s; 
+                font-size: 16px;
+                width: 100%;
+                box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.4);
+            }
+            .btn-download:hover { background: #0369a1; }
+
+            /* Cropper Modal */
+            .cropper-modal {
+                display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(15, 23, 42, 0.95); z-index: 9999; justify-content: center; align-items: center; padding: 15px;
+            }
+            .cropper-container-box { background: #ffffff; padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; }
+            .cropper-container-box h4 { margin-top: 0; font-size: 18px; margin-bottom: 15px; }
+            .img-container { width: 100%; max-height: 50vh; margin-bottom: 20px; background: #e2e8f0; display: block; }
+            .img-container img { max-width: 100%; display: block; }
+            .modal-actions { display: flex; gap: 10px; }
+            .modal-actions button { flex: 1; padding: 12px; font-weight: bold; border-radius: 8px; border: none; font-size: 15px; cursor:pointer;}
+            .btn-cancel { background: #e2e8f0; color: #475569; }
+            .btn-apply { background: #0284c7; color: #fff; }
+        }
+
+        /* --- PRINT READY RESUME SHEET (PRINT ONLY) --- */
+        @media print {
+            .screen-only { display: none !important; }
+            .print-only { display: block !important; position: static !important; visibility: visible !important; }
+            
+            @page { size: A4; margin: 0; }
+            body { background-color: #ffffff; padding: 0; margin: 0; }
+
+            .resume-sheet {
+                width: 210mm;
+                height: 297mm; /* Enforce single A4 page */
+                margin: 0;
+                padding: 0;
+                background: #ffffff;
+                overflow: hidden;
+                box-sizing: border-box;
+            }
+
+            .layout-table { display: table; width: 100%; height: 297mm; border-collapse: collapse; }
+            .layout-row { display: table-row; }
+            
+            .left-column {
+                display: table-cell;
+                width: 33%;
+                background-color: #f4f6f8 !important;
+                color: #1a252f;
+                padding: 20px 15px 20px 25px; /* Added left padding (25px) */
+                vertical-align: top;
+                border-right: 1px solid #e1e4e6;
+            }
+            
+            .right-column {
+                display: table-cell;
+                width: 67%;
+                padding: 15px 30px 20px 25px; /* Added right padding (30px) */
+                vertical-align: top;
+            }
+
+            .photo-preview {
+                width: 130px;
+                height: 130px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: none;
+                display: block;
+                margin: 0 auto;
+            }
+
+            .left-separator {
+                border: none;
+                border-bottom: 2px solid #1a252f !important;
+                margin: 15px 0;
+            }
+
+            /* Headings & Header */
+            .name-field { font-size: 24pt; font-weight: 800; color: #1a252f; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 4px 0; line-height: 1.1; }
+            .title-field { font-size: 12.5pt; font-weight: 600; color: #4a5568; margin: 0 0 10px 0; }
+            
+            h2 {
+                font-size: 12pt; font-weight: 700; color: #1a252f; text-transform: uppercase;
+                margin-top: 10px; margin-bottom: 8px; letter-spacing: 0.5px; border-bottom: 1px solid #1a252f !important; padding-bottom: 3px;
+            }
+            .left-column h2 { border-bottom: 2px solid #1a252f !important; margin-top: 12px; }
+
+            /* Contact */
+            .contact-info-bar { font-size: 9.5pt; color: #4a5568; line-height: 1.5; border-top: 1px solid #e2e8f0; padding-top: 8px; display: flex; flex-direction: column; gap: 5px; }
+            .contact-inline-item { display: flex; align-items: flex-start; }
+            .contact-icon { color: #02061b !important; margin-right: 8px; width: 12px; height: 12px; display: inline-block; margin-top: 2px; }
+
+            /* Sidebar Info */
+            .left-list { padding-left: 18px; margin: 0; font-size: 9.5pt; color: #2c3e50; line-height: 1.4; }
+            .left-list li { margin-bottom: 5px; }
+            
+            .sidebar-location-box { display: flex; flex-direction: column; gap: 6px; font-size: 9.5pt; color: #2c3e50; margin-bottom: 12px; }
+            .sidebar-location-item { display: flex; align-items: flex-start; }
+            
+            /* Language Bars */
+            .lang-item { margin-bottom: 10px; }
+            .lang-name { font-size: 9.5pt; font-weight: 600; color: #1a252f; display: block; margin-bottom: 3px; }
+            .rating-bars { display: flex; width: 100%; height: 5px; gap: 4px; }
+            .bar { flex: 1; height: 100%; background-color: #cbd5e0 !important; border-radius: 2px; }
+            .bar.filled { background-color: #1a252f !important; }
+
+            /* Entries */
+            .entry { margin-bottom: 12px; }
+            .entry-row { display: table; width: 100%; }
+            .entry-cell-main { display: table-cell; font-weight: bold; color: #1a252f; font-size: 10.5pt; }
+            .entry-cell-date { display: table-cell; text-align: right; color: #718096; font-size: 9.5pt; width: 140px; }
+            .entry-subtitle { font-style: italic; color: #4a5568; margin: 1px 0 4px 0; font-size: 9.5pt; }
+            
+            /* Personal Details */
+            .details-grid { display: table; width: 100%; font-size: 9.5pt; line-height: 1.4; color: #2c3e50; margin-bottom: 12px; }
+            .details-row { display: table-row; }
+            .details-label { display: table-cell; font-weight: 700; width: 130px; padding-bottom: 3px; color: #1a252f; }
+            .details-value { display: table-cell; padding-bottom: 3px; }
+
+            /* Text & Lists */
+            .summary-text { text-align: justify; margin-top: 0; margin-bottom: 12px; font-size: 9.5pt; line-height: 1.4; color: #2c3e50; }
+            .dotted-list { padding-left: 0; list-style: none; margin: 4px 0; }
+            .dotted-list li { position: relative; padding-left: 15px; margin-bottom: 5px; font-size: 9.5pt; line-height: 1.4; text-align: justify; color: #2c3e50; }
+            .dotted-list li::before { content: "•"; position: absolute; left: 0; top: 0; color: #2980b9 !important; font-weight: bold; }
+            
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="screen-only builder-wrapper">
+        
+        <div class="builder-header">
+            <h2>Resume Builder</h2>
+            <p>Fill in the form to populate your document.</p>
+            <button class="btn-clear" onclick="clearAllFields()">🗑️ Clear All Data</button>
+        </div>
+
+        <div class="form-section">
+            <h3>Profile & Info</h3>
+            <div class="input-group">
+                <div id="upload-btn-ui" class="photo-upload-btn" onclick="document.getElementById('file-input').click()">
+                    📸 Tap to Upload & Crop Photo
+                </div>
+                <input type="file" id="file-input" accept="image/*" onchange="loadProfilePicture(event)" style="display:none;">
+            </div>
+            <div class="input-group"><label>Full Name</label><input type="text" id="in-name" value="Aman Srivastava" oninput="updateField('out-name', this.value)"></div>
+            <div class="input-group"><label>Job Title</label><input type="text" id="in-title" value="Sr. Security Executive" oninput="updateField('out-title', this.value)"></div>
+            <div class="input-group"><label>Email Address</label><input type="text" id="in-email" value="srivastav.aman546@gmail.com" oninput="updateField('out-email', this.value)"></div>
+            <div class="input-group"><label>Primary Phone</label><input type="text" id="in-phone1" value="+91 8423424581" oninput="updateField('out-phone1', this.value)"></div>
+            <div class="input-group"><label>Secondary Phone</label><input type="text" id="in-phone2" value="+91-8896870650" oninput="updateField('out-phone2', this.value)"></div>
+            <div class="input-group"><label>Full Address</label><input type="text" id="in-address" value="153/32 A Civil lines Fatehpur, 212601, India" oninput="updateField('out-address', this.value)"></div>
+        </div>
+
+        <div class="form-section">
+            <h3>Section Headings</h3>
+            <div class="row-inputs">
+                <div class="input-group"><label>Skills</label><input type="text" id="in-h-skills" value="SKILLS" oninput="updateField('out-h-skills', this.value)"></div>
+                <div class="input-group"><label>Languages</label><input type="text" id="in-h-lang" value="LANGUAGES" oninput="updateField('out-h-lang', this.value)"></div>
+            </div>
+            <div class="row-inputs">
+                <div class="input-group"><label>Summary</label><input type="text" id="in-h-sum" value="SUMMARY" oninput="updateField('out-h-sum', this.value)"></div>
+                <div class="input-group"><label>Experience</label><input type="text" id="in-h-exp" value="EXPERIENCE" oninput="updateField('out-h-exp', this.value)"></div>
+            </div>
+            <div class="row-inputs">
+                <div class="input-group"><label>Education</label><input type="text" id="in-h-edu" value="EDUCATION" oninput="updateField('out-h-edu', this.value)"></div>
+                <div class="input-group"><label>Details</label><input type="text" id="in-h-pd" value="PERSONAL DETAILS" oninput="updateField('out-h-pd', this.value)"></div>
+            </div>
+            <div class="input-group"><label>Certifications</label><input type="text" id="in-h-cert" value="CERTIFICATIONS & LICENSES" oninput="updateField('out-h-cert', this.value)"></div>
+        </div>
+
+        <div class="form-section">
+            <h3>Sidebar Details</h3>
+            <div class="input-group">
+                <label>Skills (One per line)</label>
+                <textarea id="in-skills" oninput="updateList('out-skills', this.value)">Strong decision-maker
+Service-Focused
+Team management
+Innovative
+Passenger Convenient</textarea>
+            </div>
+            <div class="row-inputs">
+                <div class="input-group" style="flex:1;">
+                    <label>Language 1</label>
+                    <input type="text" id="in-lang1-name" value="Hindi" oninput="updateField('out-lang1-name', this.value)">
+                </div>
+                <div class="input-group" style="width: 80px;">
+                    <label>Lvl (1-5)</label>
+                    <select id="in-lang1-lvl" onchange="updateBars('out-lang1-lvl', this.value)">
+                        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row-inputs">
+                <div class="input-group" style="flex:1;">
+                    <label>Language 2</label>
+                    <input type="text" id="in-lang2-name" value="English" oninput="updateField('out-lang2-name', this.value)">
+                </div>
+                <div class="input-group" style="width: 80px;">
+                    <label>Lvl (1-5)</label>
+                    <select id="in-lang2-lvl" onchange="updateBars('out-lang2-lvl', this.value)">
+                        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row-inputs">
+                <div class="input-group" style="flex:1;"><label>Label</label><input type="text" id="in-res-lbl" value="Residential location:" oninput="updateField('out-res-lbl', this.value)"></div>
+                <div class="input-group" style="flex:1;"><label>Value</label><input type="text" id="in-res-loc" value="Fatehpur" oninput="updateField('out-res-loc', this.value)"></div>
+            </div>
+            <div class="row-inputs">
+                <div class="input-group" style="flex:1;"><label>Label</label><input type="text" id="in-cur-lbl" value="Current location:" oninput="updateField('out-cur-lbl', this.value)"></div>
+                <div class="input-group" style="flex:1;"><label>Value</label><input type="text" id="in-cur-loc" value="Varanasi" oninput="updateField('out-cur-loc', this.value)"></div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Summary</h3>
+            <div class="input-group">
+                <textarea id="in-summary" oninput="updateField('out-summary', this.value)">To contribute to the success and future of an organization by dedicated professional skills keeping the view of best policies and always try to give our best to make the organization aggrandize and on acme.</textarea>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Experience</h3>
+            <div id="exp-container"></div>
+            <button class="add-btn" onclick="addExperience('', '', '', 'Department:', '', '')">+ Add Experience</button>
+        </div>
+
+        <div class="form-section">
+            <h3>Education</h3>
+            <div id="edu-container"></div>
+            <button class="add-btn" onclick="addEducation()">+ Add Education</button>
+        </div>
+
+        <div class="form-section">
+            <h3>Personal Details</h3>
+            <div id="pd-container"></div>
+            <button class="add-btn" onclick="addPersonalDetail()">+ Add Detail</button>
+        </div>
+
+        <div class="form-section">
+            <h3>Certifications</h3>
+            <div class="input-group">
+                <label>Enter each certification on a new line (Auto-bulleted on PDF)</label>
+                <textarea id="in-certs" style="min-height: 150px;" oninput="updateCertifications(this.value)">BCAS-certified XBIS (X-ray Baggage Inspection System) security screener certification.
+Basic Aviation security certification.
+Dangerous Goods Regulations Training (CAT12).
+Access Control Supervision Training.
+Security Management CCTV video footage investigation and auditing.</textarea>
+            </div>
+        </div>
+        
+        <div class="bottom-action-area">
+            <button class="btn-download" onclick="window.print()">Download Premium PDF</button>
+        </div>
+
+        <div id="cropper-modal" class="cropper-modal">
+            <div class="cropper-container-box">
+                <h4>Crop Photo</h4>
+                <div class="img-container"><img id="image-to-crop" src=""></div>
+                <div class="modal-actions">
+                    <button class="btn-cancel" onclick="closeCropper()">Cancel</button>
+                    <button class="btn-apply" onclick="applyCrop()">Apply</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="print-only resume-sheet">
+        <div class="layout-table">
+            <div class="layout-row">
+                
+                <div class="left-column">
+                    <img id="out-photo" class="photo-preview" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="display: none;">
+                    <hr class="left-separator" id="photo-separator" style="display:none;">
+
+                    <h2 id="out-h-skills">SKILLS</h2>
+                    <div style="margin-bottom: 20px;">
+                        <ul class="left-list" id="out-skills"></ul>
+                    </div>
+
+                    <h2 id="out-h-lang">LANGUAGES</h2>
+                    <div class="lang-item">
+                        <span class="lang-name" id="out-lang1-name">Hindi</span>
+                        <div class="rating-bars" id="out-lang1-lvl"></div>
+                    </div>
+                    <div class="lang-item">
+                        <span class="lang-name" id="out-lang2-name">English</span>
+                        <div class="rating-bars" id="out-lang2-lvl"></div>
+                    </div>
+
+                    <hr class="left-separator">
+
+                    <div class="sidebar-location-box">
+                        <div class="sidebar-location-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 11.25" class="contact-icon" style="height: 13.5px; margin-top:3px;"><path fill="currentColor" fill-rule="evenodd" d="M1.391 1.35a4.696 4.696 0 0 1 6.577-.015l.018.016a4.56 4.56 0 0 1 .021 6.531l-2.953 2.906a.52.52 0 0 1-.73 0L1.37 7.883a4.55 4.55 0 0 1 0-6.51zm3.297 1.255a1.563 1.563 0 1 0 0 3.125 1.563 1.563 0 0 0 0-3.125" clip-rule="evenodd"></path></svg>
+                            <span><b id="out-res-lbl">Residential location:</b><br><span id="out-res-loc">Fatehpur</span></span>
+                        </div>
+                        <br>
+                        <div class="sidebar-location-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 11.25" class="contact-icon" style="height: 13.5px; margin-top:3px;"><path fill="currentColor" fill-rule="evenodd" d="M1.391 1.35a4.696 4.696 0 0 1 6.577-.015l.018.016a4.56 4.56 0 0 1 .021 6.531l-2.953 2.906a.52.52 0 0 1-.73 0L1.37 7.883a4.55 4.55 0 0 1 0-6.51zm3.297 1.255a1.563 1.563 0 1 0 0 3.125 1.563 1.563 0 0 0 0-3.125" clip-rule="evenodd"></path></svg>
+                            <span><b id="out-cur-lbl">Current location:</b><br><span id="out-cur-loc">Varanasi</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="right-column">
+                    <div class="header-section">
+                        <div class="name-field" id="out-name">Aman Srivastava</div>
+                        <div class="title-field" id="out-title">Sr. Security Executive</div>
+                        
+                        <div class="contact-info-bar">
+                            <div class="contact-inline-item">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" class="contact-icon"><path fill="currentColor" d="M8.333 1.664H1.667a.83.83 0 0 0-.83.833l-.004 5c0 .459.375.834.834.834h6.666a.836.836 0 0 0 .834-.834v-5a.836.836 0 0 0-.834-.833m0 1.667L5 5.414 1.667 3.331v-.834L5 4.581l3.333-2.084z"></path></svg>
+                                <span id="out-email">srivastav.aman546@gmail.com</span>
+                            </div>
+                            <div class="contact-inline-item">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 11.25" class="contact-icon" style="height: 13.5px;"><path fill="currentColor" fill-rule="evenodd" d="M1.391 1.35a4.696 4.696 0 0 1 6.577-.015l.018.016a4.56 4.56 0 0 1 .021 6.531l-2.953 2.906a.52.52 0 0 1-.73 0L1.37 7.883a4.55 4.55 0 0 1 0-6.51zm3.297 1.255a1.563 1.563 0 1 0 0 3.125 1.563 1.563 0 0 0 0-3.125" clip-rule="evenodd"></path></svg>
+                                <span id="out-address">153/32 A Civil lines Fatehpur, 212601, India</span>
+                            </div>
+                            <div class="contact-inline-item">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" class="contact-icon"><path fill="currentColor" fill-rule="evenodd" d="M6.8 9.244c-.667-.024-2.556-.286-4.534-2.264S.027 3.113 0 2.446C-.036 1.429.744.441 1.642.057a.68.68 0 0 1 .669.072c.741.54 1.252 1.357 1.691 2a.697.697 0 0 1-.119.919l-.903.67a.22.22 0 0 0-.066.286c.204.372.569.926.986 1.342s.997.804 1.394 1.033a.22.22 0 0 0 .298-.076l.589-.896a.696.696 0 0 1 .951-.153c.651.451 1.411.953 1.968 1.667a.68.68 0 0 1 .089.687C8.8 8.512 7.82 9.282 6.8 9.245" clip-rule="evenodd"></path></svg>
+                                <span id="out-phone1">+91 8423424581</span>
+                            </div>
+                            <div class="contact-inline-item">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" class="contact-icon"><path fill="currentColor" fill-rule="evenodd" d="M6.8 9.244c-.667-.024-2.556-.286-4.534-2.264S.027 3.113 0 2.446C-.036 1.429.744.441 1.642.057a.68.68 0 0 1 .669.072c.741.54 1.252 1.357 1.691 2a.697.697 0 0 1-.119.919l-.903.67a.22.22 0 0 0-.066.286c.204.372.569.926.986 1.342s.997.804 1.394 1.033a.22.22 0 0 0 .298-.076l.589-.896a.696.696 0 0 1 .951-.153c.651.451 1.411.953 1.968 1.667a.68.68 0 0 1 .089.687C8.8 8.512 7.82 9.282 6.8 9.245" clip-rule="evenodd"></path></svg>
+                                <span id="out-phone2">+91-8896870650</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 id="out-h-sum">SUMMARY</h2>
+                    <p class="summary-text" id="out-summary"></p>
+
+                    <h2 id="out-h-exp">EXPERIENCE</h2>
+                    <div id="out-exp-list"></div>
+
+                    <h2 id="out-h-edu">EDUCATION</h2>
+                    <div id="out-edu-list"></div>
+
+                    <h2 id="out-h-pd">PERSONAL DETAILS</h2>
+                    <div class="details-grid" id="out-pd-list"></div>
+
+                    <h2 id="out-h-cert">CERTIFICATIONS & LICENSES</h2>
+                    <div id="out-certs"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Sync Helpers
+        function updateField(targetId, value) {
+            document.getElementById(targetId).innerText = value;
+        }
+
+        function updateList(targetId, textValue) {
+            const container = document.getElementById(targetId);
+            const lines = textValue.split('\n');
+            let html = '';
+            lines.forEach(line => {
+                if(line.trim().length > 0) html += `<li>${line.trim()}</li>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function updateCertifications(textValue) {
+            const container = document.getElementById('out-certs');
+            const lines = textValue.split('\n');
+            let htmlList = '<ul class="dotted-list">';
+            lines.forEach(line => {
+                if(line.trim().length > 0) htmlList += `<li>${line.trim()}</li>`;
+            });
+            htmlList += '</ul>';
+            container.innerHTML = htmlList;
+        }
+
+        function updateBars(targetId, value) {
+            const container = document.getElementById(targetId);
+            let html = '';
+            for(let i=0; i<5; i++) {
+                if(i < parseInt(value)) html += '<span class="bar filled"></span>';
+                else html += '<span class="bar"></span>';
+            }
+            container.innerHTML = html;
+        }
+
+        // Dynamic Blocks Generators
+        function addExperience(title='', date='', company='', deptLbl='', dept='', desc='') {
+            const container = document.getElementById('exp-container');
+            const block = document.createElement('div');
+            block.className = 'dynamic-block exp-block';
+            block.innerHTML = `
+                <button class="remove-btn" onclick="this.parentElement.remove(); renderExperience();">X Remove</button>
+                <div class="input-group"><input type="text" class="e-title" placeholder="Job Title" value="${title}" oninput="renderExperience()"></div>
+                <div class="input-group"><input type="text" class="e-date" placeholder="Dates" value="${date}" oninput="renderExperience()"></div>
+                <div class="input-group"><input type="text" class="e-comp" placeholder="Company" value="${company}" oninput="renderExperience()"></div>
+                <div class="row-inputs">
+                    <div class="input-group" style="width:40%;"><input type="text" class="e-dlbl" placeholder="Dept Label" value="${deptLbl}" oninput="renderExperience()"></div>
+                    <div class="input-group" style="width:60%;"><input type="text" class="e-dept" placeholder="Dept Name" value="${dept}" oninput="renderExperience()"></div>
+                </div>
+                <div class="input-group"><textarea class="e-desc" placeholder="Responsibilities (One per line)" oninput="renderExperience()">${desc}</textarea></div>
+            `;
+            container.appendChild(block);
+            renderExperience();
+        }
+
+        function renderExperience() {
+            const outContainer = document.getElementById('out-exp-list');
+            const blocks = document.querySelectorAll('.exp-block');
+            let html = '';
+            blocks.forEach(b => {
+                const t = b.querySelector('.e-title').value;
+                const d = b.querySelector('.e-date').value;
+                const c = b.querySelector('.e-comp').value;
+                const dLbl = b.querySelector('.e-dlbl').value;
+                const dp = b.querySelector('.e-dept').value;
+                const descLines = b.querySelector('.e-desc').value.split('\n').filter(l => l.trim() !== '');
+                
+                let ulHtml = '';
+                if(descLines.length > 0) {
+                    ulHtml = '<ul class="dotted-list" style="margin: 4px 0;">';
+                    descLines.forEach(l => ulHtml += `<li>${l}</li>`);
+                    ulHtml += '</ul>';
+                }
+
+                let deptHtml = '';
+                if (dLbl || dp) {
+                    deptHtml = `<p style="margin: 2px 0; font-weight: bold; font-size: 9.5pt; color: #64748b;">${dLbl} ${dp}</p>`;
+                }
+
+                html += `
+                <div class="entry">
+                    <div class="entry-row">
+                        <div class="entry-cell-main">${t}</div>
+                        <div class="entry-cell-date">${d}</div>
+                    </div>
+                    <div class="entry-subtitle">${c}</div>
+                    ${deptHtml}
+                    ${ulHtml}
+                </div>`;
+            });
+            outContainer.innerHTML = html;
+        }
+
+        function addEducation(degree='', date='', school='') {
+            const container = document.getElementById('edu-container');
+            const block = document.createElement('div');
+            block.className = 'dynamic-block edu-block';
+            block.innerHTML = `
+                <button class="remove-btn" onclick="this.parentElement.remove(); renderEducation();">X Remove</button>
+                <div class="input-group"><input type="text" class="ed-deg" placeholder="Degree" value="${degree}" oninput="renderEducation()"></div>
+                <div class="input-group"><input type="text" class="ed-date" placeholder="Year" value="${date}" oninput="renderEducation()"></div>
+                <div class="input-group"><input type="text" class="ed-sch" placeholder="Institution" value="${school}" oninput="renderEducation()"></div>
+            `;
+            container.appendChild(block);
+            renderEducation();
+        }
+
+        function renderEducation() {
+            const outContainer = document.getElementById('out-edu-list');
+            const blocks = document.querySelectorAll('.edu-block');
+            let html = '';
+            blocks.forEach(b => {
+                const deg = b.querySelector('.ed-deg').value;
+                const d = b.querySelector('.ed-date').value;
+                const sch = b.querySelector('.ed-sch').value;
+                html += `
+                <div class="entry">
+                    <div class="entry-row">
+                        <div class="entry-cell-main">${deg}</div>
+                        <div class="entry-cell-date">${d}</div>
+                    </div>
+                    <div class="entry-subtitle">${sch}</div>
+                </div>`;
+            });
+            outContainer.innerHTML = html;
+        }
+
+        function addPersonalDetail(label='', val='') {
+            const container = document.getElementById('pd-container');
+            const block = document.createElement('div');
+            block.className = 'dynamic-block pd-block';
+            block.innerHTML = `
+                <button class="remove-btn" onclick="this.parentElement.remove(); renderPersonalDetails();">X Remove</button>
+                <div class="row-inputs">
+                    <div class="input-group" style="width:40%;"><input type="text" class="pd-lbl" placeholder="Label" value="${label}" oninput="renderPersonalDetails()"></div>
+                    <div class="input-group" style="width:60%;"><input type="text" class="pd-val" placeholder="Value" value="${val}" oninput="renderPersonalDetails()"></div>
+                </div>
+            `;
+            container.appendChild(block);
+            renderPersonalDetails();
+        }
+
+        function renderPersonalDetails() {
+            const outContainer = document.getElementById('out-pd-list');
+            const blocks = document.querySelectorAll('.pd-block');
+            let html = '';
+            blocks.forEach(b => {
+                const l = b.querySelector('.pd-lbl').value;
+                const v = b.querySelector('.pd-val').value;
+                if(l || v) {
+                    html += `
+                    <div class="details-row">
+                        <div class="details-label">${l}</div>
+                        <div class="details-value">${v}</div>
+                    </div>`;
+                }
+            });
+            outContainer.innerHTML = html;
+        }
+
+        // --- CLEAR ALL COMMAND ---
+        function clearAllFields() {
+            if(!confirm("Are you sure you want to clear all data? This cannot be undone.")) return;
+
+            // 1. Clear Profile & Info
+            document.getElementById('in-name').value = '';
+            document.getElementById('in-title').value = '';
+            document.getElementById('in-email').value = '';
+            document.getElementById('in-phone1').value = '';
+            document.getElementById('in-phone2').value = '';
+            document.getElementById('in-address').value = '';
+
+            // 2. Clear Sidebar values (Preserves labels like 'Residential location:')
+            document.getElementById('in-skills').value = '';
+            document.getElementById('in-res-loc').value = ''; 
+            document.getElementById('in-cur-loc').value = ''; 
+            document.getElementById('in-lang1-name').value = '';
+            document.getElementById('in-lang1-lvl').value = '1';
+            document.getElementById('in-lang2-name').value = '';
+            document.getElementById('in-lang2-lvl').value = '1';
+
+            // 3. Clear Summary & Certifications
+            document.getElementById('in-summary').value = '';
+            document.getElementById('in-certs').value = '';
+
+            // 4. Clear Dynamic Blocks (Experience, Education, Personal Details)
+            // This clears the data values but preserves the existing blocks and their labels
+            
+            document.querySelectorAll('.exp-block').forEach(block => {
+                block.querySelector('.e-title').value = '';
+                block.querySelector('.e-date').value = '';
+                block.querySelector('.e-comp').value = '';
+                block.querySelector('.e-dept').value = '';
+                block.querySelector('.e-desc').value = '';
+                // Note: .e-dlbl ('Department:') is safely preserved
+            });
+
+            document.querySelectorAll('.edu-block').forEach(block => {
+                block.querySelector('.ed-deg').value = '';
+                block.querySelector('.ed-date').value = '';
+                block.querySelector('.ed-sch').value = '';
+            });
+
+            document.querySelectorAll('.pd-block').forEach(block => {
+                block.querySelector('.pd-val').value = '';
+                // Note: .pd-lbl ('Mother's Name:', 'DOB:', etc.) is safely preserved
+            });
+
+            // 5. Clear Photo
+            document.getElementById('out-photo').src = '';
+            document.getElementById('out-photo').style.display = 'none';
+            document.getElementById('photo-separator').style.display = 'none';
+            
+            const btnUi = document.getElementById('upload-btn-ui');
+            btnUi.innerHTML = '📸 Tap to Upload Photo';
+            btnUi.style.backgroundColor = '#f0f9ff'; 
+            btnUi.style.borderColor = '#7dd3fc'; 
+            btnUi.style.color = '#0284c7';
+
+            // Sync all changes to the UI
+            initSync();
+        }
+
+        // Photo Upload & Cropping Logic
+        let cropper;
+        function loadProfilePicture(event) {
+            const files = event.target.files;
+            if (files && files.length > 0) {
+                const file = files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const modal = document.getElementById('cropper-modal');
+                    const imageToCrop = document.getElementById('image-to-crop');
+                    modal.style.display = 'flex';
+                    imageToCrop.src = e.target.result;
+                    setTimeout(() => {
+                        if (cropper) cropper.destroy();
+                        cropper = new Cropper(imageToCrop, { aspectRatio: 1, viewMode: 1, autoCropArea: 1 });
+                    }, 50);
+                };
+                reader.readAsDataURL(file);
+            }
+            event.target.value = '';
+        }
+
+        function closeCropper() {
+            document.getElementById('cropper-modal').style.display = 'none';
+            if (cropper) { cropper.destroy(); cropper = null; }
+        }
+
+        function applyCrop() {
+            if (!cropper) return;
+            const canvas = cropper.getCroppedCanvas({ width: 400, height: 400, fillColor: '#fff' });
+            const output = document.getElementById('out-photo');
+            output.src = canvas.toDataURL();
+            output.style.display = 'block';
+            document.getElementById('photo-separator').style.display = 'block';
+
+            const btnUi = document.getElementById('upload-btn-ui');
+            btnUi.innerHTML = '✅ Photo Uploaded (Tap to Change)';
+            btnUi.style.backgroundColor = '#f0fdf4'; btnUi.style.borderColor = '#22c55e'; btnUi.style.color = '#15803d';
+            closeCropper();
+        }
+
+        // Initialization
+        function initSync() {
+            updateField('out-name', document.getElementById('in-name').value);
+            updateField('out-title', document.getElementById('in-title').value);
+            updateField('out-email', document.getElementById('in-email').value);
+            updateField('out-phone1', document.getElementById('in-phone1').value);
+            updateField('out-phone2', document.getElementById('in-phone2').value);
+            updateField('out-address', document.getElementById('in-address').value);
+            updateField('out-res-loc', document.getElementById('in-res-loc').value);
+            updateField('out-cur-loc', document.getElementById('in-cur-loc').value);
+            updateField('out-summary', document.getElementById('in-summary').value);
+            updateField('out-h-skills', document.getElementById('in-h-skills').value);
+            updateField('out-h-lang', document.getElementById('in-h-lang').value);
+            updateField('out-h-sum', document.getElementById('in-h-sum').value);
+            updateField('out-h-exp', document.getElementById('in-h-exp').value);
+            updateField('out-h-edu', document.getElementById('in-h-edu').value);
+            updateField('out-h-pd', document.getElementById('in-h-pd').value);
+            updateField('out-h-cert', document.getElementById('in-h-cert').value);
+            updateField('out-lang1-name', document.getElementById('in-lang1-name').value);
+            updateField('out-lang2-name', document.getElementById('in-lang2-name').value);
+            
+            updateList('out-skills', document.getElementById('in-skills').value);
+            updateBars('out-lang1-lvl', document.getElementById('in-lang1-lvl').value);
+            updateBars('out-lang2-lvl', document.getElementById('in-lang2-lvl').value);
+            updateCertifications(document.getElementById('in-certs').value);
+            
+            // Re-render blocks
+            renderExperience();
+            renderEducation();
+            renderPersonalDetails();
+        }
+
+        // Launch
+        (function() {
+            addExperience('Sr. Executive Security', 'Jul 2019 — Oct 2023', 'Interglobe Aviation Pvt Ltd, LBSI Airport, VNS', 'Department:', 'Security', 'Led security operations.');
+            addEducation('Graduation', '2013 — 2016', 'Chhatrapati Shahu Ji Maharaj University, Kanpur, Uttar Pradesh');
+            addEducation('Intermediate', '2012 — 2013', 'Th.D.S.Inter College, Fatehpur');
+            addEducation('High school', '2010 — 2011', 'Th.D.S.Inter College, Fatehpur');
+            addPersonalDetail('Mother\'s Name:', 'Mrs. Anjula Srivastava');
+            addPersonalDetail('Father\'s Name:', 'Mr. Kamlesh Ku. Srivastava');
+            addPersonalDetail('Date of Birth:', '31/12/1997');
+            addPersonalDetail('Gender:', 'Male');
+            addPersonalDetail('Nationality:', 'Indian');
+            addPersonalDetail('Marital Status:', 'Unmarried');
+            initSync();
+        })();
+    </script>
+</body>
+</html>
