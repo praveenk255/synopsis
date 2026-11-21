@@ -426,12 +426,10 @@
 
     <!-- Interactive Canvas / Cropper Stage -->
     <div id="editorStage" class="win-mica hidden overflow-hidden rounded-3xl p-3 sm:p-5">
-      <!-- Standard Preview & Interactive Blur Canvas -->
       <div id="previewCanvasWrap" class="flex items-center justify-center overflow-hidden rounded-2xl bg-slate-900/[0.04] p-2">
         <canvas id="previewCanvas" class="checker-bg max-h-[62dvh] max-w-full rounded-lg shadow-md"></canvas>
       </div>
 
-      <!-- Cropper.js Stage (Shown only for Smart Crop) -->
       <div id="cropperWrap" class="hidden max-h-[62dvh] overflow-hidden rounded-2xl bg-slate-950">
         <img id="cropperImg" src="" alt="Crop stage" class="block max-h-[62dvh] max-w-full" />
       </div>
@@ -462,21 +460,53 @@
   }
 
   // ================= STATE =================
-  let workCanvas = null;       // Master working HTMLCanvasElement
-  let historyStack = [];       // Undo snapshots (dataURLs)
+  let workCanvas = null;
+  let historyStack = [];
   let fileName = 'image';
   let activeTool = 'removebg';
-  let currentView = 'home';    // 'home' | 'function'
+  let currentView = 'home';
   let cropper = null;
-  let bgRemovedCanvas = null;  // Cached transparent cutout for instant BG color swapping
+  let bgRemovedCanvas = null;
   let activeBgColor = 'transparent';
+  let imageSessionId = 0;
 
-  // Live Adjust State
   let adj = { brightness: 100, contrast: 100, saturate: 100, blur: 0, grayscale: 0, sepia: 0 };
-
-  // Blur Brush State
   let isBlurDrawing = false;
   let blurWorkingCanvas = null;
+
+  // ================= BACKGROUND AI MODEL PRELOADER =================
+  const AI_BG_CONFIG = { model: 'isnet_quint8' };
+  let aiBgModulePromise = null;
+  let aiBgPreloadState = 'idle';
+
+  function getAiBgModule() {
+    if (!aiBgModulePromise) {
+      aiBgModulePromise = import('https://esm.sh/@imgly/background-removal@1.7.0');
+    }
+    return aiBgModulePromise;
+  }
+
+  async function preloadAiBgModel() {
+    if (aiBgPreloadState !== 'idle') return;
+    aiBgPreloadState = 'loading';
+    try {
+      const mod = await getAiBgModule();
+      if (typeof mod.preload === 'function') {
+        await mod.preload(AI_BG_CONFIG);
+      }
+      aiBgPreloadState = 'ready';
+      if (currentView === 'function' && activeTool === 'removebg') {
+        $('statusText').textContent = 'AI model cached & ready for fast removal.';
+      }
+    } catch (err) {
+      aiBgPreloadState = 'error';
+      console.warn('AI BG preload skipped:', err);
+    }
+  }
+
+  window.addEventListener('load', () => {
+    setTimeout(preloadAiBgModel, 500);
+  });
 
   const TOOL_META = {
     removebg:  { title: 'AI Remove Background', apply: 'Run AI Remove BG' },
@@ -574,28 +604,57 @@
 
   $('navBackBtn').addEventListener('click', goBack);
 
-  // ================= LOAD IMAGE =================
+  // ================= LOAD & COMPLETELY CLEAR IMAGE =================
+  function wipeAllImageBuffers() {
+    destroyCropper();
+    if (workCanvas) { workCanvas.width = 0; workCanvas.height = 0; }
+    if (bgRemovedCanvas) { bgRemovedCanvas.width = 0; bgRemovedCanvas.height = 0; }
+    if (blurWorkingCanvas) { blurWorkingCanvas.width = 0; blurWorkingCanvas.height = 0; }
+    workCanvas = null;
+    bgRemovedCanvas = null;
+    blurWorkingCanvas = null;
+    historyStack = [];
+    activeBgColor = 'transparent';
+
+    const pCanvas = $('previewCanvas');
+    pCanvas.getContext('2d').clearRect(0, 0, pCanvas.width, pCanvas.height);
+    pCanvas.width = 0; pCanvas.height = 0;
+    $('homeThumb').removeAttribute('src');
+    $('cropperImg').removeAttribute('src');
+  }
+
+  function clearWorkspace() {
+    imageSessionId++;
+    wipeAllImageBuffers();
+    syncHomeStatus();
+    if (currentView === 'function') renderFunctionView();
+  }
+
   function loadImageFile(file) {
     if (!file || !file.type.startsWith('image/')) return alert('Please select a valid image file.');
+    const mySession = ++imageSessionId;
+    wipeAllImageBuffers();
+
     fileName = file.name.replace(/\.[^.]+$/, '') || 'image';
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
+      URL.revokeObjectURL(url);
+      if (mySession !== imageSessionId) return;
+
       const maxDim = 2400;
       const scale = Math.min(1, maxDim / Math.max(img.naturalWidth, img.naturalHeight));
       const c = document.createElement('canvas');
       c.width = Math.max(1, Math.round(img.naturalWidth * scale));
       c.height = Math.max(1, Math.round(img.naturalHeight * scale));
       c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-      URL.revokeObjectURL(url);
 
       workCanvas = c;
-      historyStack = [];
-      bgRemovedCanvas = null;
       syncHomeStatus();
       if (currentView === 'home') scrollToToolsGrid();
       else renderFunctionView();
     };
+    img.onerror = () => URL.revokeObjectURL(url);
     img.src = url;
   }
 
@@ -608,15 +667,6 @@
       $('homeLoadedTitle').textContent = fileName;
       $('homeLoadedMeta').textContent = `${workCanvas.width} × ${workCanvas.height} px · Ready for AI tools`;
     }
-  }
-
-  function clearWorkspace() {
-    destroyCropper();
-    workCanvas = null;
-    bgRemovedCanvas = null;
-    historyStack = [];
-    syncHomeStatus();
-    if (currentView === 'function') renderFunctionView();
   }
 
   // ================= PREVIEW RENDERING =================
@@ -659,9 +709,9 @@
     if (activeTool === 'removebg') {
       html = `
         <span class="font-medium">Background:</span>
-        <button type="button" data-bg="transparent" class="win-pill bg-pill is-active">Transparent</button>
-        <button type="button" data-bg="#ffffff" class="win-pill bg-pill">White</button>
-        <button type="button" data-bg="#0b66c3" class="win-pill bg-pill">Passport Blue</button>
+        <button type="button" data-bg="transparent" class="win-pill bg-pill ${activeBgColor === 'transparent' ? 'is-active' : ''}">Transparent</button>
+        <button type="button" data-bg="#ffffff" class="win-pill bg-pill ${activeBgColor === '#ffffff' ? 'is-active' : ''}">White</button>
+        <button type="button" data-bg="#0b66c3" class="win-pill bg-pill ${activeBgColor === '#0b66c3' ? 'is-active' : ''}">Passport Blue</button>
         <input type="color" id="optBgColor" value="#e0f2fe" title="Custom background color" class="h-7 w-7 cursor-pointer rounded border-0 bg-transparent" />`;
     } else if (activeTool === 'enhance') {
       html = `
@@ -765,11 +815,17 @@
     } else {
       drawPreview(workCanvas);
     }
-    $('statusText').textContent = `Loaded ${TOOL_META[activeTool].title}.`;
+
+    if (activeTool === 'removebg') {
+      $('statusText').textContent = aiBgPreloadState === 'ready'
+        ? 'AI model cached & ready for fast removal.'
+        : (aiBgPreloadState === 'loading' ? 'Preloading AI model in background...' : 'Ready.');
+    } else {
+      $('statusText').textContent = `Loaded ${TOOL_META[activeTool].title}.`;
+    }
   }
 
   function wireToolSpecificControls() {
-    // AI Remove BG background swatches
     document.querySelectorAll('.bg-pill').forEach(btn => {
       btn.addEventListener('click', () => {
         activeBgColor = btn.dataset.bg;
@@ -785,7 +841,6 @@
       });
     }
 
-    // Crop ratios
     document.querySelectorAll('.ratio-pill').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.ratio-pill').forEach(b => b.classList.toggle('is-active', b === btn));
@@ -793,7 +848,6 @@
       });
     });
 
-    // Resize aspect lock
     if ($('optResW') && $('optResH') && workCanvas) {
       const aspect = workCanvas.width / workCanvas.height;
       $('optResW').addEventListener('input', () => {
@@ -804,7 +858,6 @@
       });
     }
 
-    // Adjust live preview
     const updateAdj = () => {
       adj.brightness = parseInt($('adjB').value, 10);
       adj.contrast = parseInt($('adjC').value, 10);
@@ -824,13 +877,11 @@
       });
     });
 
-    // Transform immediate buttons
     if ($('trRotL')) $('trRotL').addEventListener('click', () => applyTransform(-90, 1, 1));
     if ($('trRotR')) $('trRotR').addEventListener('click', () => applyTransform(90, 1, 1));
     if ($('trFlipH')) $('trFlipH').addEventListener('click', () => applyTransform(0, -1, 1));
     if ($('trFlipV')) $('trFlipV').addEventListener('click', () => applyTransform(0, 1, -1));
 
-    // Watermark live preview
     if ($('optWmText')) {
       const prevWm = () => {
         if (!workCanvas) return;
@@ -913,7 +964,6 @@
     const sh = Math.min(blurWorkingCanvas.height - sy, r * 2);
     if (sw <= 4 || sh <= 4) return;
 
-    // Fast Mosaic/Pixelate Privacy Blur
     const pxSize = Math.max(8, Math.round(r * 0.35));
     const tiny = document.createElement('canvas');
     tiny.width = Math.max(1, Math.round(sw / pxSize));
@@ -946,16 +996,23 @@
   }
 
   async function runAiRemoveBg() {
+    const mySession = imageSessionId;
     $('aiProgressWrap').classList.remove('hidden');
-    $('aiProgressBar').style.width = '15%';
-    $('statusText').textContent = 'Loading client-side AI model (first run caches in browser)...';
+    $('aiProgressBar').style.width = '18%';
+    $('statusText').textContent = aiBgPreloadState === 'ready'
+      ? 'Removing background...'
+      : 'Preparing AI model...';
 
     const srcBlob = await new Promise(r => workCanvas.toBlob(r, 'image/png'));
+    if (mySession !== imageSessionId) return;
+
     try {
-      const mod = await import('https://esm.sh/@imgly/background-removal@1.4.5');
+      const mod = await getAiBgModule();
       const removeBackground = mod.removeBackground || mod.default;
       const outBlob = await removeBackground(srcBlob, {
+        ...AI_BG_CONFIG,
         progress: (key, current, total) => {
+          if (mySession !== imageSessionId) return;
           if (total > 0) {
             const pct = Math.min(98, Math.round((current / total) * 100));
             $('aiProgressBar').style.width = `${pct}%`;
@@ -963,9 +1020,15 @@
           }
         }
       });
+
+      if (mySession !== imageSessionId) return;
+      aiBgPreloadState = 'ready';
+
       const url = URL.createObjectURL(outBlob);
       const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
       URL.revokeObjectURL(url);
+
+      if (mySession !== imageSessionId) return;
 
       pushUndo();
       const cut = document.createElement('canvas');
@@ -976,10 +1039,13 @@
       $('aiProgressBar').style.width = '100%';
       $('statusText').textContent = 'AI background removed! Pick a background color or Download.';
     } catch (err) {
+      if (mySession !== imageSessionId) return;
       console.error(err);
-      $('statusText').textContent = 'AI model blocked by network/CORS. Check internet connection for first-time model cache.';
+      $('statusText').textContent = 'AI model blocked by network/CORS. Check internet connection for first-time cache.';
     } finally {
-      setTimeout(() => $('aiProgressWrap').classList.add('hidden'), 800);
+      if (mySession === imageSessionId) {
+        setTimeout(() => $('aiProgressWrap').classList.add('hidden'), 800);
+      }
     }
   }
 
@@ -992,7 +1058,6 @@
     const imgData = ctx.getImageData(0, 0, c.width, c.height);
     const d = imgData.data;
 
-    // 1. Auto-levels histogram stretch (2nd to 98th percentile)
     const hist = new Int32Array(256);
     for (let i = 0; i < d.length; i += 4) {
       const lum = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
@@ -1013,7 +1078,6 @@
     }
     ctx.putImageData(imgData, 0, 0);
 
-    // 2. Gentle clarity + vibrance pass
     const out = document.createElement('canvas');
     out.width = c.width; out.height = c.height;
     const oCtx = out.getContext('2d');
@@ -1021,7 +1085,6 @@
     oCtx.drawImage(c, 0, 0);
 
     if (sharpen) {
-      // Unsharp-style subtle edge pop
       const sData = oCtx.getImageData(0, 0, out.width, out.height);
       const src = new Uint8ClampedArray(sData.data);
       const w = out.width, h = out.height;
@@ -1082,7 +1145,6 @@
     const mode = $('optPassSize').value;
     const bg = $('optPassBg').value;
 
-    // 35x45mm at 300 DPI = 413 x 531 px
     const pw = 413, ph = 531;
     const single = document.createElement('canvas');
     single.width = pw; single.height = ph;
@@ -1090,7 +1152,6 @@
     sCtx.fillStyle = bg;
     sCtx.fillRect(0, 0, pw, ph);
 
-    // Center-cover crop
     const scale = Math.max(pw / workCanvas.width, ph / workCanvas.height);
     const dw = workCanvas.width * scale, dh = workCanvas.height * scale;
     sCtx.drawImage(workCanvas, (pw - dw) / 2, (ph - dh) / 2, dw, dh);
@@ -1099,7 +1160,7 @@
       workCanvas = single;
     } else {
       const sheet = document.createElement('canvas');
-      const cols = mode === 'sheet4x6' ? 4 : 4;
+      const cols = 4;
       const rows = mode === 'sheet4x6' ? 2 : 5;
       const gap = 24, pad = 40;
       sheet.width = pad * 2 + cols * pw + (cols - 1) * gap;
@@ -1138,7 +1199,6 @@
         pushUndo();
         workCanvas = cropper.getCroppedCanvas({ maxWidth: 2400, maxHeight: 2400 });
         destroyCropper();
-        activeTool = 'adjust';
         goBack();
       } else if (activeTool === 'compress') {
         await runTargetKbCompress();
@@ -1211,7 +1271,7 @@
       console.error(err);
       alert(err.message || 'Action failed.');
     } finally {
-      btn.disabled = false;
+      btn.disabled = !workCanvas;
     }
   });
 
@@ -1229,13 +1289,16 @@
 
   $('undoBtn').addEventListener('click', () => {
     if (!historyStack.length) return;
+    const mySession = imageSessionId;
     const prev = historyStack.pop();
     const img = new Image();
     img.onload = () => {
+      if (mySession !== imageSessionId) return;
       const c = document.createElement('canvas');
       c.width = img.naturalWidth; c.height = img.naturalHeight;
       c.getContext('2d').drawImage(img, 0, 0);
       workCanvas = c;
+      bgRemovedCanvas = null;
       renderFunctionView();
       $('statusText').textContent = 'Undid last edit.';
     };
