@@ -1,0 +1,1953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Offline PDF Studio — All-in-One Local PDF Tools &amp; Doc Scanner</title>
+  <meta name="description" content="100% client-side offline PDF Studio. Merge, split, compress to target KB, AI Doc Scanner with perspective crop, Word to PDF, PDF to Word/Excel/Images, unlock, protect, N-up, watermark, and scrub metadata." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    :root {
+      --win-accent: #0067c0;
+      --win-accent-hover: #005fb8;
+      --win-danger: #c42b1c;
+      --win-surface: rgba(255, 255, 255, 0.76);
+      --win-surface-strong: rgba(255, 255, 255, 0.92);
+      --win-hairline: rgba(15, 23, 42, 0.07);
+    }
+
+    html {
+      scroll-behavior: smooth;
+      overscroll-behavior-y: contain;
+      font-family: "Segoe UI Variable", "Segoe UI", -apple-system, BlinkMacSystemFont, Inter, system-ui, sans-serif;
+    }
+
+    body {
+      min-height: 100dvh;
+      overscroll-behavior-y: contain;
+      background-color: #f3f6fb;
+      background-image:
+        radial-gradient(at 10% 5%, rgba(56, 139, 253, 0.12) 0px, transparent 42%),
+        radial-gradient(at 90% 10%, rgba(99, 102, 241, 0.09) 0px, transparent 40%),
+        radial-gradient(at 50% 95%, rgba(14, 165, 233, 0.08) 0px, transparent 45%);
+      background-attachment: fixed;
+    }
+
+    button, a, input, select { -webkit-tap-highlight-color: transparent; }
+    button, a { user-select: none; -webkit-user-select: none; }
+
+    /* Windows 11 Mica / Acrylic Surfaces */
+    .win-mica {
+      background: var(--win-surface);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      border: 1px solid var(--win-hairline);
+      box-shadow: 0 2px 14px rgba(15, 23, 42, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    }
+
+    .win-acrylic {
+      background: var(--win-surface-strong);
+      backdrop-filter: blur(28px) saturate(180%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      border-color: var(--win-hairline);
+    }
+
+    /* Native Upload Dropzone */
+    .win-dropzone {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(248, 250, 252, 0.65) 100%);
+      border: 1.5px dashed rgba(15, 23, 42, 0.16);
+      transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease, transform 120ms ease;
+    }
+    .win-dropzone:hover {
+      border-color: rgba(0, 103, 192, 0.45);
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 8px 28px rgba(0, 103, 192, 0.07);
+    }
+    .win-dropzone.is-dragging {
+      border-color: var(--win-accent);
+      background: rgba(239, 246, 255, 0.94);
+      box-shadow: 0 0 0 4px rgba(0, 103, 192, 0.12);
+      transform: scale(0.995);
+    }
+
+    /* Subtle Native Screen Transition & Scroll Pulse */
+    @keyframes viewEnter {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .view-enter { animation: viewEnter 180ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+    @keyframes gridPulse {
+      0%   { box-shadow: 0 0 0 0 rgba(0, 103, 192, 0.28); }
+      70%  { box-shadow: 0 0 0 8px rgba(0, 103, 192, 0); }
+      100% { box-shadow: 0 2px 14px rgba(15, 23, 42, 0.04); }
+    }
+    .grid-pulse { animation: gridPulse 700ms ease-out; }
+
+    /* Borderless, Fill-less Windows 11 Command Buttons (Icon + Label Only) */
+    .win11-cmd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      border: none;
+      background: transparent;
+      color: #1e293b;
+      border-radius: 12px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      transition: background-color 140ms ease, color 140ms ease, transform 90ms ease, opacity 140ms ease;
+    }
+    .win11-cmd:hover:not(:disabled) {
+      background: rgba(15, 23, 42, 0.055);
+      color: #0f172a;
+    }
+    .win11-cmd:active:not(:disabled) {
+      background: rgba(15, 23, 42, 0.09);
+      transform: scale(0.97);
+    }
+    .win11-cmd:focus-visible {
+      outline: 2px solid rgba(0, 103, 192, 0.45);
+      outline-offset: 2px;
+    }
+    .win11-cmd:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .win11-cmd-accent { color: var(--win-accent); font-weight: 600; }
+    .win11-cmd-accent:hover:not(:disabled) { background: rgba(0, 103, 192, 0.08); color: var(--win-accent-hover); }
+
+    .win11-cmd-danger { color: var(--win-danger); }
+    .win11-cmd-danger:hover:not(:disabled) { background: rgba(196, 43, 28, 0.08); }
+
+    /* Borderless Windows 11 Grid Tool Tile */
+    .win11-tile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 1rem 0.6rem;
+      border: none;
+      background: transparent;
+      border-radius: 14px;
+      color: #1e293b;
+      text-align: center;
+      cursor: pointer;
+      transition: background-color 150ms ease, transform 100ms ease, color 150ms ease;
+    }
+    .win11-tile:hover { background: rgba(255, 255, 255, 0.8); color: #0f172a; }
+    .win11-tile:active { transform: scale(0.96); background: rgba(0, 103, 192, 0.08); }
+
+    /* Filter Pill (Borderless) */
+    .scan-filter-btn {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.5rem 0.75rem;
+      border: none;
+      background: transparent;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #475569;
+      cursor: pointer;
+      transition: background-color 140ms ease, color 140ms ease;
+    }
+    .scan-filter-btn:hover { background: rgba(15, 23, 42, 0.05); color: #0f172a; }
+    .scan-filter-btn.is-active { background: rgba(0, 103, 192, 0.1); color: var(--win-accent); font-weight: 600; }
+
+    /* Windows 11 Toggle Switch */
+    .win-switch {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 36px;
+      height: 20px;
+      border-radius: 999px;
+      border: 1.5px solid #64748b;
+      background: transparent;
+      position: relative;
+      cursor: pointer;
+      transition: background-color 160ms ease, border-color 160ms ease;
+      flex-shrink: 0;
+    }
+    .win-switch::after {
+      content: "";
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 13px; height: 13px;
+      border-radius: 999px;
+      background: #475569;
+      transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1), background-color 160ms ease;
+    }
+    .win-switch:checked { background: var(--win-accent); border-color: var(--win-accent); }
+    .win-switch:checked::after { background: #ffffff; transform: translateX(16px); }
+
+    /* Minimal Fluent Inputs */
+    .win-input {
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      border-bottom: 1.5px solid rgba(15, 23, 42, 0.28);
+      border-radius: 6px;
+      transition: border-color 140ms ease, background-color 140ms ease;
+    }
+    .win-input:focus { outline: none; background: #ffffff; border-bottom: 2px solid var(--win-accent); }
+
+    /* Word Preview Styling */
+    #wordPreviewSheet h1 { font-size: 20px; font-weight: 700; margin: 0 0 10px; }
+    #wordPreviewSheet h2 { font-size: 16px; font-weight: 700; margin: 14px 0 6px; }
+    #wordPreviewSheet h3 { font-size: 14px; font-weight: 600; margin: 10px 0 4px; }
+    #wordPreviewSheet p  { margin: 0 0 8px; line-height: 1.55; font-size: 13px; }
+    #wordPreviewSheet ul, #wordPreviewSheet ol { margin: 0 0 10px 20px; font-size: 13px; }
+    #wordPreviewSheet table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 12px; }
+    #wordPreviewSheet td, #wordPreviewSheet th { border: 1px solid #cbd5e1; padding: 6px 8px; }
+
+    dialog::backdrop { background: rgba(15, 23, 42, 0.22); backdrop-filter: blur(8px); }
+    .sortable-ghost { opacity: 0.35; transform: scale(0.96); }
+    .sortable-chosen { box-shadow: 0 18px 36px rgba(15, 23, 42, 0.14); }
+
+    @media (max-width: 639px) {
+      input:not([type="checkbox"]):not([type="range"]), select { font-size: 16px !important; }
+    }
+  </style>
+</head>
+<body class="text-slate-900 antialiased selection:bg-blue-100 selection:text-blue-900">
+
+<!-- ================= NATIVE APP TOP BAR ================= -->
+<nav class="win-acrylic sticky top-0 z-30 border-b">
+  <div class="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-3 sm:px-6">
+    <div class="flex min-w-0 items-center gap-2">
+      <!-- App Back Button (Visible inside Function & Scanner views) -->
+      <button type="button" id="navBackBtn" class="win11-cmd hidden h-9 px-2 text-xs sm:text-sm" aria-label="Back to tools">
+        <i data-lucide="arrow-left" class="h-4 w-4"></i>
+        <span>Back</span>
+      </button>
+
+      <!-- Brand (Visible on Home view) -->
+      <a id="brandLink" href="../index.html" class="flex min-w-0 items-center gap-2.5 text-sm font-semibold tracking-tight text-slate-900 sm:text-base">
+        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#0078d4] to-[#005a9e] text-xs font-bold text-white shadow-sm shadow-blue-600/20">OT</span>
+        <span class="truncate">Offline<span class="text-[#0067c0]">Tools</span></span>
+      </a>
+
+      <!-- Active View Title -->
+      <div id="navViewTitleWrap" class="hidden min-w-0 border-l border-slate-900/[0.1] pl-2.5">
+        <p id="navViewTitle" class="truncate text-sm font-semibold leading-tight text-slate-900">Tool</p>
+        <p id="navViewSub" class="truncate text-[11px] text-slate-500">0 pages</p>
+      </div>
+    </div>
+
+    <!-- Top Bar: Two Action Buttons (Upload + Doc Scanner) -->
+    <div class="flex shrink-0 items-center gap-1">
+      <button type="button" id="topUploadBtn" class="win11-cmd h-9 px-2.5 text-xs">
+        <i data-lucide="upload" class="h-4 w-4 text-[#0067c0]"></i>
+        <span>Upload</span>
+      </button>
+      <button type="button" id="topScanBtn" class="win11-cmd h-9 px-2.5 text-xs">
+        <i data-lucide="scan-line" class="h-4 w-4 text-[#0067c0]"></i>
+        <span>Doc Scanner</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<main class="mx-auto max-w-5xl px-3 pb-12 pt-5 sm:px-6 sm:pt-7">
+
+  <!-- Hidden File Inputs -->
+  <input type="file" id="unifiedInput" accept="application/pdf,image/*,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple hidden />
+  <input type="file" id="wordInput" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden />
+  <input type="file" id="scanFileInput" accept="image/*" capture="environment" hidden />
+  <input type="file" id="scanGalleryInput" accept="image/*" hidden />
+
+  <!-- =================================================================== -->
+  <!-- VIEW 1: HOME DASHBOARD (Upload Area + Loaded Status + Tools Grid)   -->
+  <!-- =================================================================== -->
+  <div id="homeView" class="view-enter space-y-5">
+    <header class="flex items-end justify-between gap-3 px-1">
+      <div>
+        <div class="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-[#0067c0]">
+          <i data-lucide="shield-check" class="h-3.5 w-3.5"></i>
+          <span>100% Offline · Runs Locally in Browser</span>
+        </div>
+        <h1 class="mt-0.5 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">PDF Studio</h1>
+      </div>
+    </header>
+
+    <!-- Native Windows 11 Upload Card -->
+    <section aria-label="Upload Files" class="win-mica rounded-3xl p-3 sm:p-5">
+      <div id="dropZone" role="button" tabindex="0" class="win-dropzone flex flex-col gap-5 rounded-2xl p-4 sm:p-6">
+        <!-- Row 1: Upload Icon on Left + Description Directly to its Right -->
+        <div class="flex items-center gap-4 text-left">
+          <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-50/90 text-[#0067c0]">
+            <i data-lucide="cloud-upload" class="h-7 w-7"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-semibold text-slate-900 sm:text-base">Drop PDF, images, or Word (.docx) here</p>
+            <p class="mt-0.5 text-xs leading-relaxed text-slate-500 sm:text-sm">100% local in browser RAM — auto-scrolls to tools right after upload.</p>
+          </div>
+        </div>
+
+        <!-- Row 2: Two 2x Bigger Borderless Buttons Below (Upload | Doc Scanner) -->
+        <div class="grid grid-cols-2 items-center gap-2 border-t border-slate-900/[0.07] pt-4 sm:gap-4">
+          <button type="button" id="dropUploadBtn" class="win11-cmd win11-cmd-accent h-20 flex-col gap-2 px-4 text-base sm:h-24 sm:flex-row sm:gap-3 sm:text-lg">
+            <i data-lucide="upload" class="h-8 w-8 shrink-0"></i>
+            <span>Upload</span>
+          </button>
+
+          <button type="button" id="dropScanBtn" class="win11-cmd win11-cmd-accent h-20 flex-col gap-2 px-4 text-base sm:h-24 sm:flex-row sm:gap-3 sm:text-lg">
+            <i data-lucide="scan-line" class="h-8 w-8 shrink-0"></i>
+            <span>Doc Scanner</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Loaded Files Pill Bar -->
+      <div id="homeLoadedBar" class="mt-3 hidden flex-wrap items-center justify-between gap-2 rounded-2xl bg-blue-50/70 px-4 py-2.5 text-xs">
+        <div class="flex items-center gap-2 font-medium text-slate-800">
+          <i data-lucide="check-circle-2" class="h-4 w-4 text-[#0067c0]"></i>
+          <span id="homeLoadedText">0 pages ready — tap any tool below</span>
+        </div>
+        <button type="button" id="homeQuickClearBtn" class="win11-cmd win11-cmd-danger h-8 px-2.5 text-xs">
+          <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+          <span>Clear</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- All PDF Processing Tools Grid (Auto-Scroll Target After Upload) -->
+    <section id="toolsSection" aria-label="PDF Processing Tools" class="win-mica scroll-mt-20 rounded-3xl p-3 sm:p-5">
+      <div id="toolsGrid" class="grid grid-cols-3 gap-1.5 sm:grid-cols-4 sm:gap-2.5 lg:grid-cols-6">
+        <button type="button" data-tool="merge" class="win11-tile">
+          <i data-lucide="layers" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">Merge &amp; Reorder</span>
+        </button>
+
+        <button type="button" data-tool="split" class="win11-tile">
+          <i data-lucide="scissors" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">Split / Extract</span>
+        </button>
+
+        <button type="button" data-tool="compress" class="win11-tile">
+          <i data-lucide="minimize-2" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">Compress KB</span>
+        </button>
+
+        <button type="button" data-tool="img2pdf" class="win11-tile">
+          <i data-lucide="images" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">Images to PDF</span>
+        </button>
+
+        <button type="button" data-tool="pdf2img" class="win11-tile">
+          <i data-lucide="file-image" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">PDF to Images</span>
+        </button>
+
+        <button type="button" data-tool="unlock" class="win11-tile">
+          <i data-lucide="unlock" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">Unlock PDF</span>
+        </button>
+
+        <button type="button" data-tool="protect" class="win11-tile">
+          <i data-lucide="lock" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">Protect PDF</span>
+        </button>
+
+        <button type="button" data-tool="nup" class="win11-tile">
+          <i data-lucide="layout-grid" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">N-up Print</span>
+        </button>
+
+        <button type="button" data-tool="stamp" class="win11-tile">
+          <i data-lucide="stamp" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">Watermark &amp; #</span>
+        </button>
+
+        <button type="button" data-tool="metadata" class="win11-tile">
+          <i data-lucide="eraser" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">Scrub Metadata</span>
+        </button>
+
+        <button type="button" data-tool="pdf2word" class="win11-tile">
+          <i data-lucide="file-text" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">PDF to Word</span>
+        </button>
+
+        <button type="button" data-tool="word2pdf" class="win11-tile">
+          <i data-lucide="file-up" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">Word to PDF</span>
+        </button>
+
+        <button type="button" data-tool="pdf2excel" class="win11-tile">
+          <i data-lucide="table" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">PDF to Excel</span>
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- VIEW 2: FUNCTION WORKSPACE VIEW (Opened with Back Button)           -->
+  <!-- =================================================================== -->
+  <section id="functionView" class="view-enter hidden space-y-5">
+    <div class="win-mica rounded-3xl p-4 sm:p-6">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="min-w-0 flex-1 space-y-2.5">
+          <div class="flex items-center gap-2">
+            <h2 id="activeToolTitle" class="text-base font-semibold text-slate-900 sm:text-lg">Tool</h2>
+            <span id="pageCountBadge" class="text-xs font-medium text-slate-500">0 pages</span>
+          </div>
+          <div id="toolOptions" class="flex flex-wrap items-center gap-3 text-xs text-slate-700"></div>
+        </div>
+
+        <div class="flex shrink-0 flex-wrap items-center gap-1 border-t border-slate-900/[0.06] pt-3 sm:border-t-0 sm:pt-0">
+          <button type="button" id="clearAllBtn" class="win11-cmd win11-cmd-danger hidden h-10 px-3 text-xs">
+            <i data-lucide="trash-2" class="h-4 w-4"></i>
+            <span>Clear</span>
+          </button>
+          <button type="button" id="runToolBtn" class="win11-cmd win11-cmd-accent h-10 px-4 text-sm">
+            <i data-lucide="play" class="h-4 w-4"></i>
+            <span id="runToolLabel">Run</span>
+          </button>
+        </div>
+      </div>
+      <p id="statusText" aria-live="polite" class="mt-3 text-xs text-slate-500">Ready.</p>
+    </div>
+
+    <!-- Word to PDF Preview Area -->
+    <div id="wordWorkspace" class="hidden space-y-3">
+      <div class="flex items-center justify-between px-1 text-xs text-slate-500">
+        <span id="wordFileName">No Word (.docx) file selected</span>
+        <button type="button" id="pickWordBtn" class="win11-cmd win11-cmd-accent h-8 px-2.5 text-xs">
+          <i data-lucide="folder-open" class="h-3.5 w-3.5"></i>
+          <span>Choose .docx</span>
+        </button>
+      </div>
+      <div class="win-mica overflow-auto rounded-2xl p-4 sm:p-6">
+        <div id="wordPreviewSheet" class="mx-auto min-h-[260px] max-w-[794px] rounded-lg bg-white p-6 text-slate-900 shadow-sm ring-1 ring-slate-900/[0.06] sm:p-10">
+          <p class="text-center text-xs text-slate-400">Select a .docx file to preview and convert to PDF.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visual PDF/Image Page Grid -->
+    <div id="pdfWorkspace" class="space-y-3">
+      <div id="emptyFuncPrompt" class="win-mica hidden flex-col items-center justify-center gap-3 rounded-3xl px-6 py-12 text-center">
+        <i data-lucide="file-plus" class="h-8 w-8 text-[#0067c0]"></i>
+        <p class="text-sm font-medium text-slate-800">No files loaded yet</p>
+        <div class="flex flex-wrap items-center justify-center gap-2">
+          <button type="button" id="emptyUploadBtn" class="win11-cmd win11-cmd-accent h-9 px-3 text-xs">
+            <i data-lucide="upload" class="h-4 w-4"></i>
+            <span>Upload Files</span>
+          </button>
+          <button type="button" id="emptyOpenScanBtn" class="win11-cmd h-9 px-3 text-xs">
+            <i data-lucide="scan-line" class="h-4 w-4 text-[#0067c0]"></i>
+            <span>Doc Scanner</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="gridHeaderBar" class="hidden items-center justify-between px-1 text-xs text-slate-500">
+        <span>Drag pages to reorder · Rotate or delete individual pages</span>
+        <button type="button" id="interleaveBtn" class="win11-cmd h-8 px-2.5 text-xs">
+          <i data-lucide="arrow-up-down" class="h-3.5 w-3.5 text-[#0067c0]"></i>
+          <span>Reverse Order</span>
+        </button>
+      </div>
+      <div id="pageGrid" class="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-4"></div>
+    </div>
+  </section>
+
+  <!-- =================================================================== -->
+  <!-- VIEW 3: OFFICE LENS–STYLE AI DOC SCANNER VIEW                       -->
+  <!-- =================================================================== -->
+  <section id="scannerView" class="view-enter hidden space-y-4">
+
+    <!-- Step A: Live Camera Viewfinder with Hardware Permission Prompt -->
+    <div id="scanCameraStage" class="win-mica overflow-hidden rounded-3xl p-3 sm:p-4">
+      <div class="relative mx-auto aspect-[3/4] max-h-[66dvh] w-full max-w-xl overflow-hidden rounded-2xl bg-slate-950">
+        <video id="scanVideo" autoplay playsinline webkit-playsinline muted class="h-full w-full object-cover"></video>
+        <canvas id="scanLiveOverlay" class="pointer-events-none absolute inset-0 h-full w-full"></canvas>
+
+        <!-- Camera Permission / Hardware Access Overlay -->
+        <div id="scanCamFallback" class="hidden absolute inset-0 flex-col items-center justify-center gap-4 bg-slate-900/92 p-6 text-center text-white">
+          <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/20 text-sky-400">
+            <i data-lucide="camera" class="h-7 w-7"></i>
+          </div>
+          <div class="max-w-xs">
+            <p id="scanCamTitle" class="text-base font-semibold">Camera Access Needed</p>
+            <p id="scanCamMsg" class="mt-1 text-xs leading-relaxed text-slate-300">Allow camera permission to use live AI edge detection, or use your phone's native camera.</p>
+          </div>
+          <div class="flex flex-wrap items-center justify-center gap-3">
+            <button type="button" id="scanRequestPermBtn" class="win11-cmd h-11 px-4 text-sm font-semibold text-sky-400 hover:bg-white/10 hover:text-sky-300">
+              <i data-lucide="shield-check" class="h-5 w-5"></i>
+              <span>Allow Camera Access</span>
+            </button>
+            <button type="button" id="scanNativeCamBtn" class="win11-cmd h-11 px-4 text-sm font-medium text-white hover:bg-white/10">
+              <i data-lucide="camera" class="h-5 w-5 text-sky-400"></i>
+              <span>Native Camera</span>
+            </button>
+          </div>
+        </div>
+
+        <span id="scanAiBadge" class="absolute left-3 top-3 rounded-full bg-slate-900/70 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md">
+          AI Edge Detection Active
+        </span>
+      </div>
+
+      <div class="mt-3 flex flex-wrap items-center justify-around gap-2">
+        <button type="button" id="scanGalleryBtn" class="win11-cmd h-11 px-3 text-xs sm:text-sm">
+          <i data-lucide="image" class="h-5 w-5 text-[#0067c0]"></i>
+          <span>Gallery</span>
+        </button>
+
+        <button type="button" id="scanCaptureBtn" class="win11-cmd win11-cmd-accent h-12 px-5 text-sm">
+          <i data-lucide="aperture" class="h-6 w-6"></i>
+          <span>Capture Doc</span>
+        </button>
+
+        <button type="button" id="scanDoneBtn" class="win11-cmd h-11 px-3 text-xs sm:text-sm">
+          <i data-lucide="check" class="h-5 w-5 text-emerald-600"></i>
+          <span id="scanDoneLabel">Done (0)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step B: Interactive 4-Corner AI Crop Stage -->
+    <div id="scanCropStage" class="win-mica hidden rounded-3xl p-3 sm:p-5">
+      <div class="mb-2.5 flex items-center justify-between text-xs text-slate-600">
+        <span class="font-medium">Drag corners to adjust AI crop</span>
+        <button type="button" id="scanAutoDetectBtn" class="win11-cmd win11-cmd-accent h-8 px-2.5 text-xs">
+          <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
+          <span>Re-run AI Crop</span>
+        </button>
+      </div>
+
+      <div class="flex justify-center overflow-hidden rounded-2xl bg-slate-900/95 p-2">
+        <canvas id="scanCropCanvas" class="max-h-[60dvh] max-w-full touch-none rounded-lg"></canvas>
+      </div>
+
+      <div class="mt-3 flex items-center justify-between gap-2">
+        <button type="button" id="scanRetakeBtn" class="win11-cmd h-10 px-3.5 text-xs sm:text-sm">
+          <i data-lucide="rotate-ccw" class="h-4 w-4 text-slate-600"></i>
+          <span>Retake</span>
+        </button>
+        <button type="button" id="scanConfirmCropBtn" class="win11-cmd win11-cmd-accent h-10 px-4 text-sm">
+          <i data-lucide="crop" class="h-4 w-4"></i>
+          <span>Confirm &amp; Deskew</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step C: Office Lens Enhancement Filters & Save Stage -->
+    <div id="scanEnhanceStage" class="win-mica hidden rounded-3xl p-3 sm:p-5">
+      <div class="flex justify-center overflow-hidden rounded-2xl bg-slate-900/[0.04] p-3">
+        <canvas id="scanResultCanvas" class="max-h-[56dvh] max-w-full rounded-lg bg-white shadow-md"></canvas>
+      </div>
+
+      <div class="mt-3 flex flex-wrap items-center justify-center gap-1 border-b border-slate-900/[0.06] pb-3">
+        <button type="button" data-filter="magic" class="scan-filter-btn is-active">
+          <i data-lucide="sparkles" class="h-4 w-4"></i>
+          <span>Magic Color</span>
+        </button>
+        <button type="button" data-filter="original" class="scan-filter-btn">
+          <i data-lucide="sun" class="h-4 w-4"></i>
+          <span>Original</span>
+        </button>
+        <button type="button" data-filter="bw" class="scan-filter-btn">
+          <i data-lucide="contrast" class="h-4 w-4"></i>
+          <span>B&amp;W Scan</span>
+        </button>
+        <button type="button" data-filter="gray" class="scan-filter-btn">
+          <i data-lucide="palette" class="h-4 w-4"></i>
+          <span>Grayscale</span>
+        </button>
+        <button type="button" data-filter="whiteboard" class="scan-filter-btn">
+          <i data-lucide="presentation" class="h-4 w-4"></i>
+          <span>Whiteboard</span>
+        </button>
+      </div>
+
+      <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-1">
+          <button type="button" id="scanBackToCropBtn" class="win11-cmd h-10 px-3 text-xs">
+            <i data-lucide="crop" class="h-4 w-4 text-slate-600"></i>
+            <span>Re-crop</span>
+          </button>
+          <button type="button" id="scanRotateBtn" class="win11-cmd h-10 px-3 text-xs">
+            <i data-lucide="rotate-cw" class="h-4 w-4 text-[#0067c0]"></i>
+            <span>Rotate</span>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-1">
+          <button type="button" id="scanAddAnotherBtn" class="win11-cmd h-10 px-3 text-xs sm:text-sm">
+            <i data-lucide="plus" class="h-4 w-4 text-[#0067c0]"></i>
+            <span>Add &amp; Scan Next</span>
+          </button>
+          <button type="button" id="scanSaveFinishBtn" class="win11-cmd win11-cmd-accent h-10 px-4 text-sm">
+            <i data-lucide="check-circle-2" class="h-4 w-4"></i>
+            <span>Save to Studio</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PASSWORD UNLOCK DIALOG ================= -->
+  <dialog id="pwdDialog" aria-labelledby="pwdTitle" class="win-mica m-auto w-[min(92vw,420px)] rounded-2xl p-6 text-slate-900 shadow-2xl">
+    <p class="text-[11px] font-semibold uppercase tracking-wider text-amber-600">Password-Protected PDF</p>
+    <h2 id="pwdTitle" class="mt-0.5 text-lg font-semibold text-slate-900">Unlock PDF Locally</h2>
+    <p id="pwdHint" class="mt-1 text-xs leading-relaxed text-slate-500">Enter the password to decrypt this PDF in browser memory.</p>
+    <div class="mt-4 flex items-center gap-1.5">
+      <input type="password" id="pwdInput" placeholder="Enter PDF password" autocomplete="off" class="win-input h-10 flex-1 px-3 text-sm font-medium" />
+      <button type="button" id="pwdShowBtn" class="win11-cmd h-10 px-2.5 text-xs">
+        <i data-lucide="eye" class="h-4 w-4 text-slate-500"></i>
+        <span>Show</span>
+      </button>
+    </div>
+    <p id="pwdError" class="mt-1.5 hidden text-xs font-medium text-[#c42b1c]"></p>
+    <div class="mt-5 flex items-center justify-end gap-2">
+      <button type="button" id="pwdCancelBtn" class="win11-cmd h-9 px-3.5 text-xs">
+        <i data-lucide="x" class="h-4 w-4 text-slate-500"></i>
+        <span>Cancel</span>
+      </button>
+      <button type="button" id="pwdSubmitBtn" class="win11-cmd win11-cmd-accent h-9 px-3.5 text-xs">
+        <i data-lucide="unlock" class="h-4 w-4"></i>
+        <span>Unlock</span>
+      </button>
+    </div>
+  </dialog>
+
+</main>
+
+<footer id="siteFooter" class="mt-8 border-t border-slate-900/[0.06] bg-white/60 py-5 text-xs text-slate-500 backdrop-blur-md">
+  <div class="mx-auto flex max-w-5xl flex-col items-center justify-between gap-2 px-3 sm:flex-row sm:px-6">
+    <p>&copy; 2026 OfflineTools. All processing happens locally in your browser.</p>
+    <div class="flex flex-wrap justify-center gap-4 font-medium text-slate-600">
+      <a href="../about/index.html" class="hover:text-[#0067c0]">About Us</a>
+      <a href="../contact/index.html" class="hover:text-[#0067c0]">Contact</a>
+      <a href="../privacy-policy/index.html" class="hover:text-[#0067c0]">Privacy Policy</a>
+      <a href="../terms/index.html" class="hover:text-[#0067c0]">Terms of Use</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+
+  function refreshIcons() {
+    if (window.lucide) lucide.createIcons({ attrs: { 'stroke-width': 1.75 } });
+  }
+
+  if (window.pdfjsLib) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  // ================= APP STATE =================
+  const docs = [];
+  let pages = [];
+  let pageIdCounter = 1;
+  let sortableInstance = null;
+  let activeTool = 'merge';
+  let currentView = 'home'; // 'home' | 'function' | 'scanner'
+  let wordLoadedFile = null;
+
+  const TOOL_META = {
+    merge:    { title: 'Merge & Reorder',    action: 'Export Merged PDF',    accept: 'pdf' },
+    split:    { title: 'Split / Extract',    action: 'Export Split PDF',     accept: 'pdf' },
+    compress: { title: 'Compress Target KB', action: 'Compress & Download',  accept: 'pdf' },
+    img2pdf:  { title: 'Images to PDF',      action: 'Export PDF',           accept: 'image' },
+    pdf2img:  { title: 'PDF to Images',      action: 'Export Images',        accept: 'pdf' },
+    unlock:   { title: 'Unlock PDF',         action: 'Save Unlocked PDF',    accept: 'pdf' },
+    protect:  { title: 'Protect PDF',        action: 'Encrypt & Download',   accept: 'pdf' },
+    nup:      { title: 'N-up Print Layout',  action: 'Build N-up PDF',       accept: 'pdf' },
+    stamp:    { title: 'Watermark & Page #', action: 'Apply & Export PDF',   accept: 'pdf' },
+    metadata: { title: 'Scrub Metadata',     action: 'Clean & Export PDF',   accept: 'pdf' },
+    pdf2word: { title: 'PDF to Word (.doc)', action: 'Convert to Word',      accept: 'pdf' },
+    word2pdf: { title: 'Word to PDF (.docx)',action: 'Download PDF',         accept: 'word' },
+    pdf2excel:{ title: 'PDF to Excel (.csv)',action: 'Convert to Excel CSV', accept: 'pdf' }
+  };
+
+  function scrollToToolsGrid() {
+    if (currentView !== 'home') return;
+    const sec = $('toolsSection');
+    requestAnimationFrame(() => {
+      sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      sec.classList.remove('grid-pulse');
+      void sec.offsetWidth;
+      sec.classList.add('grid-pulse');
+    });
+  }
+
+  // ================= NATIVE APP VIEW NAVIGATION =================
+  let historySupported = false;
+  let suppressPop = false;
+  try { history.replaceState({ view: 'home' }, ''); historySupported = true; } catch {}
+
+  function setView(view, opts = {}) {
+    if (currentView === 'scanner' && view !== 'scanner') stopCameraStream();
+    currentView = view;
+
+    $('homeView').classList.toggle('hidden', view !== 'home');
+    $('functionView').classList.toggle('hidden', view !== 'function');
+    $('scannerView').classList.toggle('hidden', view !== 'scanner');
+    $('siteFooter').classList.toggle('hidden', view !== 'home');
+
+    const isSubView = view !== 'home';
+    $('navBackBtn').classList.toggle('hidden', !isSubView);
+    $('brandLink').classList.toggle('hidden', isSubView);
+    $('navViewTitleWrap').classList.toggle('hidden', !isSubView);
+
+    if (view === 'function') {
+      $('navViewTitle').textContent = TOOL_META[activeTool].title;
+      $('navViewSub').textContent = activeTool === 'word2pdf'
+        ? (wordLoadedFile ? wordLoadedFile.name : 'Select .docx file')
+        : `${pages.length} page${pages.length === 1 ? '' : 's'} loaded`;
+      renderFunctionView();
+    } else if (view === 'scanner') {
+      $('navViewTitle').textContent = 'AI Doc Scanner';
+      $('navViewSub').textContent = `${pages.length} page${pages.length === 1 ? '' : 's'} in studio`;
+    }
+
+    if (opts.push && historySupported) {
+      try { history.pushState({ view, tool: activeTool }, ''); } catch {}
+    }
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    refreshIcons();
+  }
+
+  function goBack() {
+    if (currentView === 'home') return;
+    setView('home', { push: false });
+    if (historySupported) {
+      suppressPop = true;
+      history.back();
+      setTimeout(() => { suppressPop = false; }, 120);
+    }
+  }
+
+  window.addEventListener('popstate', e => {
+    if (suppressPop) { suppressPop = false; return; }
+    const st = e.state || { view: 'home' };
+    if (st.tool) activeTool = st.tool;
+    setView(st.view || 'home', { push: false });
+  });
+
+  $('navBackBtn').addEventListener('click', goBack);
+
+  // ================= HOME & FUNCTION VIEW RENDERING =================
+  function syncHomeStatus() {
+    const hasContent = pages.length > 0 || !!wordLoadedFile;
+    $('homeLoadedBar').classList.toggle('hidden', !hasContent);
+    $('homeLoadedBar').classList.toggle('flex', hasContent);
+
+    const parts = [];
+    if (pages.length) parts.push(`${pages.length} page${pages.length === 1 ? '' : 's'}`);
+    if (wordLoadedFile) parts.push(wordLoadedFile.name);
+    $('homeLoadedText').textContent = `${parts.join(' · ')} ready — tap any tool below`;
+    $('scanDoneLabel').textContent = `Done (${pages.length})`;
+  }
+
+  function renderFunctionView() {
+    const meta = TOOL_META[activeTool];
+    $('activeToolTitle').textContent = meta.title;
+    const isWord = activeTool === 'word2pdf';
+
+    $('wordWorkspace').classList.toggle('hidden', !isWord);
+    $('pdfWorkspace').classList.toggle('hidden', isWord);
+
+    if (isWord) {
+      $('pageCountBadge').textContent = wordLoadedFile ? wordLoadedFile.name : 'No file';
+      $('clearAllBtn').classList.toggle('hidden', !wordLoadedFile);
+      $('runToolLabel').textContent = wordLoadedFile ? 'Download PDF' : 'Select .docx';
+    } else {
+      $('pageCountBadge').textContent = `${pages.length} page${pages.length === 1 ? '' : 's'}`;
+      $('clearAllBtn').classList.toggle('hidden', pages.length === 0);
+      $('runToolLabel').textContent = pages.length ? meta.action : 'Upload Files';
+      $('emptyFuncPrompt').classList.toggle('hidden', pages.length > 0);
+      $('emptyFuncPrompt').classList.toggle('flex', pages.length === 0);
+      $('gridHeaderBar').classList.toggle('hidden', pages.length === 0);
+      $('gridHeaderBar').classList.toggle('flex', pages.length > 0);
+      renderPageGrid();
+    }
+
+    const box = $('toolOptions');
+    let html = '';
+    if (activeTool === 'merge') {
+      html = `<span class="text-slate-500">Combine multiple PDFs &amp; images losslessly in your exact drag-and-drop order.</span>`;
+    } else if (activeTool === 'split') {
+      html = `
+        <label class="flex items-center gap-2">
+          <span class="font-medium">Pages:</span>
+          <input type="text" id="optSplitRange" placeholder="e.g. 1-3, 5" class="win-input h-8 w-36 px-2 text-xs" />
+        </label>
+        <label class="inline-flex cursor-pointer items-center gap-2">
+          <input type="checkbox" id="optSplitBurst" class="win-switch" />
+          <span>Burst every page to ZIP</span>
+        </label>`;
+    } else if (activeTool === 'compress') {
+      html = `
+        <label class="flex items-center gap-1.5">
+          <span class="font-medium">Target:</span>
+          <input type="number" id="optTargetKb" value="200" min="30" max="10000" class="win-input h-8 w-20 px-2 text-xs font-semibold" />
+          <span>KB</span>
+        </label>
+        <select id="optScanFilter" class="win-input h-8 px-2 text-xs">
+          <option value="none">Original Color</option>
+          <option value="bright">Bright Scan</option>
+          <option value="bw">B&amp;W Copy</option>
+        </select>`;
+    } else if (activeTool === 'img2pdf') {
+      html = `<span class="text-slate-500">Combine loaded photos or scanned documents into a clean A4 PDF.</span>`;
+    } else if (activeTool === 'pdf2img') {
+      html = `
+        <select id="optImgFmt" class="win-input h-8 px-2 text-xs">
+          <option value="jpeg">JPG</option>
+          <option value="png">PNG</option>
+        </select>
+        <select id="optImgScale" class="win-input h-8 px-2 text-xs">
+          <option value="1.5">Standard (110 DPI)</option>
+          <option value="2.1" selected>High (150 DPI)</option>
+          <option value="3.0">Print (220 DPI)</option>
+        </select>`;
+    } else if (activeTool === 'unlock') {
+      html = `<span class="text-slate-500">Password-protected PDFs are decrypted locally in RAM and saved unlocked.</span>`;
+    } else if (activeTool === 'protect') {
+      html = `
+        <input type="password" id="optProtectPwd" placeholder="Set open password" class="win-input h-8 w-44 px-2.5 text-xs" />
+        <label class="inline-flex cursor-pointer items-center gap-2">
+          <input type="checkbox" id="optNoPrint" class="win-switch" />
+          <span>Restrict printing</span>
+        </label>`;
+    } else if (activeTool === 'nup') {
+      html = `
+        <select id="optNupCount" class="win-input h-8 px-2.5 text-xs">
+          <option value="2">2 Pages per A4 (Landscape)</option>
+          <option value="4">4 Pages per A4 (Portrait)</option>
+        </select>`;
+    } else if (activeTool === 'stamp') {
+      html = `
+        <label class="inline-flex cursor-pointer items-center gap-2">
+          <input type="checkbox" id="optAddPageNum" class="win-switch" checked />
+          <span>Page Numbers</span>
+        </label>
+        <label class="inline-flex cursor-pointer items-center gap-2">
+          <input type="checkbox" id="optAddWm" class="win-switch" checked />
+          <span>Watermark:</span>
+        </label>
+        <input type="text" id="optWmText" value="SELF ATTESTED • FOR KYC ONLY" class="win-input h-8 min-w-[190px] flex-1 px-2.5 text-xs uppercase" />`;
+    } else if (activeTool === 'metadata') {
+      html = `<span class="text-slate-500">Strips Title, Author, Subject, Keywords, Creator, Producer &amp; Timestamps on export.</span>`;
+    } else if (activeTool === 'pdf2word') {
+      html = `<span class="text-slate-500">Extracts structured text &amp; paragraphs into an editable Word (.doc) file.</span>`;
+    } else if (activeTool === 'word2pdf') {
+      html = `<span class="text-slate-500">Converts Microsoft Word (.docx) files into crisp A4 PDFs completely offline.</span>`;
+    } else if (activeTool === 'pdf2excel') {
+      html = `<span class="text-slate-500">Reconstructs rows &amp; columns by coordinates into an Excel-ready .csv spreadsheet.</span>`;
+    }
+    box.innerHTML = html;
+    refreshIcons();
+  }
+
+  document.querySelectorAll('#toolsGrid .win11-tile').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeTool = btn.dataset.tool;
+      setView('function', { push: true });
+      $('statusText').textContent = activeTool === 'word2pdf'
+        ? (wordLoadedFile ? `Ready to export "${wordLoadedFile.name}" to PDF.` : 'Select a Word (.docx) document to preview and convert.')
+        : (pages.length ? `Ready to run ${TOOL_META[activeTool].title} on ${pages.length} page(s).` : 'Upload files to begin.');
+    });
+  });
+
+  // ================= PASSWORD DIALOG =================
+  function promptForPassword(filename, errMsg = '') {
+    return new Promise(resolve => {
+      const dlg = $('pwdDialog');
+      $('pwdHint').textContent = `Enter password for "${filename}" to unlock it locally.`;
+      $('pwdInput').value = '';
+      $('pwdInput').type = 'password';
+      $('pwdShowBtn').innerHTML = '<i data-lucide="eye" class="h-4 w-4 text-slate-500"></i><span>Show</span>';
+      refreshIcons();
+      $('pwdError').textContent = errMsg;
+      $('pwdError').classList.toggle('hidden', !errMsg);
+
+      const cleanup = () => { $('pwdSubmitBtn').onclick = null; $('pwdCancelBtn').onclick = null; dlg.oncancel = null; };
+      $('pwdSubmitBtn').onclick = () => { const v = $('pwdInput').value; cleanup(); dlg.close(); resolve(v); };
+      $('pwdCancelBtn').onclick = () => { cleanup(); dlg.close(); resolve(null); };
+      dlg.oncancel = e => { e.preventDefault(); cleanup(); dlg.close(); resolve(null); };
+      dlg.showModal();
+      $('pwdInput').focus();
+    });
+  }
+
+  $('pwdShowBtn').addEventListener('click', () => {
+    const inp = $('pwdInput');
+    const isPwd = inp.type === 'password';
+    inp.type = isPwd ? 'text' : 'password';
+    $('pwdShowBtn').innerHTML = isPwd
+      ? '<i data-lucide="eye-off" class="h-4 w-4 text-slate-500"></i><span>Hide</span>'
+      : '<i data-lucide="eye" class="h-4 w-4 text-slate-500"></i><span>Show</span>';
+    refreshIcons();
+  });
+
+  // ================= UNIFIED FILE HANDLER + AUTO-SCROLL =================
+  async function handleUnifiedFiles(fileList) {
+    const files = Array.from(fileList);
+    if (!files.length) return;
+    const pdfs = files.filter(f => f.type === 'application/pdf' || /\.pdf$/i.test(f.name));
+    const imgs = files.filter(f => f.type.startsWith('image/'));
+    const docx = files.find(f => /\.docx$/i.test(f.name));
+
+    let loadedSomething = false;
+    if (pdfs.length) { await loadPdfFiles(pdfs); loadedSomething = true; }
+    if (imgs.length) { await loadImageFiles(imgs); loadedSomething = true; }
+    if (docx) { await loadWordFile(docx); loadedSomething = true; }
+
+    if (loadedSomething && currentView === 'home') {
+      scrollToToolsGrid();
+    }
+  }
+
+  async function loadPdfFiles(files) {
+    $('statusText').textContent = 'Loading PDF pages locally...';
+    for (const file of files) {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      let pdfjsDoc = null, password = '', unlockedViaPdfJs = false;
+
+      while (!pdfjsDoc) {
+        try {
+          pdfjsDoc = await pdfjsLib.getDocument({ data: bytes.slice(), password }).promise;
+        } catch (err) {
+          if (err && err.name === 'PasswordException') {
+            const entered = await promptForPassword(file.name, err.code === 2 ? 'Incorrect password.' : '');
+            if (entered === null) break;
+            password = entered;
+            unlockedViaPdfJs = true;
+          } else {
+            alert(`Could not open ${file.name}: ${err.message || err}`);
+            break;
+          }
+        }
+      }
+      if (!pdfjsDoc) continue;
+
+      const docId = docs.length;
+      docs.push({ id: docId, bytes, pdfjsDoc, unlockedViaPdfJs, name: file.name });
+
+      for (let i = 1; i <= pdfjsDoc.numPages; i++) {
+        const page = await pdfjsDoc.getPage(i);
+        const vp = page.getViewport({ scale: 0.35 });
+        const c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(vp.width));
+        c.height = Math.max(1, Math.round(vp.height));
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, c.width, c.height);
+        await page.render({ canvasContext: ctx, viewport: vp }).promise;
+        const thumbUrl = c.toDataURL('image/jpeg', 0.78);
+        c.width = 0; c.height = 0;
+        pages.push({ id: `p_${pageIdCounter++}`, type: 'pdf', docId, pageIndex: i - 1, rotation: 0, thumbUrl });
+      }
+    }
+    syncHomeStatus();
+    if (currentView === 'function') {
+      $('navViewSub').textContent = `${pages.length} page${pages.length === 1 ? '' : 's'} loaded`;
+      renderFunctionView();
+      $('statusText').textContent = `${pages.length} page(s) ready.`;
+    }
+  }
+
+  async function addImageCanvasAsPage(canvas) {
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.92));
+    pages.push({
+      id: `p_${pageIdCounter++}`,
+      type: 'image',
+      imgUrl: URL.createObjectURL(blob),
+      imgW: canvas.width,
+      imgH: canvas.height,
+      rotation: 0,
+      thumbUrl: canvas.toDataURL('image/jpeg', 0.65)
+    });
+    syncHomeStatus();
+  }
+
+  async function loadImageFiles(files) {
+    $('statusText').textContent = 'Processing images locally...';
+    for (const file of files) {
+      const rawUrl = URL.createObjectURL(file);
+      const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = rawUrl; });
+      const scale = Math.min(1, 1800 / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(img.naturalWidth * scale));
+      c.height = Math.max(1, Math.round(img.naturalHeight * scale));
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(rawUrl);
+      await addImageCanvasAsPage(c);
+      c.width = 0; c.height = 0;
+    }
+    if (currentView === 'function') {
+      $('navViewSub').textContent = `${pages.length} page${pages.length === 1 ? '' : 's'} loaded`;
+      renderFunctionView();
+      $('statusText').textContent = `${pages.length} page(s) ready.`;
+    }
+  }
+
+  async function loadWordFile(file) {
+    if (!file) return;
+    wordLoadedFile = file;
+    $('wordFileName').textContent = file.name;
+    $('statusText').textContent = 'Reading Word (.docx) document...';
+    try {
+      const ab = await file.arrayBuffer();
+      const result = await mammoth.convertToHtml({ arrayBuffer: ab });
+      $('wordPreviewSheet').innerHTML = result.value || '<p class="text-slate-400">Empty document.</p>';
+      syncHomeStatus();
+      $('statusText').textContent = `Loaded "${file.name}". Ready to export as PDF.`;
+      if (currentView === 'function') {
+        $('navViewSub').textContent = file.name;
+        renderFunctionView();
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Could not read .docx file. Make sure it is a valid Word (.docx) document.');
+    }
+  }
+
+  function resetWorkspace() {
+    if (activeTool === 'word2pdf' && currentView === 'function') {
+      wordLoadedFile = null;
+      $('wordFileName').textContent = 'No Word (.docx) file selected';
+      $('wordPreviewSheet').innerHTML = '<p class="text-center text-xs text-slate-400">Select a .docx file to preview and convert to PDF.</p>';
+      syncHomeStatus();
+      renderFunctionView();
+      return;
+    }
+    pages.forEach(p => { if (p.imgUrl) URL.revokeObjectURL(p.imgUrl); });
+    pages = [];
+    docs.length = 0;
+    wordLoadedFile = null;
+    $('pageGrid').innerHTML = '';
+    syncHomeStatus();
+    if (currentView === 'function') renderFunctionView();
+  }
+
+  // ================= VISUAL PAGE GRID =================
+  function renderPageGrid() {
+    const grid = $('pageGrid');
+    grid.innerHTML = '';
+
+    pages.forEach((p, idx) => {
+      const card = document.createElement('div');
+      card.dataset.id = p.id;
+      card.className = 'win-mica page-card flex flex-col overflow-hidden rounded-2xl transition hover:shadow-md';
+      card.innerHTML = `
+        <div class="relative flex aspect-[3/4] items-center justify-center overflow-hidden bg-slate-900/[0.03] p-3">
+          <img src="${p.thumbUrl}" alt="Page ${idx + 1}" class="max-h-full max-w-full rounded-lg bg-white object-contain shadow-sm ring-1 ring-slate-900/[0.06] transition-transform duration-150" style="transform: rotate(${p.rotation}deg);" />
+          <span class="absolute left-2.5 top-2.5 rounded-full bg-slate-900/75 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-md">${idx + 1}</span>
+        </div>
+        <div class="flex items-center justify-around gap-1 border-t border-slate-900/[0.06] px-1.5 py-1.5">
+          <button type="button" data-act="rot" class="win11-cmd h-8 flex-1 px-2 text-[11px]">
+            <i data-lucide="rotate-cw" class="h-3.5 w-3.5 text-[#0067c0]"></i>
+            <span>Rotate</span>
+          </button>
+          <span class="h-4 w-px bg-slate-900/[0.08]"></span>
+          <button type="button" data-act="del" class="win11-cmd win11-cmd-danger h-8 flex-1 px-2 text-[11px]">
+            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+            <span>Delete</span>
+          </button>
+        </div>`;
+
+      card.querySelector('[data-act="rot"]').addEventListener('click', () => { p.rotation = (p.rotation + 90) % 360; renderPageGrid(); });
+      card.querySelector('[data-act="del"]').addEventListener('click', () => {
+        if (p.imgUrl) URL.revokeObjectURL(p.imgUrl);
+        pages = pages.filter(item => item.id !== p.id);
+        syncHomeStatus();
+        renderFunctionView();
+      });
+      grid.appendChild(card);
+    });
+
+    refreshIcons();
+
+    if (sortableInstance) sortableInstance.destroy();
+    if (window.Sortable && pages.length > 1) {
+      sortableInstance = new Sortable(grid, {
+        animation: 150, ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen', delay: 120, delayOnTouchOnly: true,
+        onEnd: () => {
+          const order = Array.from(grid.children).map(el => el.dataset.id);
+          pages.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+          renderPageGrid();
+        }
+      });
+    }
+  }
+
+  // =========================================================================
+  // OFFICE LENS–STYLE AI DOCUMENT SCANNER (Hardware Permission + Edge Detect)
+  // =========================================================================
+  let camStream = null;
+  let liveDetectTimer = null;
+  let scanSourceImg = null;
+  let scanCorners = [];
+  let draggingCornerIdx = -1;
+  let warpedRawCanvas = null;
+  let activeScanFilter = 'magic';
+  let scanRotation = 0;
+
+  function showScannerStage(stage) {
+    $('scanCameraStage').classList.toggle('hidden', stage !== 'camera');
+    $('scanCropStage').classList.toggle('hidden', stage !== 'crop');
+    $('scanEnhanceStage').classList.toggle('hidden', stage !== 'enhance');
+    refreshIcons();
+  }
+
+  function stopCameraStream() {
+    if (liveDetectTimer) { clearInterval(liveDetectTimer); liveDetectTimer = null; }
+    if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+    $('scanVideo').srcObject = null;
+  }
+
+  function showCamFallback(title, msg) {
+    $('scanCamTitle').textContent = title;
+    $('scanCamMsg').textContent = msg;
+    $('scanCamFallback').classList.remove('hidden');
+    $('scanCamFallback').classList.add('flex');
+    $('scanAiBadge').classList.add('hidden');
+  }
+
+  async function requestCameraHardware() {
+    stopCameraStream();
+    $('scanCamFallback').classList.add('hidden');
+    $('scanCamFallback').classList.remove('flex');
+
+    if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+      showCamFallback(
+        'HTTPS Required for Live Preview',
+        'Mobile browsers require HTTPS for live camera streaming. Tap "Native Camera" below to scan with your phone camera.'
+      );
+      return;
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showCamFallback(
+        'Camera API Unavailable',
+        'Your browser blocked live camera streaming. Tap "Native Camera" below to snap and AI-crop your document.'
+      );
+      return;
+    }
+
+    const attempts = [
+      { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
+      { video: { facingMode: 'environment' }, audio: false },
+      { video: true, audio: false }
+    ];
+
+    let lastErr = null;
+    for (const constraints of attempts) {
+      try {
+        camStream = await navigator.mediaDevices.getUserMedia(constraints);
+        break;
+      } catch (err) {
+        lastErr = err;
+        if (err && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')) break;
+      }
+    }
+
+    if (!camStream) {
+      const denied = lastErr && (lastErr.name === 'NotAllowedError' || lastErr.name === 'PermissionDeniedError');
+      showCamFallback(
+        denied ? 'Camera Permission Denied' : 'Camera Access Needed',
+        denied
+          ? 'Please allow camera permission in your browser site settings and tap "Allow Camera Access", or use "Native Camera".'
+          : 'Tap "Allow Camera Access" to grant hardware camera permission, or use "Native Camera" to snap a document.'
+      );
+      return;
+    }
+
+    try {
+      const video = $('scanVideo');
+      video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', '');
+      video.muted = true;
+      video.srcObject = camStream;
+      await video.play();
+      $('scanAiBadge').classList.remove('hidden');
+      startLiveEdgeOverlay();
+    } catch {
+      showCamFallback(
+        'Tap to Start Camera',
+        'Your phone requires a direct tap to start the camera feed. Tap "Allow Camera Access" below.'
+      );
+    }
+  }
+
+  async function openScanner() {
+    setView('scanner', { push: true });
+    showScannerStage('camera');
+    $('scanDoneLabel').textContent = `Done (${pages.length})`;
+    await requestCameraHardware();
+  }
+
+  $('scanRequestPermBtn').addEventListener('click', requestCameraHardware);
+  $('scanNativeCamBtn').addEventListener('click', () => $('scanFileInput').click());
+
+  function detectDocumentQuad(srcEl, w, h) {
+    const maxDim = 260;
+    const scale = Math.min(1, maxDim / Math.max(w, h));
+    const sw = Math.max(32, Math.round(w * scale));
+    const sh = Math.max(32, Math.round(h * scale));
+
+    const tmp = document.createElement('canvas');
+    tmp.width = sw; tmp.height = sh;
+    const ctx = tmp.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(srcEl, 0, 0, sw, sh);
+    const data = ctx.getImageData(0, 0, sw, sh).data;
+
+    const gray = new Float32Array(sw * sh);
+    for (let i = 0, p = 0; i < gray.length; i++, p += 4) {
+      gray[i] = 0.299 * data[p] + 0.587 * data[p + 1] + 0.114 * data[p + 2];
+    }
+
+    const mag = new Float32Array(sw * sh);
+    const marginX = Math.max(4, Math.round(sw * 0.04));
+    const marginY = Math.max(4, Math.round(sh * 0.04));
+    let sumMag = 0, cnt = 0;
+
+    for (let y = marginY; y < sh - marginY; y++) {
+      for (let x = marginX; x < sw - marginX; x++) {
+        const idx = y * sw + x;
+        const gx = -gray[idx - sw - 1] + gray[idx - sw + 1] - 2 * gray[idx - 1] + 2 * gray[idx + 1] - gray[idx + sw - 1] + gray[idx + sw + 1];
+        const gy = -gray[idx - sw - 1] - 2 * gray[idx - sw] - gray[idx - sw + 1] + gray[idx + sw - 1] + 2 * gray[idx + sw] + gray[idx + sw + 1];
+        const m = Math.hypot(gx, gy);
+        mag[idx] = m;
+        sumMag += m;
+        cnt++;
+      }
+    }
+
+    const thresh = Math.max(45, (sumMag / Math.max(1, cnt)) * 2.4);
+    let tl = null, tr = null, br = null, bl = null;
+    let minSum = Infinity, maxSum = -Infinity, minDiff = Infinity, maxDiff = -Infinity;
+
+    for (let y = marginY; y < sh - marginY; y++) {
+      for (let x = marginX; x < sw - marginX; x++) {
+        if (mag[y * sw + x] < thresh) continue;
+        const s = x + y, d = x - y;
+        if (s < minSum) { minSum = s; tl = { x, y }; }
+        if (s > maxSum) { maxSum = s; br = { x, y }; }
+        if (d > maxDiff) { maxDiff = d; tr = { x, y }; }
+        if (d < minDiff) { minDiff = d; bl = { x, y }; }
+      }
+    }
+
+    const fallback = [
+      { x: w * 0.08, y: h * 0.08 }, { x: w * 0.92, y: h * 0.08 },
+      { x: w * 0.92, y: h * 0.92 }, { x: w * 0.08, y: h * 0.92 }
+    ];
+    if (!tl || !tr || !br || !bl) return fallback;
+
+    const quad = [tl, tr, br, bl].map(pt => ({ x: pt.x / scale, y: pt.y / scale }));
+    const area = 0.5 * Math.abs(
+      quad[0].x * quad[1].y - quad[1].x * quad[0].y +
+      quad[1].x * quad[2].y - quad[2].x * quad[1].y +
+      quad[2].x * quad[3].y - quad[3].x * quad[2].y +
+      quad[3].x * quad[0].y - quad[0].x * quad[3].y
+    );
+    return area < w * h * 0.15 ? fallback : quad;
+  }
+
+  function startLiveEdgeOverlay() {
+    const video = $('scanVideo');
+    const overlay = $('scanLiveOverlay');
+    const ctx = overlay.getContext('2d');
+
+    if (liveDetectTimer) clearInterval(liveDetectTimer);
+    liveDetectTimer = setInterval(() => {
+      if (!video.videoWidth || currentView !== 'scanner' || $('scanCameraStage').classList.contains('hidden')) return;
+      overlay.width = video.clientWidth;
+      overlay.height = video.clientHeight;
+      ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+      const quad = detectDocumentQuad(video, video.videoWidth, video.videoHeight);
+      const sx = overlay.width / video.videoWidth;
+      const sy = overlay.height / video.videoHeight;
+
+      ctx.beginPath();
+      ctx.moveTo(quad[0].x * sx, quad[0].y * sy);
+      for (let i = 1; i < 4; i++) ctx.lineTo(quad[i].x * sx, quad[i].y * sy);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(0, 120, 212, 0.16)';
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = '#38bdf8';
+      ctx.stroke();
+    }, 260);
+  }
+
+  function beginCropOnSource(srcCanvas) {
+    stopCameraStream();
+    scanSourceImg = srcCanvas;
+    scanCorners = detectDocumentQuad(srcCanvas, srcCanvas.width, srcCanvas.height);
+    showScannerStage('crop');
+    drawCropCanvas();
+  }
+
+  function drawCropCanvas() {
+    if (!scanSourceImg) return;
+    const c = $('scanCropCanvas');
+    const maxW = Math.min(720, window.innerWidth - 48);
+    const scale = Math.min(1, maxW / scanSourceImg.width);
+    c.width = Math.round(scanSourceImg.width * scale);
+    c.height = Math.round(scanSourceImg.height * scale);
+    const ctx = c.getContext('2d');
+    ctx.drawImage(scanSourceImg, 0, 0, c.width, c.height);
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.45)';
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.moveTo(scanCorners[0].x * scale, scanCorners[0].y * scale);
+    for (let i = 1; i < 4; i++) ctx.lineTo(scanCorners[i].x * scale, scanCorners[i].y * scale);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(scanCorners[0].x * scale, scanCorners[0].y * scale);
+    for (let i = 1; i < 4; i++) ctx.lineTo(scanCorners[i].x * scale, scanCorners[i].y * scale);
+    ctx.closePath();
+    ctx.clip();
+    ctx.drawImage(scanSourceImg, 0, 0, c.width, c.height);
+    ctx.restore();
+
+    ctx.beginPath();
+    ctx.moveTo(scanCorners[0].x * scale, scanCorners[0].y * scale);
+    for (let i = 1; i < 4; i++) ctx.lineTo(scanCorners[i].x * scale, scanCorners[i].y * scale);
+    ctx.closePath();
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = '#0ea5e9';
+    ctx.stroke();
+
+    scanCorners.forEach(pt => {
+      ctx.beginPath();
+      ctx.arc(pt.x * scale, pt.y * scale, 11, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(14, 165, 233, 0.28)';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(pt.x * scale, pt.y * scale, 6, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = '#0067c0';
+      ctx.stroke();
+    });
+  }
+
+  function getCropPointerPos(e) {
+    const c = $('scanCropCanvas');
+    const rect = c.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: ((clientX - rect.left) / rect.width) * scanSourceImg.width,
+      y: ((clientY - rect.top) / rect.height) * scanSourceImg.height
+    };
+  }
+
+  const cropCanvasEl = $('scanCropCanvas');
+  function onCropDown(e) {
+    if (!scanSourceImg) return;
+    const pos = getCropPointerPos(e);
+    const hitRadius = scanSourceImg.width * 0.08;
+    let best = -1, bestDist = hitRadius;
+    scanCorners.forEach((pt, i) => {
+      const d = Math.hypot(pt.x - pos.x, pt.y - pos.y);
+      if (d < bestDist) { bestDist = d; best = i; }
+    });
+    if (best !== -1) { draggingCornerIdx = best; e.preventDefault(); }
+  }
+  function onCropMove(e) {
+    if (draggingCornerIdx === -1 || !scanSourceImg) return;
+    e.preventDefault();
+    const pos = getCropPointerPos(e);
+    scanCorners[draggingCornerIdx] = {
+      x: Math.max(0, Math.min(scanSourceImg.width, pos.x)),
+      y: Math.max(0, Math.min(scanSourceImg.height, pos.y))
+    };
+    drawCropCanvas();
+  }
+  function onCropUp() { draggingCornerIdx = -1; }
+
+  cropCanvasEl.addEventListener('mousedown', onCropDown);
+  window.addEventListener('mousemove', onCropMove);
+  window.addEventListener('mouseup', onCropUp);
+  cropCanvasEl.addEventListener('touchstart', onCropDown, { passive: false });
+  window.addEventListener('touchmove', onCropMove, { passive: false });
+  window.addEventListener('touchend', onCropUp);
+
+  function computeHomography(dstPts, srcPts) {
+    const A = [], B = [];
+    for (let i = 0; i < 4; i++) {
+      const u = dstPts[i].x, v = dstPts[i].y, x = srcPts[i].x, y = srcPts[i].y;
+      A.push([u, v, 1, 0, 0, 0, -u * x, -v * x]); B.push(x);
+      A.push([0, 0, 0, u, v, 1, -u * y, -v * y]); B.push(y);
+    }
+    const n = 8;
+    for (let i = 0; i < n; i++) {
+      let maxRow = i;
+      for (let k = i + 1; k < n; k++) if (Math.abs(A[k][i]) > Math.abs(A[maxRow][i])) maxRow = k;
+      [A[i], A[maxRow]] = [A[maxRow], A[i]];
+      [B[i], B[maxRow]] = [B[maxRow], B[i]];
+      const pivot = A[i][i] || 1e-10;
+      for (let j = i; j < n; j++) A[i][j] /= pivot;
+      B[i] /= pivot;
+      for (let k = 0; k < n; k++) {
+        if (k === i) continue;
+        const f = A[k][i];
+        for (let j = i; j < n; j++) A[k][j] -= f * A[i][j];
+        B[k] -= f * B[i];
+      }
+    }
+    return B;
+  }
+
+  function warpPerspective(srcCanvas, quad) {
+    const wTop = Math.hypot(quad[1].x - quad[0].x, quad[1].y - quad[0].y);
+    const wBot = Math.hypot(quad[2].x - quad[3].x, quad[2].y - quad[3].y);
+    const hLeft = Math.hypot(quad[3].x - quad[0].x, quad[3].y - quad[0].y);
+    const hRight = Math.hypot(quad[2].x - quad[1].x, quad[2].y - quad[1].y);
+
+    let outW = Math.max(100, Math.round(Math.max(wTop, wBot)));
+    let outH = Math.max(100, Math.round(Math.max(hLeft, hRight)));
+    const cap = Math.min(1, 1500 / Math.max(outW, outH));
+    outW = Math.round(outW * cap);
+    outH = Math.round(outH * cap);
+
+    const dstPts = [{ x: 0, y: 0 }, { x: outW, y: 0 }, { x: outW, y: outH }, { x: 0, y: outH }];
+    const H = computeHomography(dstPts, quad);
+
+    const sCtx = srcCanvas.getContext('2d', { willReadFrequently: true });
+    const sImg = sCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height);
+    const sData = sImg.data, sw = srcCanvas.width, sh = srcCanvas.height;
+
+    const out = document.createElement('canvas');
+    out.width = outW; out.height = outH;
+    const oCtx = out.getContext('2d');
+    const oImg = oCtx.createImageData(outW, outH);
+    const oData = oImg.data;
+
+    for (let y = 0; y < outH; y++) {
+      for (let x = 0; x < outW; x++) {
+        const denom = H[6] * x + H[7] * y + 1;
+        const sx = (H[0] * x + H[1] * y + H[2]) / denom;
+        const sy = (H[3] * x + H[4] * y + H[5]) / denom;
+        const oIdx = (y * outW + x) * 4;
+        const x0 = Math.floor(sx), y0 = Math.floor(sy);
+        if (x0 >= 0 && x0 < sw - 1 && y0 >= 0 && y0 < sh - 1) {
+          const dx = sx - x0, dy = sy - y0;
+          const i00 = (y0 * sw + x0) * 4, i10 = i00 + 4, i01 = i00 + sw * 4, i11 = i01 + 4;
+          for (let ch = 0; ch < 3; ch++) {
+            const top = sData[i00 + ch] * (1 - dx) + sData[i10 + ch] * dx;
+            const bot = sData[i01 + ch] * (1 - dx) + sData[i11 + ch] * dx;
+            oData[oIdx + ch] = top * (1 - dy) + bot * dy;
+          }
+          oData[oIdx + 3] = 255;
+        } else {
+          oData[oIdx] = oData[oIdx + 1] = oData[oIdx + 2] = 255; oData[oIdx + 3] = 255;
+        }
+      }
+    }
+    oCtx.putImageData(oImg, 0, 0);
+    return out;
+  }
+
+  function renderEnhancedScan() {
+    if (!warpedRawCanvas) return;
+    const rot90 = (scanRotation % 180) !== 0;
+    const out = $('scanResultCanvas');
+    out.width = rot90 ? warpedRawCanvas.height : warpedRawCanvas.width;
+    out.height = rot90 ? warpedRawCanvas.width : warpedRawCanvas.height;
+    const ctx = out.getContext('2d', { willReadFrequently: true });
+
+    ctx.save();
+    ctx.translate(out.width / 2, out.height / 2);
+    ctx.rotate((scanRotation * Math.PI) / 180);
+    if (activeScanFilter === 'magic') ctx.filter = 'contrast(1.28) brightness(1.1) saturate(1.18)';
+    else if (activeScanFilter === 'gray') ctx.filter = 'grayscale(1) contrast(1.22) brightness(1.06)';
+    else if (activeScanFilter === 'whiteboard') ctx.filter = 'contrast(1.42) brightness(1.16) saturate(1.35)';
+    else if (activeScanFilter === 'bw') ctx.filter = 'grayscale(1) contrast(2.1) brightness(1.18)';
+    else ctx.filter = 'none';
+    ctx.drawImage(warpedRawCanvas, -warpedRawCanvas.width / 2, -warpedRawCanvas.height / 2);
+    ctx.restore();
+  }
+
+  $('scanCaptureBtn').addEventListener('click', () => {
+    const video = $('scanVideo');
+    if (!video.videoWidth) { $('scanFileInput').click(); return; }
+    const c = document.createElement('canvas');
+    c.width = video.videoWidth; c.height = video.videoHeight;
+    c.getContext('2d').drawImage(video, 0, 0);
+    beginCropOnSource(c);
+  });
+
+  async function handleScanImageFile(file) {
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+    const scale = Math.min(1, 1800 / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas');
+    c.width = Math.round(img.naturalWidth * scale);
+    c.height = Math.round(img.naturalHeight * scale);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(url);
+    beginCropOnSource(c);
+  }
+
+  $('scanGalleryBtn').addEventListener('click', () => $('scanGalleryInput').click());
+  $('scanFileInput').addEventListener('change', e => { handleScanImageFile(e.target.files[0]); e.target.value = ''; });
+  $('scanGalleryInput').addEventListener('change', e => { handleScanImageFile(e.target.files[0]); e.target.value = ''; });
+
+  $('scanAutoDetectBtn').addEventListener('click', () => {
+    if (!scanSourceImg) return;
+    scanCorners = detectDocumentQuad(scanSourceImg, scanSourceImg.width, scanSourceImg.height);
+    drawCropCanvas();
+  });
+
+  $('scanRetakeBtn').addEventListener('click', openScanner);
+  $('scanConfirmCropBtn').addEventListener('click', () => {
+    if (!scanSourceImg) return;
+    warpedRawCanvas = warpPerspective(scanSourceImg, scanCorners);
+    scanRotation = 0;
+    activeScanFilter = 'magic';
+    document.querySelectorAll('.scan-filter-btn').forEach(b => b.classList.toggle('is-active', b.dataset.filter === 'magic'));
+    showScannerStage('enhance');
+    renderEnhancedScan();
+  });
+
+  document.querySelectorAll('.scan-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeScanFilter = btn.dataset.filter;
+      document.querySelectorAll('.scan-filter-btn').forEach(b => b.classList.toggle('is-active', b === btn));
+      renderEnhancedScan();
+    });
+  });
+
+  $('scanBackToCropBtn').addEventListener('click', () => { showScannerStage('crop'); drawCropCanvas(); });
+  $('scanRotateBtn').addEventListener('click', () => { scanRotation = (scanRotation + 90) % 360; renderEnhancedScan(); });
+
+  $('scanAddAnotherBtn').addEventListener('click', async () => {
+    await addImageCanvasAsPage($('scanResultCanvas'));
+    openScanner();
+  });
+
+  $('scanSaveFinishBtn').addEventListener('click', async () => {
+    await addImageCanvasAsPage($('scanResultCanvas'));
+    setView('home', { push: false });
+    scrollToToolsGrid();
+  });
+
+  $('scanDoneBtn').addEventListener('click', () => {
+    setView('home', { push: false });
+    if (pages.length) scrollToToolsGrid();
+  });
+
+  // ================= PDF ENGINE HELPERS & TOOL EXECUTORS =================
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2500);
+  }
+
+  function parsePageRanges(str, max) {
+    if (!str || !str.trim()) return Array.from({ length: max }, (_, i) => i);
+    const out = new Set();
+    str.split(',').forEach(part => {
+      const m = part.trim().match(/^(\d+)(?:\s*-\s*(\d+))?$/);
+      if (!m) return;
+      const a = Math.max(1, parseInt(m[1], 10));
+      const b = m[2] ? Math.min(max, parseInt(m[2], 10)) : a;
+      for (let i = Math.min(a, b); i <= Math.max(a, b); i++) if (i >= 1 && i <= max) out.add(i - 1);
+    });
+    return Array.from(out).sort((a, b) => a - b);
+  }
+
+  async function renderPageToCanvas(p, scale, filterMode = 'none') {
+    const c = document.createElement('canvas');
+    const ctx = c.getContext('2d');
+    let wMm = 210, hMm = 297;
+
+    if (p.type === 'pdf') {
+      const pdfPage = await docs[p.docId].pdfjsDoc.getPage(p.pageIndex + 1);
+      const baseVp = pdfPage.getViewport({ scale: 1, rotation: p.rotation });
+      wMm = (baseVp.width * 25.4) / 72;
+      hMm = (baseVp.height * 25.4) / 72;
+      const vp = pdfPage.getViewport({ scale, rotation: p.rotation });
+      c.width = Math.max(1, Math.round(vp.width));
+      c.height = Math.max(1, Math.round(vp.height));
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, c.width, c.height);
+      await pdfPage.render({ canvasContext: ctx, viewport: vp }).promise;
+    } else {
+      const img = await new Promise(res => { const i = new Image(); i.onload = () => res(i); i.src = p.imgUrl; });
+      const rot90 = (p.rotation % 180) !== 0;
+      const drawW = rot90 ? img.naturalHeight : img.naturalWidth;
+      const drawH = rot90 ? img.naturalWidth : img.naturalHeight;
+      const fitScale = Math.min(1, (1240 * (scale / 1.5)) / Math.max(drawW, drawH));
+      c.width = Math.max(1, Math.round(drawW * fitScale));
+      c.height = Math.max(1, Math.round(drawH * fitScale));
+      wMm = 210;
+      hMm = (c.height / c.width) * 210;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.save();
+      ctx.translate(c.width / 2, c.height / 2);
+      ctx.rotate((p.rotation * Math.PI) / 180);
+      ctx.drawImage(img, -(img.naturalWidth * fitScale) / 2, -(img.naturalHeight * fitScale) / 2, img.naturalWidth * fitScale, img.naturalHeight * fitScale);
+      ctx.restore();
+    }
+
+    if (filterMode !== 'none' && 'filter' in ctx) {
+      const tmp = document.createElement('canvas');
+      tmp.width = c.width; tmp.height = c.height;
+      const tctx = tmp.getContext('2d');
+      tctx.filter = filterMode === 'bw' ? 'grayscale(1) contrast(1.42) brightness(1.1)' : 'contrast(1.15) brightness(1.06)';
+      tctx.drawImage(c, 0, 0);
+      ctx.clearRect(0, 0, c.width, c.height);
+      ctx.drawImage(tmp, 0, 0);
+      tmp.width = 0; tmp.height = 0;
+    }
+    return { canvas: c, wMm, hMm };
+  }
+
+  async function buildPdfLibFromPages(pageList, opts = {}) {
+    const outDoc = await PDFLib.PDFDocument.create();
+    const cache = new Map();
+    const font = (opts.wmText || opts.pageNumbers) ? await outDoc.embedFont(PDFLib.StandardFonts.HelveticaBold) : null;
+
+    for (let i = 0; i < pageList.length; i++) {
+      $('statusText').textContent = `Processing page ${i + 1}/${pageList.length}...`;
+      const p = pageList[i];
+      let outPage;
+
+      if (p.type === 'pdf' && !docs[p.docId].unlockedViaPdfJs) {
+        if (!cache.has(p.docId)) cache.set(p.docId, await PDFLib.PDFDocument.load(docs[p.docId].bytes));
+        const [copied] = await outDoc.copyPages(cache.get(p.docId), [p.pageIndex]);
+        if (p.rotation) copied.setRotation(PDFLib.degrees(((copied.getRotation().angle || 0) + p.rotation) % 360));
+        outPage = outDoc.addPage(copied);
+      } else {
+        const { canvas, wMm, hMm } = await renderPageToCanvas(p, 2.2, 'none');
+        const jpgBytes = await new Promise(r => canvas.toBlob(b => b.arrayBuffer().then(r), 'image/jpeg', 0.92));
+        canvas.width = 0; canvas.height = 0;
+        const jpgImg = await outDoc.embedJpg(jpgBytes);
+        const ptW = (wMm / 25.4) * 72, ptH = (hMm / 25.4) * 72;
+        outPage = outDoc.addPage([ptW, ptH]);
+        outPage.drawImage(jpgImg, { x: 0, y: 0, width: ptW, height: ptH });
+      }
+
+      const { width, height } = outPage.getSize();
+      if (opts.wmText && font) {
+        const fSize = Math.max(18, Math.min(34, width * 0.05));
+        outPage.drawText(opts.wmText, { x: width * 0.14, y: height * 0.42, size: fSize, font, color: PDFLib.rgb(0.82, 0.14, 0.14), opacity: 0.28, rotate: PDFLib.degrees(32) });
+      }
+      if (opts.pageNumbers && font) {
+        const label = `Page ${i + 1} of ${pageList.length}`;
+        const tw = font.widthOfTextAtSize(label, 10);
+        outPage.drawText(label, { x: (width - tw) / 2, y: 18, size: 10, font, color: PDFLib.rgb(0.3, 0.35, 0.42) });
+      }
+    }
+
+    if (opts.scrubMeta) {
+      outDoc.setTitle(''); outDoc.setAuthor(''); outDoc.setSubject('');
+      outDoc.setKeywords([]); outDoc.setProducer(''); outDoc.setCreator('');
+    }
+    return new Blob([await outDoc.save()], { type: 'application/pdf' });
+  }
+
+  async function runActiveTool() {
+    if (activeTool === 'word2pdf') {
+      if (!wordLoadedFile) { $('wordInput').click(); return; }
+      const btn = $('runToolBtn');
+      btn.disabled = true;
+      $('statusText').textContent = 'Rendering Word document to A4 PDF...';
+      try {
+        const sheet = $('wordPreviewSheet');
+        const canvas = await html2canvas(sheet, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+        const pageW = 210, pageH = 297;
+        const imgW = pageW, imgH = (canvas.height * imgW) / canvas.width;
+        let heightLeft = imgH, position = 0;
+        const imgData = canvas.toDataURL('image/jpeg', 0.92);
+
+        pdf.addImage(imgData, 'JPEG', 0, position, imgW, imgH, undefined, 'FAST');
+        heightLeft -= pageH;
+        while (heightLeft > 1) {
+          position = heightLeft - imgH;
+          pdf.addPage();
+          pdf.addImage(imgData, 'JPEG', 0, position, imgW, imgH, undefined, 'FAST');
+          heightLeft -= pageH;
+        }
+        downloadBlob(pdf.output('blob'), wordLoadedFile.name.replace(/\.docx$/i, '') + '.pdf');
+        $('statusText').textContent = `Converted "${wordLoadedFile.name}" to PDF.`;
+      } catch (err) {
+        console.error(err);
+        alert(err.message || 'Word to PDF conversion failed.');
+      } finally {
+        btn.disabled = false;
+      }
+      return;
+    }
+
+    if (!pages.length) {
+      $('unifiedInput').click();
+      return;
+    }
+
+    const btn = $('runToolBtn');
+    btn.disabled = true;
+
+    try {
+      if (activeTool === 'merge' || activeTool === 'img2pdf' || activeTool === 'unlock') {
+        const blob = await buildPdfLibFromPages(pages);
+        const kb = Math.ceil(blob.size / 1024);
+        downloadBlob(blob, `OfflineTools_${activeTool}_${pages.length}p_${kb}KB.pdf`);
+        $('statusText').textContent = `Done! Downloaded ${pages.length} page(s) (${kb} KB).`;
+
+      } else if (activeTool === 'split') {
+        if ($('optSplitBurst').checked) {
+          const zip = new JSZip();
+          for (let i = 0; i < pages.length; i++) zip.file(`page_${String(i + 1).padStart(3, '0')}.pdf`, await buildPdfLibFromPages([pages[i]]));
+          downloadBlob(await zip.generateAsync({ type: 'blob' }), `OfflineTools_Split_${pages.length}pages.zip`);
+          $('statusText').textContent = `Exported ${pages.length} individual PDFs in ZIP.`;
+        } else {
+          const idxs = parsePageRanges($('optSplitRange').value, pages.length);
+          if (!idxs.length) throw new Error('No valid pages in range.');
+          downloadBlob(await buildPdfLibFromPages(idxs.map(i => pages[i])), `OfflineTools_Extract_${idxs.length}p.pdf`);
+          $('statusText').textContent = `Extracted ${idxs.length} page(s).`;
+        }
+
+      } else if (activeTool === 'compress') {
+        const targetKb = Math.max(30, parseInt($('optTargetKb').value, 10) || 200);
+        const filter = $('optScanFilter').value;
+        const maxBytes = targetKb * 1024;
+        const scales = [1.45, 1.1, 0.85, 0.65];
+        let bestBlob = null;
+
+        const buildJsPdf = (rendered, q) => {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF({ orientation: rendered[0].wMm > rendered[0].hMm ? 'landscape' : 'portrait', unit: 'mm', format: [rendered[0].wMm, rendered[0].hMm], compress: true });
+          rendered.forEach((r, idx) => {
+            if (idx > 0) doc.addPage([r.wMm, r.hMm], r.wMm > r.hMm ? 'landscape' : 'portrait');
+            doc.addImage(r.canvas.toDataURL('image/jpeg', q), 'JPEG', 0, 0, r.wMm, r.hMm, undefined, 'FAST');
+          });
+          return doc.output('blob');
+        };
+
+        for (const sc of scales) {
+          const rendered = [];
+          for (let i = 0; i < pages.length; i++) {
+            $('statusText').textContent = `Compressing page ${i + 1}/${pages.length}...`;
+            rendered.push(await renderPageToCanvas(pages[i], sc, filter));
+          }
+          let low = 0.25, high = 0.88;
+          const minBlob = buildJsPdf(rendered, low);
+          bestBlob = minBlob;
+          if (minBlob.size <= maxBytes) {
+            for (let s = 0; s < 5; s++) {
+              const mid = (low + high) / 2;
+              const b = buildJsPdf(rendered, mid);
+              if (b.size <= maxBytes) { bestBlob = b; low = mid; } else high = mid;
+            }
+            rendered.forEach(r => { r.canvas.width = 0; r.canvas.height = 0; });
+            break;
+          }
+          rendered.forEach(r => { r.canvas.width = 0; r.canvas.height = 0; });
+        }
+        const kb = Math.ceil(bestBlob.size / 1024);
+        downloadBlob(bestBlob, `OfflineTools_Compressed_${kb}KB.pdf`);
+        $('statusText').textContent = `Compressed to ${kb} KB.`;
+
+      } else if (activeTool === 'pdf2img') {
+        const fmt = $('optImgFmt').value;
+        const scale = parseFloat($('optImgScale').value) || 2.1;
+        const mime = fmt === 'png' ? 'image/png' : 'image/jpeg';
+        if (pages.length === 1) {
+          const { canvas } = await renderPageToCanvas(pages[0], scale);
+          const blob = await new Promise(r => canvas.toBlob(r, mime, 0.92));
+          canvas.width = 0; canvas.height = 0;
+          downloadBlob(blob, `page_001.${fmt === 'png' ? 'png' : 'jpg'}`);
+        } else {
+          const zip = new JSZip();
+          for (let i = 0; i < pages.length; i++) {
+            $('statusText').textContent = `Rendering image ${i + 1}/${pages.length}...`;
+            const { canvas } = await renderPageToCanvas(pages[i], scale);
+            const blob = await new Promise(r => canvas.toBlob(r, mime, 0.92));
+            canvas.width = 0; canvas.height = 0;
+            zip.file(`page_${String(i + 1).padStart(3, '0')}.${fmt === 'png' ? 'png' : 'jpg'}`, blob);
+          }
+          downloadBlob(await zip.generateAsync({ type: 'blob' }), `OfflineTools_Images_${pages.length}p.zip`);
+        }
+        $('statusText').textContent = `Exported ${pages.length} image(s).`;
+
+      } else if (activeTool === 'protect') {
+        const pwd = ($('optProtectPwd').value || '').trim();
+        if (!pwd) throw new Error('Enter a password to protect the PDF.');
+        const perms = $('optNoPrint').checked ? [] : ['print'];
+        const { jsPDF } = window.jspdf;
+        let doc = null;
+        for (let i = 0; i < pages.length; i++) {
+          $('statusText').textContent = `Encrypting page ${i + 1}/${pages.length}...`;
+          const { canvas, wMm, hMm } = await renderPageToCanvas(pages[i], 2.0);
+          if (i === 0) {
+            doc = new jsPDF({
+              orientation: wMm > hMm ? 'landscape' : 'portrait', unit: 'mm', format: [wMm, hMm], compress: true,
+              encryption: { userPassword: pwd, ownerPassword: pwd + '_own', userPermissions: perms }
+            });
+          } else {
+            doc.addPage([wMm, hMm], wMm > hMm ? 'landscape' : 'portrait');
+          }
+          doc.addImage(canvas.toDataURL('image/jpeg', 0.9), 'JPEG', 0, 0, wMm, hMm, undefined, 'FAST');
+          canvas.width = 0; canvas.height = 0;
+        }
+        downloadBlob(doc.output('blob'), `OfflineTools_Protected_${pages.length}p.pdf`);
+        $('statusText').textContent = 'Exported password-protected PDF.';
+
+      } else if (activeTool === 'nup') {
+        const perSheet = parseInt($('optNupCount').value, 10) || 2;
+        const srcBlob = await buildPdfLibFromPages(pages);
+        const srcDoc = await PDFLib.PDFDocument.load(await srcBlob.arrayBuffer());
+        const outDoc = await PDFLib.PDFDocument.create();
+        const embedded = await outDoc.embedPages(srcDoc.getPages());
+        const sheetW = perSheet === 2 ? 841.89 : 595.28;
+        const sheetH = perSheet === 2 ? 595.28 : 841.89;
+        const cols = 2, rows = perSheet === 2 ? 1 : 2, pad = 18;
+        const cellW = (sheetW - pad * (cols + 1)) / cols;
+        const cellH = (sheetH - pad * (rows + 1)) / rows;
+
+        for (let i = 0; i < embedded.length; i += perSheet) {
+          const sheet = outDoc.addPage([sheetW, sheetH]);
+          for (let j = 0; j < perSheet && (i + j) < embedded.length; j++) {
+            const ep = embedded[i + j];
+            const col = j % cols, row = Math.floor(j / cols);
+            const scale = Math.min(cellW / ep.width, cellH / ep.height);
+            const w = ep.width * scale, h = ep.height * scale;
+            const x = pad + col * (cellW + pad) + (cellW - w) / 2;
+            const y = sheetH - pad - (row + 1) * cellH - row * pad + (cellH - h) / 2;
+            sheet.drawPage(ep, { x, y, width: w, height: h });
+          }
+        }
+        downloadBlob(new Blob([await outDoc.save()], { type: 'application/pdf' }), `OfflineTools_${perSheet}up.pdf`);
+        $('statusText').textContent = `Built ${perSheet}-up A4 PDF.`;
+
+      } else if (activeTool === 'stamp') {
+        const wm = $('optAddWm').checked ? ($('optWmText').value.trim().toUpperCase() || 'SELF ATTESTED') : '';
+        const nums = $('optAddPageNum').checked;
+        downloadBlob(await buildPdfLibFromPages(pages, { wmText: wm, pageNumbers: nums }), `OfflineTools_Stamped_${pages.length}p.pdf`);
+        $('statusText').textContent = 'Applied watermark / page numbers.';
+
+      } else if (activeTool === 'metadata') {
+        downloadBlob(await buildPdfLibFromPages(pages, { scrubMeta: true }), `OfflineTools_CleanMeta_${pages.length}p.pdf`);
+        $('statusText').textContent = 'Scrubbed all PDF metadata fields.';
+
+      } else if (activeTool === 'pdf2word') {
+        let htmlBody = '';
+        for (let i = 0; i < pages.length; i++) {
+          const p = pages[i];
+          if (p.type !== 'pdf') continue;
+          $('statusText').textContent = `Extracting text from page ${i + 1}/${pages.length}...`;
+          const pdfPage = await docs[p.docId].pdfjsDoc.getPage(p.pageIndex + 1);
+          const content = await pdfPage.getTextContent();
+          const lines = new Map();
+          content.items.forEach(it => {
+            const y = Math.round(it.transform[5] / 4) * 4;
+            if (!lines.has(y)) lines.set(y, []);
+            lines.get(y).push({ x: it.transform[4], str: it.str });
+          });
+          Array.from(lines.keys()).sort((a, b) => b - a).forEach(y => {
+            const text = lines.get(y).sort((a, b) => a.x - b.x).map(t => t.str).join(' ').trim();
+            if (text) htmlBody += `<p style="margin:0 0 8pt 0;font-family:Calibri,Arial,sans-serif;font-size:11pt;">${text.replace(/</g, '&lt;')}</p>`;
+          });
+          if (i < pages.length - 1) htmlBody += '<br style="page-break-after:always;" />';
+        }
+        const wordDoc = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body>${htmlBody}</body></html>`;
+        downloadBlob(new Blob(['\ufeff', wordDoc], { type: 'application/msword' }), `OfflineTools_Converted.doc`);
+        $('statusText').textContent = 'Converted PDF text to Word (.doc).';
+
+      } else if (activeTool === 'pdf2excel') {
+        const csvRows = [];
+        for (let i = 0; i < pages.length; i++) {
+          const p = pages[i];
+          if (p.type !== 'pdf') continue;
+          $('statusText').textContent = `Extracting table data from page ${i + 1}/${pages.length}...`;
+          const pdfPage = await docs[p.docId].pdfjsDoc.getPage(p.pageIndex + 1);
+          const content = await pdfPage.getTextContent();
+          const rows = new Map();
+          content.items.forEach(it => {
+            if (!it.str.trim()) return;
+            const y = Math.round(it.transform[5] / 5) * 5;
+            if (!rows.has(y)) rows.set(y, []);
+            rows.get(y).push({ x: it.transform[4], str: it.str.trim() });
+          });
+          Array.from(rows.keys()).sort((a, b) => b - a).forEach(y => {
+            const cols = rows.get(y).sort((a, b) => a.x - b.x).map(c => `"${c.str.replace(/"/g, '""')}"`);
+            csvRows.push(cols.join(','));
+          });
+        }
+        downloadBlob(new Blob(['\ufeff' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' }), `OfflineTools_Table.csv`);
+        $('statusText').textContent = 'Exported Excel-compatible CSV.';
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Processing failed.');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ================= EVENT WIRING =================
+  $('runToolBtn').addEventListener('click', runActiveTool);
+  $('clearAllBtn').addEventListener('click', resetWorkspace);
+  $('homeQuickClearBtn').addEventListener('click', resetWorkspace);
+
+  $('topUploadBtn').addEventListener('click', () => $('unifiedInput').click());
+  $('topScanBtn').addEventListener('click', openScanner);
+  $('dropUploadBtn').addEventListener('click', e => { e.stopPropagation(); $('unifiedInput').click(); });
+  $('dropScanBtn').addEventListener('click', e => { e.stopPropagation(); openScanner(); });
+  $('emptyUploadBtn').addEventListener('click', () => $('unifiedInput').click());
+  $('emptyOpenScanBtn').addEventListener('click', openScanner);
+  $('pickWordBtn').addEventListener('click', () => $('wordInput').click());
+  $('interleaveBtn').addEventListener('click', () => { pages.reverse(); renderPageGrid(); });
+
+  const dz = $('dropZone');
+  dz.addEventListener('click', () => $('unifiedInput').click());
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('is-dragging'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('is-dragging'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.classList.remove('is-dragging');
+    handleUnifiedFiles(e.dataTransfer.files);
+  });
+
+  $('unifiedInput').addEventListener('change', e => { if (e.target.files.length) handleUnifiedFiles(e.target.files); e.target.value = ''; });
+  $('wordInput').addEventListener('change', e => { if (e.target.files[0]) loadWordFile(e.target.files[0]); e.target.value = ''; });
+
+  refreshIcons();
+})();
+</script>
+</body>
+</html>
