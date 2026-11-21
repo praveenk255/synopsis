@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Offline Image Studio — AI Background Remover, Crop, Resize &amp; Target KB</title>
+  <meta name="description" content="100% client-side offline AI Image Studio. AI background removal, auto-enhance, Cropper.js cropping, target KB compression, passport photos, privacy blur, and format conversion in your browser." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    :root {
+      --win-accent: #0067c0;
+      --win-accent-hover: #005fb8;
+      --win-danger: #c42b1c;
+      --win-surface: rgba(255, 255, 255, 0.76);
+      --win-surface-strong: rgba(255, 255, 255, 0.92);
+      --win-hairline: rgba(15, 23, 42, 0.07);
+    }
+
+    html {
+      scroll-behavior: smooth;
+      overscroll-behavior-y: contain;
+      font-family: "Segoe UI Variable", "Segoe UI", -apple-system, BlinkMacSystemFont, Inter, system-ui, sans-serif;
+    }
+
+    body {
+      min-height: 100dvh;
+      overscroll-behavior-y: contain;
+      background-color: #f3f6fb;
+      background-image:
+        radial-gradient(at 10% 5%, rgba(56, 139, 253, 0.12) 0px, transparent 42%),
+        radial-gradient(at 90% 10%, rgba(99, 102, 241, 0.09) 0px, transparent 40%),
+        radial-gradient(at 50% 95%, rgba(14, 165, 233, 0.08) 0px, transparent 45%);
+      background-attachment: fixed;
+    }
+
+    button, a, input, select { -webkit-tap-highlight-color: transparent; }
+    button, a { user-select: none; -webkit-user-select: none; }
+
+    /* Windows 11 Mica / Acrylic Surfaces */
+    .win-mica {
+      background: var(--win-surface);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      border: 1px solid var(--win-hairline);
+      box-shadow: 0 2px 14px rgba(15, 23, 42, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    }
+
+    .win-acrylic {
+      background: var(--win-surface-strong);
+      backdrop-filter: blur(28px) saturate(180%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      border-color: var(--win-hairline);
+    }
+
+    /* Native Upload Dropzone */
+    .win-dropzone {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(248, 250, 252, 0.65) 100%);
+      border: 1.5px dashed rgba(15, 23, 42, 0.16);
+      transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease, transform 120ms ease;
+    }
+    .win-dropzone:hover {
+      border-color: rgba(0, 103, 192, 0.45);
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 8px 28px rgba(0, 103, 192, 0.07);
+    }
+    .win-dropzone.is-dragging {
+      border-color: var(--win-accent);
+      background: rgba(239, 246, 255, 0.94);
+      box-shadow: 0 0 0 4px rgba(0, 103, 192, 0.12);
+      transform: scale(0.995);
+    }
+
+    /* Transparency Checkerboard */
+    .checker-bg {
+      background-color: #ffffff;
+      background-image:
+        linear-gradient(45deg, #e2e8f0 25%, transparent 25%),
+        linear-gradient(-45deg, #e2e8f0 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #e2e8f0 75%),
+        linear-gradient(-45deg, transparent 75%, #e2e8f0 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+    }
+
+    @keyframes viewEnter {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .view-enter { animation: viewEnter 180ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+    @keyframes gridPulse {
+      0%   { box-shadow: 0 0 0 0 rgba(0, 103, 192, 0.28); }
+      70%  { box-shadow: 0 0 0 8px rgba(0, 103, 192, 0); }
+      100% { box-shadow: 0 2px 14px rgba(15, 23, 42, 0.04); }
+    }
+    .grid-pulse { animation: gridPulse 700ms ease-out; }
+
+    /* Borderless, Fill-less Windows 11 Command Buttons (Icon + Label Only) */
+    .win11-cmd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      border: none;
+      background: transparent;
+      color: #1e293b;
+      border-radius: 12px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      transition: background-color 140ms ease, color 140ms ease, transform 90ms ease, opacity 140ms ease;
+    }
+    .win11-cmd:hover:not(:disabled) { background: rgba(15, 23, 42, 0.055); color: #0f172a; }
+    .win11-cmd:active:not(:disabled) { background: rgba(15, 23, 42, 0.09); transform: scale(0.97); }
+    .win11-cmd:focus-visible { outline: 2px solid rgba(0, 103, 192, 0.45); outline-offset: 2px; }
+    .win11-cmd:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .win11-cmd-accent { color: var(--win-accent); font-weight: 600; }
+    .win11-cmd-accent:hover:not(:disabled) { background: rgba(0, 103, 192, 0.08); color: var(--win-accent-hover); }
+
+    .win11-cmd-danger { color: var(--win-danger); }
+    .win11-cmd-danger:hover:not(:disabled) { background: rgba(196, 43, 28, 0.08); }
+
+    /* Borderless Windows 11 Grid Tool Tile */
+    .win11-tile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 1rem 0.6rem;
+      border: none;
+      background: transparent;
+      border-radius: 14px;
+      color: #1e293b;
+      text-align: center;
+      cursor: pointer;
+      transition: background-color 150ms ease, transform 100ms ease, color 150ms ease;
+    }
+    .win11-tile:hover { background: rgba(255, 255, 255, 0.8); color: #0f172a; }
+    .win11-tile:active { transform: scale(0.96); background: rgba(0, 103, 192, 0.08); }
+
+    /* Borderless Pill Option */
+    .win-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.4rem 0.7rem;
+      border: none;
+      background: transparent;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #475569;
+      cursor: pointer;
+      transition: background-color 140ms ease, color 140ms ease;
+    }
+    .win-pill:hover { background: rgba(15, 23, 42, 0.05); color: #0f172a; }
+    .win-pill.is-active { background: rgba(0, 103, 192, 0.1); color: var(--win-accent); font-weight: 600; }
+
+    /* Windows 11 Toggle Switch */
+    .win-switch {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 36px;
+      height: 20px;
+      border-radius: 999px;
+      border: 1.5px solid #64748b;
+      background: transparent;
+      position: relative;
+      cursor: pointer;
+      transition: background-color 160ms ease, border-color 160ms ease;
+      flex-shrink: 0;
+    }
+    .win-switch::after {
+      content: "";
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 13px; height: 13px;
+      border-radius: 999px;
+      background: #475569;
+      transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1), background-color 160ms ease;
+    }
+    .win-switch:checked { background: var(--win-accent); border-color: var(--win-accent); }
+    .win-switch:checked::after { background: #ffffff; transform: translateX(16px); }
+
+    /* Minimal Fluent Inputs & Sliders */
+    .win-input {
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      border-bottom: 1.5px solid rgba(15, 23, 42, 0.28);
+      border-radius: 6px;
+      transition: border-color 140ms ease, background-color 140ms ease;
+    }
+    .win-input:focus { outline: none; background: #ffffff; border-bottom: 2px solid var(--win-accent); }
+    input[type="range"] { accent-color: var(--win-accent); }
+
+    @media (max-width: 639px) {
+      input:not([type="checkbox"]):not([type="range"]):not([type="color"]), select { font-size: 16px !important; }
+    }
+  </style>
+</head>
+<body class="text-slate-900 antialiased selection:bg-blue-100 selection:text-blue-900">
+
+<!-- ================= NATIVE APP TOP BAR ================= -->
+<nav class="win-acrylic sticky top-0 z-30 border-b">
+  <div class="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-3 sm:px-6">
+    <div class="flex min-w-0 items-center gap-2">
+      <button type="button" id="navBackBtn" class="win11-cmd hidden h-9 px-2 text-xs sm:text-sm" aria-label="Back to tools">
+        <i data-lucide="arrow-left" class="h-4 w-4"></i>
+        <span>Back</span>
+      </button>
+
+      <a id="brandLink" href="../index.html" class="flex min-w-0 items-center gap-2.5 text-sm font-semibold tracking-tight text-slate-900 sm:text-base">
+        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#0078d4] to-[#005a9e] text-xs font-bold text-white shadow-sm shadow-blue-600/20">OT</span>
+        <span class="truncate">Offline<span class="text-[#0067c0]">Tools</span></span>
+      </a>
+
+      <div id="navViewTitleWrap" class="hidden min-w-0 border-l border-slate-900/[0.1] pl-2.5">
+        <p id="navViewTitle" class="truncate text-sm font-semibold leading-tight text-slate-900">Tool</p>
+        <p id="navViewSub" class="truncate text-[11px] text-slate-500">No image</p>
+      </div>
+    </div>
+
+    <div class="flex shrink-0 items-center gap-1">
+      <button type="button" id="topUploadBtn" class="win11-cmd h-9 px-2.5 text-xs">
+        <i data-lucide="upload" class="h-4 w-4 text-[#0067c0]"></i>
+        <span>Upload</span>
+      </button>
+      <button type="button" id="topCamBtn" class="win11-cmd h-9 px-2.5 text-xs">
+        <i data-lucide="camera" class="h-4 w-4 text-[#0067c0]"></i>
+        <span>Camera</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<main class="mx-auto max-w-5xl px-3 pb-12 pt-5 sm:px-6 sm:pt-7">
+
+  <!-- Hidden File Inputs -->
+  <input type="file" id="imgInput" accept="image/*" hidden />
+  <input type="file" id="camInput" accept="image/*" capture="environment" hidden />
+
+  <!-- =================================================================== -->
+  <!-- VIEW 1: HOME DASHBOARD                                              -->
+  <!-- =================================================================== -->
+  <div id="homeView" class="view-enter space-y-5">
+    <header class="flex items-end justify-between gap-3 px-1">
+      <div>
+        <div class="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-[#0067c0]">
+          <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
+          <span>100% Client-Side AI · Zero Uploads</span>
+        </div>
+        <h1 class="mt-0.5 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">AI Image Studio</h1>
+      </div>
+    </header>
+
+    <!-- Native Windows 11 Upload Card (Two Inline Buttons: Upload + Hint | Camera) -->
+    <section aria-label="Upload Image" class="win-mica rounded-3xl p-3 sm:p-4">
+      <div id="dropZone" role="button" tabindex="0" class="win-dropzone rounded-2xl p-2 sm:p-4">
+        <div class="grid grid-cols-2 items-stretch gap-1 sm:gap-4">
+          <button type="button" id="dropUploadBtn" class="win11-cmd win11-cmd-accent min-h-24 flex-row justify-center gap-2.5 px-2.5 py-4 text-left sm:gap-3.5 sm:px-4">
+            <i data-lucide="upload" class="h-7 w-7 shrink-0 sm:h-8 sm:w-8"></i>
+            <span class="flex min-w-0 flex-col">
+              <span class="text-sm font-semibold leading-tight sm:text-lg">Upload</span>
+              <span class="mt-0.5 text-[11px] font-normal leading-snug text-slate-500 sm:text-xs">Drop JPG, PNG, or WebP here</span>
+            </span>
+          </button>
+
+          <button type="button" id="dropCamBtn" class="win11-cmd win11-cmd-accent min-h-24 flex-row justify-center gap-2.5 border-l border-slate-900/[0.08] px-2.5 py-4 text-left sm:gap-3.5 sm:px-4">
+            <i data-lucide="camera" class="h-7 w-7 shrink-0 sm:h-8 sm:w-8"></i>
+            <span class="text-sm font-semibold leading-tight sm:text-lg">Camera</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Active Image Preview Pill Bar -->
+      <div id="homeLoadedBar" class="mt-3 hidden flex-wrap items-center justify-between gap-2 rounded-2xl bg-blue-50/70 px-3.5 py-2.5 text-xs">
+        <div class="flex min-w-0 items-center gap-3">
+          <img id="homeThumb" src="" alt="" class="h-10 w-10 rounded-lg bg-white object-cover ring-1 ring-slate-900/10" />
+          <div class="min-w-0">
+            <p id="homeLoadedTitle" class="truncate font-semibold text-slate-800">image.jpg</p>
+            <p id="homeLoadedMeta" class="text-[11px] text-slate-500">0 × 0 px</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1">
+          <button type="button" id="homeQuickDownloadBtn" class="win11-cmd win11-cmd-accent h-8 px-2.5 text-xs">
+            <i data-lucide="download" class="h-3.5 w-3.5"></i>
+            <span>Download</span>
+          </button>
+          <button type="button" id="homeQuickClearBtn" class="win11-cmd win11-cmd-danger h-8 px-2.5 text-xs">
+            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+            <span>Clear</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- All AI & Image Processing Tools Grid -->
+    <section id="toolsSection" aria-label="Image Editing Tools" class="win-mica scroll-mt-20 rounded-3xl p-3 sm:p-5">
+      <div id="toolsGrid" class="grid grid-cols-3 gap-1.5 sm:grid-cols-4 sm:gap-2.5 lg:grid-cols-6">
+        <button type="button" data-tool="removebg" class="win11-tile">
+          <i data-lucide="wand-2" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">AI Remove BG</span>
+        </button>
+
+        <button type="button" data-tool="enhance" class="win11-tile">
+          <i data-lucide="sparkles" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">AI Enhance</span>
+        </button>
+
+        <button type="button" data-tool="crop" class="win11-tile">
+          <i data-lucide="crop" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">Smart Crop</span>
+        </button>
+
+        <button type="button" data-tool="compress" class="win11-tile">
+          <i data-lucide="minimize-2" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">Target KB</span>
+        </button>
+
+        <button type="button" data-tool="resize" class="win11-tile">
+          <i data-lucide="scaling" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">Resize Pixels</span>
+        </button>
+
+        <button type="button" data-tool="adjust" class="win11-tile">
+          <i data-lucide="sliders-horizontal" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">Adjust &amp; Filters</span>
+        </button>
+
+        <button type="button" data-tool="transform" class="win11-tile">
+          <i data-lucide="rotate-cw" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">Rotate &amp; Flip</span>
+        </button>
+
+        <button type="button" data-tool="passport" class="win11-tile">
+          <i data-lucide="contact" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">Passport Photo</span>
+        </button>
+
+        <button type="button" data-tool="blur" class="win11-tile">
+          <i data-lucide="eye-off" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">Privacy Blur</span>
+        </button>
+
+        <button type="button" data-tool="watermark" class="win11-tile">
+          <i data-lucide="stamp" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">Watermark</span>
+        </button>
+
+        <button type="button" data-tool="convert" class="win11-tile">
+          <i data-lucide="repeat" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">Convert / PDF</span>
+        </button>
+
+        <button type="button" data-tool="exif" class="win11-tile">
+          <i data-lucide="shield-check" class="h-6 w-6 text-[#0067c0]"></i>
+          <span class="text-xs font-medium leading-tight">Strip EXIF</span>
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- VIEW 2: FUNCTION WORKSPACE VIEW (Opened with Back Button)           -->
+  <!-- =================================================================== -->
+  <section id="functionView" class="view-enter hidden space-y-4">
+
+    <!-- Top Controls & Action Bar -->
+    <div class="win-mica rounded-3xl p-4 sm:p-5">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="min-w-0 flex-1 space-y-2.5">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 id="activeToolTitle" class="text-base font-semibold text-slate-900 sm:text-lg">Tool</h2>
+            <span id="imgDimBadge" class="text-xs font-medium text-slate-500">0 × 0</span>
+          </div>
+          <div id="toolOptions" class="flex flex-wrap items-center gap-2.5 text-xs text-slate-700"></div>
+        </div>
+
+        <div class="flex shrink-0 flex-wrap items-center gap-1 border-t border-slate-900/[0.06] pt-3 sm:border-t-0 sm:pt-0">
+          <button type="button" id="undoBtn" class="win11-cmd hidden h-9 px-2.5 text-xs">
+            <i data-lucide="undo-2" class="h-4 w-4 text-slate-600"></i>
+            <span>Undo</span>
+          </button>
+          <button type="button" id="applyToolBtn" class="win11-cmd win11-cmd-accent h-10 px-3.5 text-sm">
+            <i data-lucide="check" class="h-4 w-4"></i>
+            <span id="applyToolLabel">Apply</span>
+          </button>
+          <button type="button" id="downloadBtn" class="win11-cmd win11-cmd-accent h-10 px-3.5 text-sm">
+            <i data-lucide="download" class="h-4 w-4"></i>
+            <span>Download</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Progress / Status Line -->
+      <div class="mt-2.5 flex items-center justify-between gap-2">
+        <p id="statusText" aria-live="polite" class="text-xs text-slate-500">Ready.</p>
+        <div id="aiProgressWrap" class="hidden h-1.5 w-36 overflow-hidden rounded-full bg-slate-200">
+          <div id="aiProgressBar" class="h-full w-0 rounded-full bg-[#0067c0] transition-all duration-200"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty Prompt if No Image Loaded -->
+    <div id="emptyPrompt" class="win-mica hidden flex-col items-center justify-center gap-3 rounded-3xl px-6 py-12 text-center">
+      <i data-lucide="image-plus" class="h-8 w-8 text-[#0067c0]"></i>
+      <p class="text-sm font-medium text-slate-800">No image loaded yet</p>
+      <div class="flex items-center gap-2">
+        <button type="button" id="emptyUploadBtn" class="win11-cmd win11-cmd-accent h-9 px-3 text-xs">
+          <i data-lucide="upload" class="h-4 w-4"></i>
+          <span>Upload Image</span>
+        </button>
+        <button type="button" id="emptyCamBtn" class="win11-cmd h-9 px-3 text-xs">
+          <i data-lucide="camera" class="h-4 w-4 text-[#0067c0]"></i>
+          <span>Camera</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Interactive Canvas / Cropper Stage -->
+    <div id="editorStage" class="win-mica hidden overflow-hidden rounded-3xl p-3 sm:p-5">
+      <!-- Standard Preview & Interactive Blur Canvas -->
+      <div id="previewCanvasWrap" class="flex items-center justify-center overflow-hidden rounded-2xl bg-slate-900/[0.04] p-2">
+        <canvas id="previewCanvas" class="checker-bg max-h-[62dvh] max-w-full rounded-lg shadow-md"></canvas>
+      </div>
+
+      <!-- Cropper.js Stage (Shown only for Smart Crop) -->
+      <div id="cropperWrap" class="hidden max-h-[62dvh] overflow-hidden rounded-2xl bg-slate-950">
+        <img id="cropperImg" src="" alt="Crop stage" class="block max-h-[62dvh] max-w-full" />
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+<footer id="siteFooter" class="mt-8 border-t border-slate-900/[0.06] bg-white/60 py-5 text-xs text-slate-500 backdrop-blur-md">
+  <div class="mx-auto flex max-w-5xl flex-col items-center justify-between gap-2 px-3 sm:flex-row sm:px-6">
+    <p>&copy; 2026 OfflineTools. All AI &amp; image processing runs locally in your browser.</p>
+    <div class="flex flex-wrap justify-center gap-4 font-medium text-slate-600">
+      <a href="../about/index.html" class="hover:text-[#0067c0]">About Us</a>
+      <a href="../contact/index.html" class="hover:text-[#0067c0]">Contact</a>
+      <a href="../privacy-policy/index.html" class="hover:text-[#0067c0]">Privacy Policy</a>
+      <a href="../terms/index.html" class="hover:text-[#0067c0]">Terms of Use</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+
+  function refreshIcons() {
+    if (window.lucide) lucide.createIcons({ attrs: { 'stroke-width': 1.75 } });
+  }
+
+  // ================= STATE =================
+  let workCanvas = null;       // Master working HTMLCanvasElement
+  let historyStack = [];       // Undo snapshots (dataURLs)
+  let fileName = 'image';
+  let activeTool = 'removebg';
+  let currentView = 'home';    // 'home' | 'function'
+  let cropper = null;
+  let bgRemovedCanvas = null;  // Cached transparent cutout for instant BG color swapping
+  let activeBgColor = 'transparent';
+
+  // Live Adjust State
+  let adj = { brightness: 100, contrast: 100, saturate: 100, blur: 0, grayscale: 0, sepia: 0 };
+
+  // Blur Brush State
+  let isBlurDrawing = false;
+  let blurWorkingCanvas = null;
+
+  const TOOL_META = {
+    removebg:  { title: 'AI Remove Background', apply: 'Run AI Remove BG' },
+    enhance:   { title: 'AI Auto Enhance',      apply: 'Apply AI Enhance' },
+    crop:      { title: 'Smart Crop',           apply: 'Apply Crop' },
+    compress:  { title: 'Target KB Compress',   apply: 'Compress & Download' },
+    resize:    { title: 'Resize Pixels',        apply: 'Apply Resize' },
+    adjust:    { title: 'Adjust & Filters',     apply: 'Apply Adjustments' },
+    transform: { title: 'Rotate & Flip',        apply: 'Done' },
+    passport:  { title: 'Passport Photo',       apply: 'Generate Photo' },
+    blur:      { title: 'Privacy Blur Brush',   apply: 'Apply Blur' },
+    watermark: { title: 'Watermark',            apply: 'Apply Watermark' },
+    convert:   { title: 'Convert Format / PDF', apply: 'Export File' },
+    exif:      { title: 'Strip EXIF Metadata',  apply: 'Download Clean Copy' }
+  };
+
+  function cloneCanvas(src) {
+    const c = document.createElement('canvas');
+    c.width = src.width; c.height = src.height;
+    c.getContext('2d').drawImage(src, 0, 0);
+    return c;
+  }
+
+  function pushUndo() {
+    if (!workCanvas) return;
+    historyStack.push(workCanvas.toDataURL('image/png'));
+    if (historyStack.length > 10) historyStack.shift();
+    $('undoBtn').classList.toggle('hidden', historyStack.length === 0);
+  }
+
+  function scrollToToolsGrid() {
+    if (currentView !== 'home') return;
+    const sec = $('toolsSection');
+    requestAnimationFrame(() => {
+      sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      sec.classList.remove('grid-pulse');
+      void sec.offsetWidth;
+      sec.classList.add('grid-pulse');
+    });
+  }
+
+  // ================= NATIVE APP NAVIGATION =================
+  let historySupported = false;
+  let suppressPop = false;
+  try { history.replaceState({ view: 'home' }, ''); historySupported = true; } catch {}
+
+  function destroyCropper() {
+    if (cropper) { cropper.destroy(); cropper = null; }
+  }
+
+  function setView(view, opts = {}) {
+    if (currentView === 'function' && view !== 'function') destroyCropper();
+    currentView = view;
+
+    $('homeView').classList.toggle('hidden', view !== 'home');
+    $('functionView').classList.toggle('hidden', view !== 'function');
+    $('siteFooter').classList.toggle('hidden', view !== 'home');
+
+    const isSub = view !== 'home';
+    $('navBackBtn').classList.toggle('hidden', !isSub);
+    $('brandLink').classList.toggle('hidden', isSub);
+    $('navViewTitleWrap').classList.toggle('hidden', !isSub);
+
+    if (view === 'function') {
+      $('navViewTitle').textContent = TOOL_META[activeTool].title;
+      $('navViewSub').textContent = workCanvas ? `${workCanvas.width} × ${workCanvas.height} px` : 'No image';
+      renderFunctionView();
+    } else {
+      syncHomeStatus();
+    }
+
+    if (opts.push && historySupported) {
+      try { history.pushState({ view, tool: activeTool }, ''); } catch {}
+    }
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    refreshIcons();
+  }
+
+  function goBack() {
+    if (currentView === 'home') return;
+    setView('home', { push: false });
+    if (historySupported) {
+      suppressPop = true;
+      history.back();
+      setTimeout(() => { suppressPop = false; }, 120);
+    }
+  }
+
+  window.addEventListener('popstate', e => {
+    if (suppressPop) { suppressPop = false; return; }
+    const st = e.state || { view: 'home' };
+    if (st.tool) activeTool = st.tool;
+    setView(st.view || 'home', { push: false });
+  });
+
+  $('navBackBtn').addEventListener('click', goBack);
+
+  // ================= LOAD IMAGE =================
+  function loadImageFile(file) {
+    if (!file || !file.type.startsWith('image/')) return alert('Please select a valid image file.');
+    fileName = file.name.replace(/\.[^.]+$/, '') || 'image';
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const maxDim = 2400;
+      const scale = Math.min(1, maxDim / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(img.naturalWidth * scale));
+      c.height = Math.max(1, Math.round(img.naturalHeight * scale));
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+
+      workCanvas = c;
+      historyStack = [];
+      bgRemovedCanvas = null;
+      syncHomeStatus();
+      if (currentView === 'home') scrollToToolsGrid();
+      else renderFunctionView();
+    };
+    img.src = url;
+  }
+
+  function syncHomeStatus() {
+    const hasImg = !!workCanvas;
+    $('homeLoadedBar').classList.toggle('hidden', !hasImg);
+    $('homeLoadedBar').classList.toggle('flex', hasImg);
+    if (hasImg) {
+      $('homeThumb').src = workCanvas.toDataURL('image/jpeg', 0.6);
+      $('homeLoadedTitle').textContent = fileName;
+      $('homeLoadedMeta').textContent = `${workCanvas.width} × ${workCanvas.height} px · Ready for AI tools`;
+    }
+  }
+
+  function clearWorkspace() {
+    destroyCropper();
+    workCanvas = null;
+    bgRemovedCanvas = null;
+    historyStack = [];
+    syncHomeStatus();
+    if (currentView === 'function') renderFunctionView();
+  }
+
+  // ================= PREVIEW RENDERING =================
+  function drawPreview(sourceCanvas = workCanvas, cssFilter = 'none') {
+    if (!sourceCanvas) return;
+    const pCanvas = $('previewCanvas');
+    pCanvas.width = sourceCanvas.width;
+    pCanvas.height = sourceCanvas.height;
+    const ctx = pCanvas.getContext('2d');
+    ctx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+    ctx.filter = cssFilter;
+    ctx.drawImage(sourceCanvas, 0, 0);
+    ctx.filter = 'none';
+  }
+
+  function renderFunctionView() {
+    destroyCropper();
+    const meta = TOOL_META[activeTool];
+    $('activeToolTitle').textContent = meta.title;
+    $('applyToolLabel').textContent = meta.apply;
+    $('imgDimBadge').textContent = workCanvas ? `${workCanvas.width} × ${workCanvas.height} px` : 'No image';
+    $('navViewSub').textContent = workCanvas ? `${workCanvas.width} × ${workCanvas.height} px` : 'No image';
+    $('undoBtn').classList.toggle('hidden', historyStack.length === 0);
+    $('aiProgressWrap').classList.add('hidden');
+
+    const hasImg = !!workCanvas;
+    $('emptyPrompt').classList.toggle('hidden', hasImg);
+    $('emptyPrompt').classList.toggle('flex', !hasImg);
+    $('editorStage').classList.toggle('hidden', !hasImg);
+    $('applyToolBtn').disabled = !hasImg;
+    $('downloadBtn').disabled = !hasImg;
+
+    const isCrop = activeTool === 'crop';
+    $('previewCanvasWrap').classList.toggle('hidden', isCrop);
+    $('cropperWrap').classList.toggle('hidden', !isCrop);
+
+    const box = $('toolOptions');
+    let html = '';
+
+    if (activeTool === 'removebg') {
+      html = `
+        <span class="font-medium">Background:</span>
+        <button type="button" data-bg="transparent" class="win-pill bg-pill is-active">Transparent</button>
+        <button type="button" data-bg="#ffffff" class="win-pill bg-pill">White</button>
+        <button type="button" data-bg="#0b66c3" class="win-pill bg-pill">Passport Blue</button>
+        <input type="color" id="optBgColor" value="#e0f2fe" title="Custom background color" class="h-7 w-7 cursor-pointer rounded border-0 bg-transparent" />`;
+    } else if (activeTool === 'enhance') {
+      html = `
+        <label class="flex items-center gap-2">
+          <span>Strength:</span>
+          <input type="range" id="optEnhanceAmt" min="20" max="100" value="65" class="w-28" />
+        </label>
+        <label class="inline-flex cursor-pointer items-center gap-2">
+          <input type="checkbox" id="optSharpen" class="win-switch" checked />
+          <span>AI Sharpen</span>
+        </label>`;
+    } else if (activeTool === 'crop') {
+      html = `
+        <button type="button" data-ratio="NaN" class="win-pill ratio-pill is-active">Free</button>
+        <button type="button" data-ratio="1" class="win-pill ratio-pill">1:1</button>
+        <button type="button" data-ratio="1.3333" class="win-pill ratio-pill">4:3</button>
+        <button type="button" data-ratio="1.7777" class="win-pill ratio-pill">16:9</button>
+        <button type="button" data-ratio="0.7777" class="win-pill ratio-pill">Passport 35×45</button>`;
+    } else if (activeTool === 'compress') {
+      html = `
+        <label class="flex items-center gap-1.5">
+          <span>Target:</span>
+          <input type="number" id="optTargetKb" value="100" min="10" max="5000" class="win-input h-8 w-20 px-2 text-xs font-semibold" />
+          <span>KB</span>
+        </label>
+        <select id="optCompFmt" class="win-input h-8 px-2 text-xs">
+          <option value="image/jpeg">JPG</option>
+          <option value="image/webp">WebP</option>
+        </select>`;
+    } else if (activeTool === 'resize') {
+      const w = workCanvas ? workCanvas.width : 1080;
+      const h = workCanvas ? workCanvas.height : 1080;
+      html = `
+        <input type="number" id="optResW" value="${w}" min="16" max="6000" class="win-input h-8 w-20 px-2 text-xs font-semibold" />
+        <span>×</span>
+        <input type="number" id="optResH" value="${h}" min="16" max="6000" class="win-input h-8 w-20 px-2 text-xs font-semibold" />
+        <label class="inline-flex cursor-pointer items-center gap-1.5">
+          <input type="checkbox" id="optLockRatio" class="win-switch" checked />
+          <span>Lock Ratio</span>
+        </label>`;
+    } else if (activeTool === 'adjust') {
+      adj = { brightness: 100, contrast: 100, saturate: 100, blur: 0, grayscale: 0, sepia: 0 };
+      html = `
+        <label class="flex items-center gap-1.5"><span>Bright</span><input type="range" id="adjB" min="40" max="180" value="100" class="w-20" /></label>
+        <label class="flex items-center gap-1.5"><span>Contrast</span><input type="range" id="adjC" min="40" max="200" value="100" class="w-20" /></label>
+        <label class="flex items-center gap-1.5"><span>Color</span><input type="range" id="adjS" min="0" max="220" value="100" class="w-20" /></label>
+        <button type="button" data-preset="bw" class="win-pill preset-pill">B&amp;W</button>
+        <button type="button" data-preset="vivid" class="win-pill preset-pill">Vivid</button>
+        <button type="button" data-preset="warm" class="win-pill preset-pill">Warm</button>
+        <button type="button" data-preset="reset" class="win-pill preset-pill">Reset</button>`;
+    } else if (activeTool === 'transform') {
+      html = `
+        <button type="button" id="trRotL" class="win11-cmd h-8 px-2.5 text-xs"><i data-lucide="rotate-ccw" class="h-4 w-4 text-[#0067c0]"></i><span>Rotate -90°</span></button>
+        <button type="button" id="trRotR" class="win11-cmd h-8 px-2.5 text-xs"><i data-lucide="rotate-cw" class="h-4 w-4 text-[#0067c0]"></i><span>Rotate +90°</span></button>
+        <button type="button" id="trFlipH" class="win11-cmd h-8 px-2.5 text-xs"><i data-lucide="flip-horizontal" class="h-4 w-4 text-[#0067c0]"></i><span>Flip H</span></button>
+        <button type="button" id="trFlipV" class="win11-cmd h-8 px-2.5 text-xs"><i data-lucide="flip-vertical" class="h-4 w-4 text-[#0067c0]"></i><span>Flip V</span></button>`;
+    } else if (activeTool === 'passport') {
+      html = `
+        <select id="optPassSize" class="win-input h-8 px-2 text-xs">
+          <option value="single">Single 35×45mm (India / EU)</option>
+          <option value="sheet4x6">Printable 4×6 Sheet (8 Copies)</option>
+          <option value="sheetA4">Printable A4 Sheet (20 Copies)</option>
+        </select>
+        <label class="flex items-center gap-1.5">
+          <span>BG:</span>
+          <input type="color" id="optPassBg" value="#ffffff" class="h-7 w-7 cursor-pointer rounded border-0 bg-transparent" />
+        </label>`;
+    } else if (activeTool === 'blur') {
+      html = `
+        <span class="text-slate-500">Drag directly on the image to blur faces, numbers, or sensitive info.</span>
+        <label class="flex items-center gap-1.5"><span>Size</span><input type="range" id="optBlurSize" min="15" max="90" value="40" class="w-20" /></label>`;
+    } else if (activeTool === 'watermark') {
+      html = `
+        <input type="text" id="optWmText" value="OFFLINETOOLS" class="win-input h-8 w-44 px-2.5 text-xs uppercase" />
+        <label class="flex items-center gap-1.5"><span>Opacity</span><input type="range" id="optWmOp" min="10" max="80" value="35" class="w-20" /></label>`;
+    } else if (activeTool === 'convert') {
+      html = `
+        <select id="optConvFmt" class="win-input h-8 px-2.5 text-xs">
+          <option value="image/jpeg">JPG (.jpg)</option>
+          <option value="image/png">PNG (.png)</option>
+          <option value="image/webp">WebP (.webp)</option>
+          <option value="pdf">PDF Document (.pdf)</option>
+        </select>`;
+    } else if (activeTool === 'exif') {
+      html = `<span class="text-slate-500">Re-encodes the image via Canvas to strip all GPS coordinates, camera model, and EXIF metadata.</span>`;
+    }
+
+    box.innerHTML = html;
+    refreshIcons();
+    wireToolSpecificControls();
+
+    if (!hasImg) return;
+
+    if (isCrop) {
+      const imgEl = $('cropperImg');
+      imgEl.src = workCanvas.toDataURL('image/png');
+      cropper = new Cropper(imgEl, { viewMode: 1, autoCropArea: 0.9, responsive: true, background: false });
+    } else if (activeTool === 'blur') {
+      blurWorkingCanvas = cloneCanvas(workCanvas);
+      drawPreview(blurWorkingCanvas);
+    } else {
+      drawPreview(workCanvas);
+    }
+    $('statusText').textContent = `Loaded ${TOOL_META[activeTool].title}.`;
+  }
+
+  function wireToolSpecificControls() {
+    // AI Remove BG background swatches
+    document.querySelectorAll('.bg-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeBgColor = btn.dataset.bg;
+        document.querySelectorAll('.bg-pill').forEach(b => b.classList.toggle('is-active', b === btn));
+        if (bgRemovedCanvas) previewCutoutWithBg();
+      });
+    });
+    if ($('optBgColor')) {
+      $('optBgColor').addEventListener('input', e => {
+        activeBgColor = e.target.value;
+        document.querySelectorAll('.bg-pill').forEach(b => b.classList.remove('is-active'));
+        if (bgRemovedCanvas) previewCutoutWithBg();
+      });
+    }
+
+    // Crop ratios
+    document.querySelectorAll('.ratio-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.ratio-pill').forEach(b => b.classList.toggle('is-active', b === btn));
+        if (cropper) cropper.setAspectRatio(parseFloat(btn.dataset.ratio));
+      });
+    });
+
+    // Resize aspect lock
+    if ($('optResW') && $('optResH') && workCanvas) {
+      const aspect = workCanvas.width / workCanvas.height;
+      $('optResW').addEventListener('input', () => {
+        if ($('optLockRatio').checked) $('optResH').value = Math.max(1, Math.round((parseInt($('optResW').value, 10) || 1) / aspect));
+      });
+      $('optResH').addEventListener('input', () => {
+        if ($('optLockRatio').checked) $('optResW').value = Math.max(1, Math.round((parseInt($('optResH').value, 10) || 1) * aspect));
+      });
+    }
+
+    // Adjust live preview
+    const updateAdj = () => {
+      adj.brightness = parseInt($('adjB').value, 10);
+      adj.contrast = parseInt($('adjC').value, 10);
+      adj.saturate = parseInt($('adjS').value, 10);
+      drawPreview(workCanvas, buildAdjFilter());
+    };
+    ['adjB', 'adjC', 'adjS'].forEach(id => { if ($(id)) $(id).addEventListener('input', updateAdj); });
+    document.querySelectorAll('.preset-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = btn.dataset.preset;
+        if (p === 'bw') { adj = { brightness: 105, contrast: 125, saturate: 0, blur: 0, grayscale: 100, sepia: 0 }; }
+        else if (p === 'vivid') { adj = { brightness: 105, contrast: 118, saturate: 145, blur: 0, grayscale: 0, sepia: 0 }; }
+        else if (p === 'warm') { adj = { brightness: 104, contrast: 108, saturate: 115, blur: 0, grayscale: 0, sepia: 28 }; }
+        else { adj = { brightness: 100, contrast: 100, saturate: 100, blur: 0, grayscale: 0, sepia: 0 }; }
+        $('adjB').value = adj.brightness; $('adjC').value = adj.contrast; $('adjS').value = adj.saturate;
+        drawPreview(workCanvas, buildAdjFilter());
+      });
+    });
+
+    // Transform immediate buttons
+    if ($('trRotL')) $('trRotL').addEventListener('click', () => applyTransform(-90, 1, 1));
+    if ($('trRotR')) $('trRotR').addEventListener('click', () => applyTransform(90, 1, 1));
+    if ($('trFlipH')) $('trFlipH').addEventListener('click', () => applyTransform(0, -1, 1));
+    if ($('trFlipV')) $('trFlipV').addEventListener('click', () => applyTransform(0, 1, -1));
+
+    // Watermark live preview
+    if ($('optWmText')) {
+      const prevWm = () => {
+        if (!workCanvas) return;
+        const tmp = cloneCanvas(workCanvas);
+        stampWatermark(tmp, $('optWmText').value, parseInt($('optWmOp').value, 10) / 100);
+        drawPreview(tmp);
+      };
+      $('optWmText').addEventListener('input', prevWm);
+      $('optWmOp').addEventListener('input', prevWm);
+    }
+  }
+
+  function buildAdjFilter() {
+    return `brightness(${adj.brightness}%) contrast(${adj.contrast}%) saturate(${adj.saturate}%) grayscale(${adj.grayscale}%) sepia(${adj.sepia}%)`;
+  }
+
+  function applyTransform(deg, scaleX, scaleY) {
+    if (!workCanvas) return;
+    pushUndo();
+    const rot90 = Math.abs(deg) === 90;
+    const c = document.createElement('canvas');
+    c.width = rot90 ? workCanvas.height : workCanvas.width;
+    c.height = rot90 ? workCanvas.width : workCanvas.height;
+    const ctx = c.getContext('2d');
+    ctx.translate(c.width / 2, c.height / 2);
+    ctx.rotate((deg * Math.PI) / 180);
+    ctx.scale(scaleX, scaleY);
+    ctx.drawImage(workCanvas, -workCanvas.width / 2, -workCanvas.height / 2);
+    workCanvas = c;
+    drawPreview(workCanvas);
+    $('imgDimBadge').textContent = `${workCanvas.width} × ${workCanvas.height} px`;
+    $('statusText').textContent = 'Applied transform.';
+  }
+
+  function stampWatermark(canvas, text, opacity) {
+    if (!text.trim()) return;
+    const ctx = canvas.getContext('2d');
+    ctx.save();
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate((-28 * Math.PI) / 180);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+    ctx.strokeStyle = `rgba(15, 23, 42, ${opacity * 0.7})`;
+    ctx.lineWidth = Math.max(2, canvas.width * 0.004);
+    ctx.font = `700 ${Math.max(24, Math.round(canvas.width * 0.075))}px "Segoe UI", Arial, sans-serif`;
+    ctx.strokeText(text.toUpperCase(), 0, 0);
+    ctx.fillText(text.toUpperCase(), 0, 0);
+    ctx.restore();
+  }
+
+  function previewCutoutWithBg() {
+    if (!bgRemovedCanvas) return;
+    const c = document.createElement('canvas');
+    c.width = bgRemovedCanvas.width; c.height = bgRemovedCanvas.height;
+    const ctx = c.getContext('2d');
+    if (activeBgColor !== 'transparent') {
+      ctx.fillStyle = activeBgColor;
+      ctx.fillRect(0, 0, c.width, c.height);
+    }
+    ctx.drawImage(bgRemovedCanvas, 0, 0);
+    workCanvas = c;
+    drawPreview(workCanvas);
+  }
+
+  // ================= PRIVACY BLUR BRUSH =================
+  function blurAtPointer(e) {
+    if (activeTool !== 'blur' || !blurWorkingCanvas) return;
+    const pCanvas = $('previewCanvas');
+    const rect = pCanvas.getBoundingClientRect();
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    const x = ((cx - rect.left) / rect.width) * blurWorkingCanvas.width;
+    const y = ((cy - rect.top) / rect.height) * blurWorkingCanvas.height;
+    const r = Math.max(12, Math.round((parseInt($('optBlurSize').value, 10) || 40) * (blurWorkingCanvas.width / 600)));
+
+    const ctx = blurWorkingCanvas.getContext('2d', { willReadFrequently: true });
+    const sx = Math.max(0, Math.floor(x - r)), sy = Math.max(0, Math.floor(y - r));
+    const sw = Math.min(blurWorkingCanvas.width - sx, r * 2);
+    const sh = Math.min(blurWorkingCanvas.height - sy, r * 2);
+    if (sw <= 4 || sh <= 4) return;
+
+    // Fast Mosaic/Pixelate Privacy Blur
+    const pxSize = Math.max(8, Math.round(r * 0.35));
+    const tiny = document.createElement('canvas');
+    tiny.width = Math.max(1, Math.round(sw / pxSize));
+    tiny.height = Math.max(1, Math.round(sh / pxSize));
+    tiny.getContext('2d').drawImage(blurWorkingCanvas, sx, sy, sw, sh, 0, 0, tiny.width, tiny.height);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(tiny, 0, 0, tiny.width, tiny.height, sx, sy, sw, sh);
+    ctx.restore();
+    drawPreview(blurWorkingCanvas);
+  }
+
+  const pCanvasEl = $('previewCanvas');
+  pCanvasEl.addEventListener('mousedown', e => { if (activeTool === 'blur') { isBlurDrawing = true; blurAtPointer(e); } });
+  window.addEventListener('mousemove', e => { if (isBlurDrawing) blurAtPointer(e); });
+  window.addEventListener('mouseup', () => { isBlurDrawing = false; });
+  pCanvasEl.addEventListener('touchstart', e => { if (activeTool === 'blur') { isBlurDrawing = true; e.preventDefault(); blurAtPointer(e); } }, { passive: false });
+  window.addEventListener('touchmove', e => { if (isBlurDrawing) { e.preventDefault(); blurAtPointer(e); } }, { passive: false });
+  window.addEventListener('touchend', () => { isBlurDrawing = false; });
+
+  // ================= AI & PROCESSING EXECUTORS =================
+  function downloadBlob(blob, name) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2500);
+  }
+
+  async function runAiRemoveBg() {
+    $('aiProgressWrap').classList.remove('hidden');
+    $('aiProgressBar').style.width = '15%';
+    $('statusText').textContent = 'Loading client-side AI model (first run caches in browser)...';
+
+    const srcBlob = await new Promise(r => workCanvas.toBlob(r, 'image/png'));
+    try {
+      const mod = await import('https://esm.sh/@imgly/background-removal@1.4.5');
+      const removeBackground = mod.removeBackground || mod.default;
+      const outBlob = await removeBackground(srcBlob, {
+        progress: (key, current, total) => {
+          if (total > 0) {
+            const pct = Math.min(98, Math.round((current / total) * 100));
+            $('aiProgressBar').style.width = `${pct}%`;
+            $('statusText').textContent = `AI processing (${pct}%)...`;
+          }
+        }
+      });
+      const url = URL.createObjectURL(outBlob);
+      const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+      URL.revokeObjectURL(url);
+
+      pushUndo();
+      const cut = document.createElement('canvas');
+      cut.width = img.naturalWidth; cut.height = img.naturalHeight;
+      cut.getContext('2d').drawImage(img, 0, 0);
+      bgRemovedCanvas = cut;
+      previewCutoutWithBg();
+      $('aiProgressBar').style.width = '100%';
+      $('statusText').textContent = 'AI background removed! Pick a background color or Download.';
+    } catch (err) {
+      console.error(err);
+      $('statusText').textContent = 'AI model blocked by network/CORS. Check internet connection for first-time model cache.';
+    } finally {
+      setTimeout(() => $('aiProgressWrap').classList.add('hidden'), 800);
+    }
+  }
+
+  function runAiAutoEnhance() {
+    pushUndo();
+    const strength = (parseInt($('optEnhanceAmt').value, 10) || 65) / 100;
+    const sharpen = $('optSharpen').checked;
+    const c = cloneCanvas(workCanvas);
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    const imgData = ctx.getImageData(0, 0, c.width, c.height);
+    const d = imgData.data;
+
+    // 1. Auto-levels histogram stretch (2nd to 98th percentile)
+    const hist = new Int32Array(256);
+    for (let i = 0; i < d.length; i += 4) {
+      const lum = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
+      hist[lum]++;
+    }
+    const total = d.length / 4;
+    let low = 0, high = 255, acc = 0;
+    for (let i = 0; i < 256; i++) { acc += hist[i]; if (acc > total * 0.015) { low = i; break; } }
+    acc = 0;
+    for (let i = 255; i >= 0; i--) { acc += hist[i]; if (acc > total * 0.015) { high = i; break; } }
+    const span = Math.max(20, high - low);
+
+    for (let i = 0; i < d.length; i += 4) {
+      for (let ch = 0; ch < 3; ch++) {
+        const stretched = Math.max(0, Math.min(255, ((d[i + ch] - low) / span) * 255));
+        d[i + ch] = d[i + ch] * (1 - strength * 0.75) + stretched * (strength * 0.75);
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    // 2. Gentle clarity + vibrance pass
+    const out = document.createElement('canvas');
+    out.width = c.width; out.height = c.height;
+    const oCtx = out.getContext('2d');
+    oCtx.filter = `contrast(${100 + Math.round(strength * 14)}%) saturate(${100 + Math.round(strength * 18)}%) brightness(${100 + Math.round(strength * 5)}%)`;
+    oCtx.drawImage(c, 0, 0);
+
+    if (sharpen) {
+      // Unsharp-style subtle edge pop
+      const sData = oCtx.getImageData(0, 0, out.width, out.height);
+      const src = new Uint8ClampedArray(sData.data);
+      const w = out.width, h = out.height;
+      const amt = 0.25 * strength;
+      for (let y = 1; y < h - 1; y++) {
+        for (let x = 1; x < w - 1; x++) {
+          const idx = (y * w + x) * 4;
+          for (let ch = 0; ch < 3; ch++) {
+            const avg = (src[idx - 4 + ch] + src[idx + 4 + ch] + src[idx - w * 4 + ch] + src[idx + w * 4 + ch]) * 0.25;
+            sData.data[idx + ch] = Math.max(0, Math.min(255, src[idx + ch] + (src[idx + ch] - avg) * amt * 3));
+          }
+        }
+      }
+      oCtx.putImageData(sData, 0, 0);
+    }
+
+    workCanvas = out;
+    drawPreview(workCanvas);
+    $('statusText').textContent = 'AI Auto Enhance applied.';
+  }
+
+  async function runTargetKbCompress() {
+    const targetKb = Math.max(10, parseInt($('optTargetKb').value, 10) || 100);
+    const mime = $('optCompFmt').value;
+    const maxBytes = targetKb * 1024;
+    const ext = mime === 'image/webp' ? 'webp' : 'jpg';
+    const scales = [1, 0.85, 0.7, 0.55, 0.4];
+    let bestBlob = null;
+
+    for (const sc of scales) {
+      const c = document.createElement('canvas');
+      c.width = Math.max(16, Math.round(workCanvas.width * sc));
+      c.height = Math.max(16, Math.round(workCanvas.height * sc));
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(workCanvas, 0, 0, c.width, c.height);
+
+      let low = 0.15, high = 0.94;
+      const minB = await new Promise(r => c.toBlob(r, mime, low));
+      bestBlob = minB;
+      if (minB.size <= maxBytes) {
+        for (let step = 0; step < 6; step++) {
+          const mid = (low + high) / 2;
+          const b = await new Promise(r => c.toBlob(r, mime, mid));
+          if (b.size <= maxBytes) { bestBlob = b; low = mid; } else high = mid;
+        }
+        break;
+      }
+    }
+    const kb = Math.ceil(bestBlob.size / 1024);
+    downloadBlob(bestBlob, `${fileName}_${kb}KB.${ext}`);
+    $('statusText').textContent = `Compressed & downloaded (${kb} KB).`;
+  }
+
+  function runPassportGenerator() {
+    pushUndo();
+    const mode = $('optPassSize').value;
+    const bg = $('optPassBg').value;
+
+    // 35x45mm at 300 DPI = 413 x 531 px
+    const pw = 413, ph = 531;
+    const single = document.createElement('canvas');
+    single.width = pw; single.height = ph;
+    const sCtx = single.getContext('2d');
+    sCtx.fillStyle = bg;
+    sCtx.fillRect(0, 0, pw, ph);
+
+    // Center-cover crop
+    const scale = Math.max(pw / workCanvas.width, ph / workCanvas.height);
+    const dw = workCanvas.width * scale, dh = workCanvas.height * scale;
+    sCtx.drawImage(workCanvas, (pw - dw) / 2, (ph - dh) / 2, dw, dh);
+
+    if (mode === 'single') {
+      workCanvas = single;
+    } else {
+      const sheet = document.createElement('canvas');
+      const cols = mode === 'sheet4x6' ? 4 : 4;
+      const rows = mode === 'sheet4x6' ? 2 : 5;
+      const gap = 24, pad = 40;
+      sheet.width = pad * 2 + cols * pw + (cols - 1) * gap;
+      sheet.height = pad * 2 + rows * ph + (rows - 1) * gap;
+      const shCtx = sheet.getContext('2d');
+      shCtx.fillStyle = '#FFFFFF';
+      shCtx.fillRect(0, 0, sheet.width, sheet.height);
+      for (let r = 0; r < rows; r++) {
+        for (let col = 0; col < cols; col++) {
+          const x = pad + col * (pw + gap);
+          const y = pad + r * (ph + gap);
+          shCtx.drawImage(single, x, y);
+          shCtx.strokeStyle = '#cbd5e1';
+          shCtx.lineWidth = 2;
+          shCtx.strokeRect(x, y, pw, ph);
+        }
+      }
+      workCanvas = sheet;
+    }
+    drawPreview(workCanvas);
+    $('imgDimBadge').textContent = `${workCanvas.width} × ${workCanvas.height} px`;
+    $('statusText').textContent = 'Passport photo ready. Tap Download.';
+  }
+
+  $('applyToolBtn').addEventListener('click', async () => {
+    if (!workCanvas) return;
+    const btn = $('applyToolBtn');
+    btn.disabled = true;
+
+    try {
+      if (activeTool === 'removebg') {
+        await runAiRemoveBg();
+      } else if (activeTool === 'enhance') {
+        runAiAutoEnhance();
+      } else if (activeTool === 'crop' && cropper) {
+        pushUndo();
+        workCanvas = cropper.getCroppedCanvas({ maxWidth: 2400, maxHeight: 2400 });
+        destroyCropper();
+        activeTool = 'adjust';
+        goBack();
+      } else if (activeTool === 'compress') {
+        await runTargetKbCompress();
+      } else if (activeTool === 'resize') {
+        const w = Math.max(16, parseInt($('optResW').value, 10) || workCanvas.width);
+        const h = Math.max(16, parseInt($('optResH').value, 10) || workCanvas.height);
+        pushUndo();
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(workCanvas, 0, 0, w, h);
+        workCanvas = c;
+        drawPreview(workCanvas);
+        $('imgDimBadge').textContent = `${w} × ${h} px`;
+        $('statusText').textContent = `Resized to ${w} × ${h} px.`;
+      } else if (activeTool === 'adjust') {
+        pushUndo();
+        const c = document.createElement('canvas');
+        c.width = workCanvas.width; c.height = workCanvas.height;
+        const ctx = c.getContext('2d');
+        ctx.filter = buildAdjFilter();
+        ctx.drawImage(workCanvas, 0, 0);
+        workCanvas = c;
+        drawPreview(workCanvas);
+        $('statusText').textContent = 'Adjustments saved to image.';
+      } else if (activeTool === 'transform') {
+        goBack();
+      } else if (activeTool === 'passport') {
+        runPassportGenerator();
+      } else if (activeTool === 'blur' && blurWorkingCanvas) {
+        pushUndo();
+        workCanvas = cloneCanvas(blurWorkingCanvas);
+        drawPreview(workCanvas);
+        $('statusText').textContent = 'Privacy blur applied.';
+      } else if (activeTool === 'watermark') {
+        pushUndo();
+        stampWatermark(workCanvas, $('optWmText').value, parseInt($('optWmOp').value, 10) / 100);
+        drawPreview(workCanvas);
+        $('statusText').textContent = 'Watermark burned onto image.';
+      } else if (activeTool === 'convert') {
+        const fmt = $('optConvFmt').value;
+        if (fmt === 'pdf') {
+          const { jsPDF } = window.jspdf;
+          const wMm = 210, hMm = (workCanvas.height / workCanvas.width) * 210;
+          const pdf = new jsPDF({ orientation: wMm > hMm ? 'landscape' : 'portrait', unit: 'mm', format: [wMm, hMm], compress: true });
+          pdf.addImage(workCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, wMm, hMm, undefined, 'FAST');
+          downloadBlob(pdf.output('blob'), `${fileName}.pdf`);
+          $('statusText').textContent = 'Exported as PDF.';
+        } else {
+          const ext = fmt === 'image/png' ? 'png' : (fmt === 'image/webp' ? 'webp' : 'jpg');
+          const c = cloneCanvas(workCanvas);
+          if (fmt === 'image/jpeg') {
+            const bg = document.createElement('canvas');
+            bg.width = c.width; bg.height = c.height;
+            const bctx = bg.getContext('2d');
+            bctx.fillStyle = '#FFFFFF'; bctx.fillRect(0, 0, bg.width, bg.height); bctx.drawImage(c, 0, 0);
+            const blob = await new Promise(r => bg.toBlob(r, fmt, 0.92));
+            downloadBlob(blob, `${fileName}.${ext}`);
+          } else {
+            const blob = await new Promise(r => c.toBlob(r, fmt, 0.92));
+            downloadBlob(blob, `${fileName}.${ext}`);
+          }
+          $('statusText').textContent = `Converted & downloaded as .${ext}`;
+        }
+      } else if (activeTool === 'exif') {
+        const blob = await new Promise(r => workCanvas.toBlob(r, 'image/jpeg', 0.94));
+        downloadBlob(blob, `${fileName}_clean.jpg`);
+        $('statusText').textContent = 'Stripped all EXIF & GPS metadata.';
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Action failed.');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  async function downloadCurrentImage() {
+    if (!workCanvas) return;
+    const hasAlpha = activeTool === 'removebg' && activeBgColor === 'transparent';
+    const mime = hasAlpha ? 'image/png' : 'image/jpeg';
+    const ext = hasAlpha ? 'png' : 'jpg';
+    const blob = await new Promise(r => workCanvas.toBlob(r, mime, 0.92));
+    downloadBlob(blob, `${fileName}_edited.${ext}`);
+  }
+
+  $('downloadBtn').addEventListener('click', downloadCurrentImage);
+  $('homeQuickDownloadBtn').addEventListener('click', downloadCurrentImage);
+
+  $('undoBtn').addEventListener('click', () => {
+    if (!historyStack.length) return;
+    const prev = historyStack.pop();
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.naturalWidth; c.height = img.naturalHeight;
+      c.getContext('2d').drawImage(img, 0, 0);
+      workCanvas = c;
+      renderFunctionView();
+      $('statusText').textContent = 'Undid last edit.';
+    };
+    img.src = prev;
+  });
+
+  // ================= EVENT WIRING =================
+  document.querySelectorAll('#toolsGrid .win11-tile').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeTool = btn.dataset.tool;
+      setView('function', { push: true });
+    });
+  });
+
+  $('topUploadBtn').addEventListener('click', () => $('imgInput').click());
+  $('topCamBtn').addEventListener('click', () => $('camInput').click());
+  $('dropUploadBtn').addEventListener('click', e => { e.stopPropagation(); $('imgInput').click(); });
+  $('dropCamBtn').addEventListener('click', e => { e.stopPropagation(); $('camInput').click(); });
+  $('emptyUploadBtn').addEventListener('click', () => $('imgInput').click());
+  $('emptyCamBtn').addEventListener('click', () => $('camInput').click());
+  $('homeQuickClearBtn').addEventListener('click', clearWorkspace);
+
+  const dz = $('dropZone');
+  dz.addEventListener('click', () => $('imgInput').click());
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('is-dragging'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('is-dragging'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.classList.remove('is-dragging');
+    if (e.dataTransfer.files[0]) loadImageFile(e.dataTransfer.files[0]);
+  });
+
+  $('imgInput').addEventListener('change', e => { if (e.target.files[0]) loadImageFile(e.target.files[0]); e.target.value = ''; });
+  $('camInput').addEventListener('change', e => { if (e.target.files[0]) loadImageFile(e.target.files[0]); e.target.value = ''; });
+
+  refreshIcons();
+})();
+</script>
+</body>
+</html>
